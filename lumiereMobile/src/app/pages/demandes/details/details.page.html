@@ -1,4 +1,4 @@
-﻿<ion-header class="ion-no-border">
+<ion-header class="ion-no-border">
   <div class="lum-logo-bar">
     <div class="lum-logo-wrap">
       <img src="assets/otflow-horizontal.png" alt="Otflow" />
@@ -36,6 +36,88 @@
   </div>
 
   <div *ngIf="!isLoading && ordre" class="details-container">
+    <!-- HIDDEN PROFESSIONAL PDF TEMPLATE (Only for Export) -->
+    <div id="professional-pdf-template" class="pdf-export-container">
+      <div class="pdf-header">
+        <div class="pdf-logo">
+          <img src="assets/otflow-horizontal.png" alt="Otflow" />
+        </div>
+        <div class="pdf-company">
+          <h2>OTFLOW</h2>
+          <p>Service de Transport & Logistique</p>
+          <p>Contact: razanshriif&#64;gmail.com</p>
+        </div>
+      </div>
+
+      <div class="pdf-title-bar">
+        <h1>SUIVI D'ORDRE DE TRANSPORT N° {{ ordre.id }}</h1>
+        <span class="pdf-date">Généré le {{ today | date:'dd/MM/yyyy' }}</span>
+      </div>
+
+      <div class="pdf-main-grid">
+        <div class="pdf-info-box">
+          <h3 class="box-title">INFORMATIONS GÉNÉRALES</h3>
+          <table class="pdf-table">
+            <tr><td>Statut:</td><td class="bold">{{ ordre.statut }}</td></tr>
+            <tr><td>Date Saisie:</td><td>{{ ordre.dateSaisie | date:'dd/MM/yyyy' }}</td></tr>
+            <tr><td>Client:</td><td class="bold">{{ ordre.nomclient }}</td></tr>
+            <tr><td>Code Client:</td><td>{{ ordre.client }}</td></tr>
+          </table>
+        </div>
+
+        <div class="pdf-info-box">
+          <h3 class="box-title">LOGISTIQUE</h3>
+          <div class="pdf-route">
+            <div class="route-block">
+              <strong>CHARGEMENT</strong>
+              <p>{{ ordre.chargementNom }}</p>
+              <p>{{ ordre.chargementAdr1 }}</p>
+              <p>{{ ordre.chargementVille }} ({{ ordre.chargementDate | date:'dd/MM/yyyy' }})</p>
+            </div>
+            <div class="route-block mt-2">
+              <strong>LIVRAISON</strong>
+              <p>{{ ordre.livraisonNom }}</p>
+              <p>{{ ordre.livraisonAdr1 }}</p>
+              <p>{{ ordre.livraisonVille }} ({{ ordre.livraisonDate | date:'dd/MM/yyyy' }})</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pdf-goods-section">
+        <h3 class="box-title">DÉTAILS MARCHANDISE</h3>
+        <table class="pdf-goods-table">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th>Désignation</th>
+              <th>Poids (kg)</th>
+              <th>Colis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ ordre.codeArticle || 'N/A' }}</td>
+              <td>{{ ordre.designation }}</td>
+              <td>{{ ordre.poids }}</td>
+              <td>{{ ordre.nombreColis }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pdf-footer" *ngIf="ordre.commentaires">
+        <h3 class="box-title">COMMENTAIRES</h3>
+        <p class="pdf-comment">{{ ordre.commentaires }}</p>
+      </div>
+      
+      <div class="pdf-signature-area">
+        <div class="sig-box">Cachet & Signature Transporteur</div>
+        <div class="sig-box">Cachet & Signature Client</div>
+      </div>
+    </div>
+
+    <!-- MAIN APP VIEW (Remains same but without visible PDF header) -->
     <!-- Header Status Card -->
     <div class="premium-card glass-card shadow-lg status-header-card">
       <div class="status-top-row">

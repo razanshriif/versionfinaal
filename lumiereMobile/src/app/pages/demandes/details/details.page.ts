@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, LoadingController, ToastController, NavController } from '@ionic/angular';
@@ -21,6 +21,7 @@ import { arrowBackOutline, downloadOutline, printOutline, timeOutline, locationO
 export class DetailsPage implements OnInit {
   ordre: Demande | null = null;
   isLoading = true;
+  today = new Date();
 
   constructor(
     private route: ActivatedRoute,
@@ -65,9 +66,9 @@ export class DetailsPage implements OnInit {
     await loading.present();
 
     try {
-      const data = document.getElementById('print-section');
+      const data = document.getElementById('professional-pdf-template');
       if (!data) {
-        throw new Error('Element not found');
+        throw new Error('Template not found');
       }
 
       // Dynamic import of large libraries to reduce initial bundle size
@@ -76,28 +77,28 @@ export class DetailsPage implements OnInit {
         import('html2canvas').then(m => m.default)
       ]);
 
-      const canvas = await html2canvas(data, { scale: 2 });
+      const canvas = await html2canvas(data, { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: 800 // Force fixed width for capture
+      });
+      
       const imgWidth = 208;
-      const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
 
-      const contentDataURL = canvas.toDataURL('image/png');
+      const pdfDataURL = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      let position = 0;
 
-      pdf.addImage(contentDataURL, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(contentDataURL, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
+      // Add image - fits on one page due to template design
+      pdf.addImage(pdfDataURL, 'PNG', 1, 1, imgWidth, imgHeight);
 
       // Save PDF
-      pdf.save(`Ordre_${this.ordre?.id}.pdf`);
+      pdf.save(`Ordre_Transport_${this.ordre?.id}.pdf`);
+
+      await loading.dismiss();
+      this.showToast('PDF généré avec succès', 'success');
 
       // For mobile, saving might need File Opener or similar, but save() works in browser and some contexts
       // Ideally use Filesystem plugin for better android support later if needed.
