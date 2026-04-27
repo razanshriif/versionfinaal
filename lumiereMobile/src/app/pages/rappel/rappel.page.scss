@@ -402,7 +402,7 @@ ion-fab-button {
 /* --- Modal Styles --- */
 /* --- Manual Modal Custom Rebuild --- */
 .rappel-modal-premium {
-    --height: 94%;
+    --height: 88%;
     --border-radius: 28px 28px 0 0;
 
     ion-header {
@@ -412,12 +412,12 @@ ion-fab-button {
             --background: #fff !important;
             --color: #1e293b;
             --border-width: 0;
-            --padding-top: 24px;
+            --padding-top: 18px;
 
             ion-title {
                 font-weight: 800;
-                font-size: 21px;
-                letter-spacing: -0.6px;
+                font-size: 18px;
+                letter-spacing: -0.5px;
                 color: #1e293b !important;
                 text-align: center;
             }
