@@ -30,20 +30,23 @@
     .pdf-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        border-bottom: 2px solid var(--orange);
-        padding-bottom: 20px;
+        align-items: center;
+        background: var(--orange);
+        padding: 24px;
         margin-bottom: 30px;
+        border-radius: 12px;
+        color: #ffffff;
 
         .pdf-logo img {
-            height: 60px;
+            height: 50px;
             width: auto;
+            filter: brightness(0) invert(1); // Make logo white if it's dark
         }
 
         .pdf-company {
             text-align: right;
-            h2 { margin: 0; color: var(--orange); font-size: 1.5rem; font-weight: 800; }
-            p { margin: 2px 0; font-size: 0.85rem; color: #64748b; font-weight: 600; }
+            h2 { margin: 0; color: #ffffff; font-size: 1.6rem; font-weight: 800; }
+            p { margin: 2px 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.9); font-weight: 600; }
         }
     }
 
