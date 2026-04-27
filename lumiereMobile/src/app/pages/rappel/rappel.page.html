@@ -1,4 +1,4 @@
-﻿<!-- ══ HEADER ══ -->
+<!-- ══ HEADER ══ -->
 <ion-header class="ion-no-border">
     <div class="lum-logo-bar">
         <div class="lum-logo-wrap">
@@ -135,12 +135,10 @@
             <ion-header class="ion-no-border">
                 <ion-toolbar>
                     <div class="modal-header-content">
+                        <button class="modal-close-btn" (click)="closeModal()">
+                            <ion-icon name="close-outline"></ion-icon>
+                        </button>
                         <ion-title>{{ editingRappel ? 'Détails du Rappel' : 'Nouveau Rappel' }}</ion-title>
-                        <ion-buttons slot="end">
-                            <button class="modal-close-btn" (click)="closeModal()">
-                                <ion-icon name="close-outline"></ion-icon>
-                            </button>
-                        </ion-buttons>
                     </div>
                 </ion-toolbar>
             </ion-header>
