@@ -46,6 +46,31 @@
     --radius-pill: 100px;
 }
 
+// ── FORCE LIGHT MODE (Prevent blue/dark look in other browsers) ──
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-app: #F2EEE9 !important;
+        --bg-card: #FFFFFF !important;
+        --ion-background-color: #F2EEE9 !important;
+        --ion-text-color: #18170F !important;
+        --text-main: #18170F !important;
+        --text-sub: #82786F !important;
+        background: #F2EEE9 !important;
+    }
+    
+    body, ion-app, ion-content, ion-page {
+        --background: #F2EEE9 !important;
+        background: #F2EEE9 !important;
+        color: #18170F !important;
+    }
+
+    ion-card, .acard, .delivery-card, .rappel-premium-card {
+        --background: #FFFFFF !important;
+        background: #FFFFFF !important;
+        color: #18170F !important;
+    }
+}
+
 // ══════════════════════════════════════════
 // BASE TYPOGRAPHY
 // ══════════════════════════════════════════

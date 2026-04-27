@@ -41,7 +41,7 @@
         left: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
         animation: rotateGlow 6s linear infinite;
         pointer-events: none;
     }
@@ -53,8 +53,13 @@
 }
 
 @keyframes rotateGlow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .ia-banner-content {
@@ -406,7 +411,7 @@ ion-fab-button {
     --width: 92%;
     --max-width: 450px;
     --border-radius: 28px;
-    --box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     --background: #ffffff;
     align-items: center;
     justify-content: center;
@@ -437,7 +442,7 @@ ion-fab-button {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: #94a3b8;
+                color: #2c3035;
                 cursor: pointer;
                 transition: all 0.2s;
                 position: absolute;
