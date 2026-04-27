@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -14,7 +14,8 @@ import {
     arrowBackOutline, calendarOutline, notificationsOutline, informationCircleOutline,
     optionsOutline, timeOutline, logOutOutline, checkboxOutline, checkbox,
     sparklesOutline, personOutline, chevronForwardOutline, documentTextOutline,
-    chevronBackOutline, chevronUpOutline, chevronDownOutline, closeOutline
+    chevronBackOutline, chevronUpOutline, chevronDownOutline, closeOutline,
+    listOutline, infiniteOutline, calendarClearOutline, flashOutline, hourglassOutline
 } from 'ionicons/icons';
 
 export interface Rappel {
@@ -74,7 +75,8 @@ export class RappelPage implements OnInit {
             arrowBackOutline, calendarOutline, notificationsOutline, informationCircleOutline,
             optionsOutline, timeOutline, logOutOutline, checkboxOutline, checkbox,
             sparklesOutline, personOutline, chevronForwardOutline, documentTextOutline,
-            chevronBackOutline, chevronUpOutline, chevronDownOutline, closeOutline
+            chevronBackOutline, chevronUpOutline, chevronDownOutline, closeOutline,
+            listOutline, infiniteOutline, calendarClearOutline, flashOutline, hourglassOutline
         });
     }
 

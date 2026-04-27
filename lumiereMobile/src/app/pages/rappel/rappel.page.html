@@ -24,11 +24,11 @@
     <div class="lum-segment-container">
         <ion-segment [value]="selectedSegment" (ionChange)="segmentChanged($event)" class="premium-segment">
             <ion-segment-button value="manual">
-                <ion-icon name="person-outline"></ion-icon>
+                <ion-icon name="list-outline"></ion-icon>
                 <ion-label>Mes Rappels</ion-label>
             </ion-segment-button>
             <ion-segment-button value="ia">
-                <ion-icon name="sparkles-outline"></ion-icon>
+                <ion-icon name="infinite-outline"></ion-icon>
                 <ion-label>Assistant IA</ion-label>
             </ion-segment-button>
         </ion-segment>
@@ -42,7 +42,7 @@
         <div class="ia-banner" (click)="navCtrl.navigateForward('/chatbot')">
             <div class="ia-banner-content">
                 <div class="ia-banner-icon-wrap">
-                    <ion-icon name="sparkles-outline" class="ia-banner-icon"></ion-icon>
+                    <ion-icon name="infinite-outline" class="ia-banner-icon"></ion-icon>
                 </div>
                 <div class="ia-banner-text">
                     <strong>Demander à l'assistant</strong>
@@ -58,7 +58,7 @@
     <!-- Empty State -->
     <div *ngIf="groupedRappels.length === 0" class="empty-state-container fade-up">
         <div class="empty-icon-box">
-            <ion-icon [name]="selectedSegment === 'ia' ? 'sparkles-outline' : 'time-outline'"></ion-icon>
+            <ion-icon [name]="selectedSegment === 'ia' ? 'infinite-outline' : 'hourglass-outline'"></ion-icon>
         </div>
         <h2 class="empty-title">Aucun rappel</h2>
         <p class="empty-subtitle">
@@ -98,7 +98,7 @@
                             {{ formatTime(r.date) }}
                         </div>
                         <div class="ia-tag" *ngIf="r.source === 'ia' || selectedSegment === 'ia'">
-                            <ion-icon name="sparkles-outline"></ion-icon>
+                            <ion-icon name="infinite-outline"></ion-icon>
                             IA
                         </div>
                     </div>
@@ -157,7 +157,7 @@
 
                     <!-- 2. Date Preview Pill -->
                     <div class="date-preview-pill fade-up">
-                        <ion-icon name="calendar-outline"></ion-icon>
+                        <ion-icon name="calendar-clear-outline"></ion-icon>
                         <span>{{ getFormattedSelectedDate() }}</span>
                     </div>
 
