@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -153,10 +153,16 @@ export class ProfilePage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Déconnexion',
       message: 'Voulez-vous vraiment vous déconnecter ?',
+      cssClass: 'custom-alert',
       buttons: [
-        { text: 'Annuler', role: 'cancel' },
+        { 
+          text: 'Annuler', 
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
         {
           text: 'Déconnexion',
+          cssClass: 'alert-button-confirm',
           handler: () => {
             this.authService.logout();
             this.router.navigate(['/login']);

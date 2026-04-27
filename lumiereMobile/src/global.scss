@@ -695,6 +695,83 @@ ion-tab-button {
     }
 }
 
+// ══════════════════════════════════════════
+// ALERTS (ion-alert)
+// ══════════════════════════════════════════
+.custom-alert {
+    --background: #ffffff;
+    --backdrop-opacity: 0.4;
+    
+    &::part(container) {
+        border-radius: 28px;
+        background: #ffffff;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--border-card);
+        padding: 8px;
+    }
+
+    &::part(header) {
+        padding-top: 24px;
+        padding-bottom: 8px;
+    }
+
+    &::part(title) {
+        color: var(--text-main);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    &::part(message) {
+        color: var(--text-sub);
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.5;
+        padding-bottom: 20px;
+    }
+
+    &::part(button-group) {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    button.alert-button {
+        border-radius: 14px;
+        font-weight: 800;
+        text-transform: none;
+        font-size: 14px;
+        height: 48px;
+        margin: 4px;
+        transition: all 0.2s;
+
+        &.alert-button-confirm {
+            background: var(--orange);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+            
+            &.activated {
+                transform: scale(0.96);
+                background: var(--orange-deep);
+            }
+        }
+
+        &.alert-button-cancel {
+            background: var(--bg-app);
+            color: var(--text-main);
+            border: 1px solid var(--border-card);
+            
+            &.activated {
+                transform: scale(0.96);
+                background: #e5e7eb;
+            }
+        }
+
+        &.alert-button-role-destructive {
+            color: #ef4444;
+        }
+    }
+}
+
 
 // hide legacy elements
 .brand-lines,

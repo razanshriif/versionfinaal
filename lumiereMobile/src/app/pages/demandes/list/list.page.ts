@@ -360,10 +360,16 @@ export class ListPage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Confirmation',
       message: `Voulez-vous confirmer l'ordre ${demande.id} ?`,
+      cssClass: 'custom-alert',
       buttons: [
-        { text: 'Annuler', role: 'cancel' },
+        { 
+          text: 'Annuler', 
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
         {
           text: 'Confirmer',
+          cssClass: 'alert-button-confirm',
           handler: () => {
             this.demandeService.confirmerDemande(demande.id!).subscribe({
               next: () => {
@@ -385,11 +391,17 @@ export class ListPage implements OnInit {
     const alert = await this.alertController.create({
       header: 'Suppression',
       message: `Voulez-vous supprimer l'ordre ${demande.id} ?`,
+      cssClass: 'custom-alert',
       buttons: [
-        { text: 'Annuler', role: 'cancel' },
+        { 
+          text: 'Annuler', 
+          role: 'cancel',
+          cssClass: 'alert-button-cancel'
+        },
         {
           text: 'Supprimer',
           role: 'destructive',
+          cssClass: 'alert-button-confirm', // uses confirm style but red text handled by role in SCSS
           handler: () => {
             this.demandeService.deleteDemande(demande.id!).subscribe({
               next: () => {
