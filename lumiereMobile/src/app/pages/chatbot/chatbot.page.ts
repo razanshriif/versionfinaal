@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -11,7 +11,7 @@ import {
   IonTextarea
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { notificationsOutline, logOutOutline, arrowBackOutline, trashOutline, sendOutline } from 'ionicons/icons';
+import { notificationsOutline, logOutOutline, arrowBackOutline, trashOutline, send, infiniteOutline } from 'ionicons/icons';
 import { NavController } from '@ionic/angular';
 import { ChatbotService } from '../../services/chatbot.service';
 
@@ -50,7 +50,7 @@ export class ChatbotPage implements OnInit {
     public navCtrl: NavController,
     private chatbotService: ChatbotService
   ) {
-    addIcons({ notificationsOutline, logOutOutline, arrowBackOutline, trashOutline, sendOutline });
+    addIcons({ notificationsOutline, logOutOutline, arrowBackOutline, trashOutline, send, infiniteOutline });
   }
 
   ngOnInit() {

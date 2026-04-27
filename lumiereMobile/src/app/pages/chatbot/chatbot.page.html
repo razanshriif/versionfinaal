@@ -1,4 +1,4 @@
-﻿<ion-header class="ion-no-border">
+<ion-header class="ion-no-border">
   <div class="lum-logo-bar">
     <div class="lum-logo-wrap">
       <img src="assets/otflow-horizontal.png" alt="Otflow" />
@@ -33,6 +33,12 @@
   <div class="chat-container">
     <div *ngFor="let message of messages" class="message-row" [class.user-message]="message.isUser"
       [class.bot-message]="!message.isUser">
+      
+      <!-- Bot Avatar -->
+      <div class="bot-avatar-wrap" *ngIf="!message.isUser">
+        <ion-icon name="infinite-outline"></ion-icon>
+      </div>
+
       <div class="message-bubble">
         <div class="message-text" [innerHTML]="formatMessage(message.text)"></div>
         <div class="message-time">{{ getMessageTime(message.timestamp) }}</div>
