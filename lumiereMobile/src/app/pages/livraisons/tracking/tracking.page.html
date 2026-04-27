@@ -1,0 +1,174 @@
+<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="navigateTo('/notifications')">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">Mes Expéditions</h1>
+    <button class="lum-filter-btn" (click)="refreshData($event)">
+      <ion-icon name="refresh-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="premium-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content pullingIcon="chevron-down-outline" refreshingSpinner="dots"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="glass-background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
+
+  <div class="tracking-container">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="ion-text-center ion-padding mt-5">
+      <ion-spinner name="dots" color="primary"></ion-spinner>
+      <p class="mt-3 loading-text">Synchronisation en cours...</p>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!loading && livraisons.length === 0" class="empty-state">
+      <ion-icon name="cube-outline"></ion-icon>
+      <p>Aucune expédition active pour le moment</p>
+    </div>
+    <!-- Tracking cards -->
+    <div *ngIf="!loading && livraisons.length > 0">
+      <div class="tracking-card fade-up" *ngFor="let livraison of livraisons; let i = index" 
+           [style.animation-delay]="i * 0.1 + 's'">
+        
+        <!-- Card Header -->
+        <div class="card-top">
+          <div class="order-identity">
+            <span class="ref-pill">{{ livraison.orderNumber || '#' + livraison.id }}</span>
+            <h3>{{ livraison.nomclient || livraison.client }}</h3>
+            <div class="tracing-label">
+              <ion-icon name="analytics-outline"></ion-icon>
+              <span>Traçage du trajet</span>
+            </div>
+          </div>
+          <div class="delivery-estimate" *ngIf="livraison.livraisonDate">
+            <span class="label">Estimation</span>
+            <span class="value">{{ formatDate(livraison.livraisonDate) }}</span>
+          </div>
+        </div>
+
+        <!-- Route Section -->
+        <div class="route-box">
+          <div class="path-visual">
+            <div class="node start">
+              <div class="node-icon"><ion-icon name="business"></ion-icon></div>
+              <div class="node-info">
+                <span class="location">{{ livraison.chargementVille || 'Origine' }}</span>
+                <span class="entity">{{ livraison.chargementNom || 'Entrepôt' }}</span>
+              </div>
+            </div>
+            
+            <div class="path-line">
+              <div class="progress-bar" [style.width]="getStepProgress(livraison.statut) + '%'"></div>
+              <ion-icon name="chevron-forward-outline" class="moving-arrow"></ion-icon>
+            </div>
+
+            <div class="node end">
+              <div class="node-icon"><ion-icon name="location"></ion-icon></div>
+              <div class="node-info">
+                <span class="location">{{ livraison.livraisonVille || 'Destination' }}</span>
+                <span class="entity">Tunisie</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modern Stepper with Icons -->
+        <div class="modern-stepper">
+          <div class="step-line-bg">
+            <div class="step-line-fill" [style.width]="getStepProgress(livraison.statut) + '%'"></div>
+          </div>
+          <div class="steps-container">
+            <div class="step" [class.active]="isStepActive(0, livraison.statut)" [class.completed]="getStepIndex(livraison.statut) > 0">
+              <div class="step-icon"><ion-icon name="business-outline"></ion-icon></div>
+              <span>Départ</span>
+            </div>
+            <div class="step" [class.active]="isStepActive(1, livraison.statut)" [class.completed]="getStepIndex(livraison.statut) > 1">
+              <div class="step-icon"><ion-icon name="file-tray-full-outline"></ion-icon></div>
+              <span>Chargemt</span>
+            </div>
+            <div class="step" [class.active]="isStepActive(2, livraison.statut)" [class.completed]="getStepIndex(livraison.statut) > 2">
+              <div class="step-icon"><ion-icon name="bus-outline"></ion-icon></div>
+              <span>Chargé</span>
+            </div>
+            <div class="step" [class.active]="isStepActive(3, livraison.statut)" [class.completed]="getStepIndex(livraison.statut) > 3">
+              <div class="step-icon"><ion-icon name="map-outline"></ion-icon></div>
+              <span>Livrais.</span>
+            </div>
+            <div class="step" [class.active]="isStepActive(4, livraison.statut)" [class.completed]="getStepIndex(livraison.statut) > 4">
+              <div class="step-icon"><ion-icon name="checkmark-done-outline"></ion-icon></div>
+              <span>Livré</span>
+            </div>
+            <div class="step" [class.active]="isStepActive(5, livraison.statut)" [class.completed]="getStepIndex(livraison.statut) > 5">
+              <div class="step-icon"><ion-icon name="flag-outline"></ion-icon></div>
+              <span>Fin</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta Info & Badges -->
+        <div class="card-meta">
+          <div class="info-badges">
+            <span class="badge site">SAL</span>
+            <span class="badge voy" *ngIf="livraison.voycle">
+              <ion-icon name="layers-outline"></ion-icon>
+              {{ livraison.voycle }}
+            </span>
+            <span class="badge truck" *ngIf="livraison.matricule">
+              <ion-icon name="bus-outline"></ion-icon>
+              {{ livraison.matricule }}
+            </span>
+          </div>
+
+          <div class="specs">
+            <div class="spec-item" *ngIf="livraison.poids">
+              <ion-icon name="barbell-outline"></ion-icon>
+              <span>{{ livraison.poids }}kg</span>
+            </div>
+            <div class="spec-item" *ngIf="livraison.nombrePalettes">
+              <ion-icon name="cube-outline"></ion-icon>
+              <span>{{ livraison.nombrePalettes }} pal</span>
+            </div>
+          </div>
+          
+          <div class="card-actions">
+            <button class="btn-secondary" (click)="selectLivraison(livraison); viewDetails(livraison); $event.stopPropagation()">
+              <ion-icon name="eye-outline"></ion-icon>
+              <span>Détails</span>
+            </button>
+            <button class="btn-primary" (click)="selectLivraison(livraison); viewOnMap(); $event.stopPropagation()">
+              <ion-icon name="map-outline"></ion-icon>
+              <span>Live Map</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+</ion-content>
+
+
+

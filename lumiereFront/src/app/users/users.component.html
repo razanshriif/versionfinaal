@@ -1,0 +1,241 @@
+﻿<!-- Button to Open the Modal -->
+
+<div class="user-view-container">
+  <!-- View Header -->
+  <div class="view-header">
+    <div class="title-section">
+      <div class="icon-box">
+        <i class="fa fa-users-cog"></i>
+      </div>
+      <div>
+        <h2>Gestion des Utilisateurs</h2>
+        <p class="subtitle">Administrez les comptes et les accès système.</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn-print-preview" (click)="openReport()" title="Aperçu / Imprimer">
+        <i class="fa fa-print"></i> <span>Imprimer</span>
+      </button>
+      <button type="button" class="btn-export" (click)="exportToExcel()" title="Exporter">
+        <i class="fa fa-file-excel"></i> <span>Export</span>
+      </button>
+      <button type="button" class="btn-create" (click)="openModal()">
+        <i class="fa fa-plus-circle"></i> <span>Add User</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search & Stats Bar -->
+  <div class="dashboard-bar lum-card">
+    <div class="search-wrapper">
+      <i class="fa fa-search"></i>
+      <input type="text" [(ngModel)]="searchTerm" (input)="searchUsers()"
+        placeholder="Rechercher par nom, email ou rôle..." class="premium-search">
+    </div>
+    <div class="stats-info">
+      <span class="count-pill">{{ filteredUsers.length }} Utilisateurs</span>
+    </div>
+  </div>
+
+  <!-- Main Table Card -->
+  <div class="content-card lum-card">
+    <div class="table-container">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Collaborateur</th>
+            <th>Email</th>
+            <th>Rôle Système</th>
+            <th>ID Client</th>
+            <th>Statut de Compte</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of filteredUsers" class="hover-row">
+            <td class="id-cell">
+              <span class="id-badge">#{{ client.id }}</span>
+            </td>
+            <td>
+              <div class="user-identity">
+                <div class="avatar-mini">{{ client.firstname[0] }}{{ client.lastname[0] }}</div>
+                <div class="name-info">
+                  <span class="fullname">{{ client.firstname }} {{ client.lastname }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="email-text">{{ client.email }}</span>
+            </td>
+            <td>
+              <span class="role-tag" [attr.data-role]="client.role">{{ client.role }}</span>
+            </td>
+            <td>
+              <div class="link-id" *ngIf="client.linkedClientId">
+                <i class="fa fa-link"></i> #{{ client.linkedClientId }}
+              </div>
+              <span class="no-link" *ngIf="!client.linkedClientId">Solo</span>
+            </td>
+            <td>
+              <div class="status-indicator" [attr.data-status]="client.status">
+                <i class="fa fa-circle"></i>
+                <span>{{ client.status === 'PENDING' && client.registrationApproved ? 'PENDING COMPLETION' :
+                  client.status }}</span>
+              </div>
+            </td>
+            <td>
+              <!-- Full power column for admins and commercials -->
+              <div class="action-orbit"
+                *ngIf="currentUserRole === 'ADMIN' || currentUserRole === 'COMMERCIAL' || currentUserRole === 'USER_Otflow'">
+
+                <!-- Approve -->
+                <button class="orbit-btn success" *ngIf="client.status === 'PENDING'" 
+                  (click)="client.role === 'CLIENT' ? openApprovalModal(client) : approve(client.id)"
+                  title="Approve">
+                  <i class="fa fa-check"></i>
+                </button>
+
+                <!-- Reject / Block -->
+                <button class="orbit-btn danger" *ngIf="client.status === 'PENDING' || client.status === 'ACTIVE'"
+                  (click)="client.status === 'PENDING' ? reject(client.id) : blockUser(client.id)"
+                  [title]="client.status === 'PENDING' ? 'Reject' : 'Block User'">
+                  <i class="fa" [ngClass]="client.status === 'PENDING' ? 'fa-times' : 'fa-ban'"></i>
+                </button>
+
+                <!-- Unblock -->
+                <button class="orbit-btn success" *ngIf="client.status === 'REJECTED' || client.status === 'BLOCKED'"
+                  (click)="approve(client.id)" title="Activate">
+                  <i class="fa fa-unlock"></i>
+                </button>
+
+                <!-- Edit -->
+                <button class="orbit-btn info" (click)="editUser(client)" title="Edit">
+                  <i class="fa fa-pen"></i>
+                </button>
+
+                <!-- Delete (NEW) -->
+                <button class="orbit-btn danger" (click)="deleteUser(client.id)" title="Delete">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- The Modal -->
+<div id="addUserModal" class="modal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content premium-modal">
+      <div class="modal-header-gradient">
+        <div class="header-content">
+          <i class="fa fa-user-plus"></i>
+          <h5 class="modal-title" id="addUserModalLabel">{{ user.id ? 'Modifier l\'Utilisateur' : 'Ajouter un
+            Utilisateur' }}</h5>
+        </div>
+        <button type="button" class="btn-close-white" (click)="closeModal()" aria-label="Close">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body-premium">
+        <form (ngSubmit)="onSubmit()">
+          <div class="form-section">
+            <h6><i class="fa fa-id-card"></i> Identité</h6>
+            <div class="form-row">
+              <div class="form-group-modern">
+                <label>Prénom</label>
+                <input type="text" [(ngModel)]="user.firstname" name="firstname" required placeholder="Ex: Jean">
+              </div>
+              <div class="form-group-modern">
+                <label>Nom</label>
+                <input type="text" [(ngModel)]="user.lastname" name="lastname" required placeholder="Ex: Dupont">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h6><i class="fa fa-envelope-open-text"></i> Accès</h6>
+            <div class="form-group-modern fluid">
+              <label>Email Professionnel</label>
+              <input type="email" [(ngModel)]="user.email" name="email" required placeholder="contact@entreprise.com">
+            </div>
+            <div class="form-row" style="margin-top: 20px;">
+              <div class="form-group-modern">
+                <label>Mot de passe</label>
+                <input type="password" [(ngModel)]="user.password" name="password" required placeholder="••••••••">
+              </div>
+              <div class="form-group-modern">
+                <label>Rôle Système</label>
+                <select class="form-select-modern" [(ngModel)]="user.role" name="role" required>
+                  <option value="CLIENT">CLIENT</option>
+                  <option value="COMMERCIAL">COMMERCIAL</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="USER_Otflow">Otflow EMPLOYEE</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer-premium">
+            <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+            <button type="submit" class="btn-save">
+              <i class="fa fa-check-circle"></i> Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Approval Modal for Clients -->
+<div id="approveClientModal" class="modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content premium-modal">
+      <div class="modal-header-gradient success" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 15px 20px; color: white;">
+        <div class="header-content" style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa fa-user-check"></i>
+          <h5 class="modal-title" style="margin: 0; font-weight: 600;">Approbation du Client</h5>
+        </div>
+        <button type="button" class="btn-close-white" (click)="closeApprovalModal()" style="background: none; border: none; color: white; cursor: pointer;">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body-premium" style="padding: 25px;">
+        <p class="modal-hint" style="margin-bottom: 20px; color: #666;">Veuillez remplir les identifiants métier pour finaliser l'inscription de <strong>{{ selectedUser?.firstname }} {{ selectedUser?.lastname }}</strong>.</p>
+        
+        <div class="form-section">
+          <div class="form-group-modern fluid" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Code Client (Logiciel Métier)</label>
+            <input type="text" [(ngModel)]="approvalData.codeClient" placeholder="Ex: CL-2024-001" required
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; outline: none;">
+          </div>
+          <div class="form-group-modern fluid">
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">ID EDI (Identifiant Échange de Données)</label>
+            <input type="text" [(ngModel)]="approvalData.idEdi" placeholder="Ex: EDI_9988" required
+              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; outline: none;">
+          </div>
+        </div>
+
+        <div class="modal-footer-premium" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" class="btn-cancel" (click)="closeApprovalModal()" 
+            style="padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer; transition: all 0.2s;">
+            Annuler
+          </button>
+          <button type="button" class="btn-save success" (click)="onConfirmApproval()" 
+            [disabled]="!approvalData.codeClient || !approvalData.idEdi"
+            style="padding: 10px 25px; border-radius: 8px; background: #28a745; color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+            <i class="fa fa-check-circle"></i> Valider & Activer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

@@ -1,0 +1,127 @@
+﻿.splash-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s;
+
+    &.visible {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+
+.logo-animation {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .splash-logo {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        z-index: 2;
+        border: 3px solid rgba(217, 119, 6, 0.4);
+        box-shadow: 0 0 40px rgba(217, 119, 6, 0.2);
+        animation: smoothPulse 3s infinite ease-in-out;
+    }
+
+    .glow-ring {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 1px solid rgba(217, 119, 6, 0.15);
+        animation: slowOrbit 6s linear infinite;
+    }
+}
+
+.loading-bar-container {
+    width: 160px;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.loading-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, #D97706, transparent);
+    animation: progress 1.2s infinite ease-in-out;
+}
+
+.brand-text {
+    color: #4b5563;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    margin-top: 5px;
+    opacity: 0.8;
+}
+
+@keyframes progress {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes smoothPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.95;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
+@keyframes slowOrbit {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Dark Mode Support */
+body.dark {
+    .splash-container {
+        background: #0f172a;
+    }
+
+    .loading-bar-container {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .brand-text {
+        color: #f3f4f6;
+    }
+}

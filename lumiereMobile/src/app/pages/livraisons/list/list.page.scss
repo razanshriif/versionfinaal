@@ -1,0 +1,282 @@
+﻿:host {
+    display: block;
+    height: 100%;
+}
+
+.premium-content {
+    --background: var(--bg-app);
+}
+
+// ── Segmented Tabs ──
+.segmented-tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    padding: 0 16px;
+    z-index: 10;
+    flex-shrink: 0;
+
+    .tab-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 0;
+        position: relative;
+        color: #888;
+        font-weight: 700;
+        font-size: 15px;
+        transition: all 0.2s;
+
+        span {
+            transition: color 0.2s;
+        }
+
+        .indicator {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--orange);
+            border-radius: 3px 3px 0 0;
+            transition: width 0.3s ease;
+        }
+
+        &.active {
+            color: var(--orange);
+
+            .indicator {
+                width: 80%;
+            }
+        }
+    }
+}
+
+.swipe-container {
+    display: flex;
+    overflow-x: auto;
+    width: 100%;
+    height: 100%;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.swipe-column {
+    flex: 0 0 100%;
+    width: 100%;
+    scroll-snap-align: start;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.list-body {
+    padding: 20px 16px 120px;
+    background: transparent;
+}
+
+// ── Banner ──
+.today-banner {
+    margin-bottom: 20px;
+
+    .banner-inner {
+        background: #fff;
+        border: 1px solid var(--border-card);
+        border-radius: 18px;
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+
+        .label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .date {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+    }
+}
+
+// ── Search & Filter ──
+.filter-wrapper {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.date-picker-card {
+    background: #fff;
+    border: 1px solid var(--border-card);
+    border-radius: 18px;
+    overflow: hidden;
+
+    .card-header {
+        padding: 12px 16px;
+        background: #FAFAFA;
+        border-bottom: 1px solid var(--border-card);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+}
+
+.unified-search-container {
+    background: #fff;
+    border: 1px solid var(--border-card);
+    border-radius: 14px;
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    ion-icon {
+        font-size: 18px;
+        color: var(--text-sub);
+    }
+
+    ion-input {
+        --padding-start: 0;
+        --color: var(--text-main);
+        font-weight: 600;
+    }
+}
+
+// ── Cards ──
+.delivery-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.delivery-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-card);
+    transition: all 0.2s;
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    .card-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .id-pill {
+                background: #18170F;
+                color: #fff;
+                font-family: 'DM Mono', monospace;
+                font-size: 11px;
+                font-weight: 800;
+                padding: 4px 10px;
+                border-radius: 8px;
+            }
+
+            .status-pill {
+                padding: 4px 12px;
+                border-radius: 100px;
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                background: #eee;
+                color: #999;
+
+                &.pending { background: #fff7ed; color: #f97316; }
+                &.ready { background: #eff6ff; color: #2563eb; }
+                &.transit { background: #fdf4ff; color: #a855f7; }
+                &.delivery { background: #ecfdf5; color: #059669; }
+                &.done { background: #f0fdf4; color: #16a34a; }
+                &.failed { background: #fef2f2; color: #dc2626; }
+            }
+        }
+
+        .route-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+
+            .town {
+                font-size: 15px;
+                font-weight: 800;
+            }
+
+            .arrow {
+                color: var(--orange);
+                font-weight: 400;
+                font-size: 16px;
+            }
+        }
+    }
+
+    .chevron-icon {
+        font-size: 18px;
+        color: #ccc;
+    }
+}
+
+// ── Empty State ──
+.empty-liv {
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        background: #f8fafc;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+
+        ion-icon {
+            font-size: 32px;
+            color: #cbd5e1;
+        }
+    }
+
+    h3 {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 8px;
+    }
+
+    p {
+        font-size: 14px;
+        color: var(--text-sub);
+        margin: 0;
+    }
+}

@@ -1,0 +1,135 @@
+﻿// ─────────────────────────────────────────
+// OTFLOW Logistique — Bottom Nav
+// ─────────────────────────────────────────
+
+$orange: #F7941D ;
+$charcoal: #f0f0f3;
+$muted: #71717a;
+$border: rgba(0, 0, 0, 0.08);
+$bg: #ffffff;
+
+:host {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+ion-tabs {
+    height: 100%;
+    width: 100%;
+
+    // Hide default tab bar in case Ionic renders one
+    ion-tab-bar {
+        display: none !important;
+    }
+}
+
+.nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid $border;
+    display: flex;
+    align-items: flex-end;
+    padding: 8px 0 calc(18px + var(--ion-safe-area-bottom, 0px));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 200;
+
+    &__item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 3px 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+
+        svg {
+            width: 22px;
+            height: 22px;
+            stroke: $muted;
+            transition: stroke 0.2s;
+        }
+
+        &--active {
+            svg {
+                stroke: $orange;
+            }
+
+            .nav__label {
+                color: $orange;
+            }
+
+            .nav__icon-wrap::after {
+                content: '';
+                position: absolute;
+                bottom: -5px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: $orange;
+            }
+        }
+    }
+
+    &__icon-wrap {
+        position: relative;
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+    }
+
+    &__label {
+        font-size: 9px;
+        font-weight: 700;
+        color: $muted;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        transition: color 0.2s;
+    }
+
+    // ── Centre FAB ──
+    &__fab {
+        flex: 0 0 64px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: -20px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+
+        .nav__label {
+            font-size: 9px;
+        }
+    }
+
+    &__fab-ring {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: $charcoal;
+        box-shadow: 0 4px 16px rgba(44, 47, 52, 0.35);
+        display: grid;
+        place-items: center;
+        border: 3px solid $bg;
+        transition: transform 0.14s, background 0.14s;
+
+        svg {
+            width: 22px;
+            height: 22px;
+            stroke: $orange;
+        }
+    }
+
+    &__fab:active &__fab-ring {
+        transform: scale(0.91);
+        background: $orange;
+    }
+}

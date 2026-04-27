@@ -1,0 +1,73 @@
+﻿<ion-content class="login-content">
+  <!-- Dynamic Background Bubbles -->
+  <div class="bg-bubble b1"></div>
+  <div class="bg-bubble b2"></div>
+  <div class="bg-bubble b3"></div>
+
+  <div class="login-container">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-wrapper">
+        <img src="assets/otflow-logo.png" alt="OTFLOW Logo" class="main-logo" />
+        <div class="logo-glow"></div>
+      </div>
+      <h1 class="brand-title">OTFLOW</h1>
+      <p class="brand-subtitle">LOGISTIQUE EXPRESS</p>
+    </div>
+
+    <!-- Login Glass Card -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h2>Bienvenue</h2>
+        <p>Connectez-vous pour continuer</p>
+      </div>
+
+      <form [formGroup]="loginForm" class="login-form">
+        <!-- Email Input -->
+        <div class="input-group">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <ion-input type="email" formControlName="email" placeholder="Adresse Email" class="custom-input">
+          </ion-input>
+        </div>
+
+        <!-- Password Input -->
+        <div class="input-group">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Mot de passe"
+            class="custom-input">
+          </ion-input>
+          <ion-button fill="clear" class="eye-btn" (click)="togglePasswordVisibility()">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Forgot Password -->
+        <div class="forgot-container">
+          <a class="forgot-link">Mot de passe oublié ?</a>
+        </div>
+
+        <!-- Login Button -->
+        <ion-button expand="block" class="login-btn" (click)="onLogin()">
+          <span *ngIf="!isLoading">Se connecter</span>
+          <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+        </ion-button>
+
+        <div class="divider">
+          <span>OU</span>
+        </div>
+
+        <!-- Register Button -->
+        <ion-button expand="block" fill="outline" class="register-btn" (click)="goToRegister()">
+          Créer un compte
+        </ion-button>
+      </form>
+    </div>
+
+    <div class="login-footer">
+      <p>© 2026 OTFLOW Logistique. Tous droits réservés.</p>
+    </div>
+  </div>
+</ion-content>
+
+
+

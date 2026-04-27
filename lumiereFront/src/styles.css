@@ -1,0 +1,314 @@
+﻿/* ═══════════════════════════════════════════════════════════
+   OTFLOW TRANSPORT — Global Design System
+   Unified palette from mobile app
+   ═══════════════════════════════════════════════════════════ */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  /* ── Brand ── */
+  --orange: #f5921e;
+  --orange-deep: #d97c10;
+  --orange-light: rgba(245, 146, 30, 0.08);
+  --orange-glow: rgba(245, 146, 30, 0.35);
+
+  /* ── Neutrals ── */
+  --charcoal: #1a1c1f;
+  --charcoal-light: #2c2f33;
+  --bg: #ffffff;
+  --card: #ffffff;
+  --text: #1a1c1f;
+  --sub: #64748b;
+  --muted: #94a3b8;
+  --border: rgba(0, 0, 0, 0.06);
+  --border-solid: #e2e8f0;
+
+  /* ── Status ── */
+  --green: #10b981;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --blue: #3b82f6;
+
+  /* ── Spacing & Shapes ── */
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Sidebar ── */
+  --sidebar-width: 260px;
+
+  /* ── Premium Effects ── */
+  --glass: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: blur(12px);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --brand-gradient: linear-gradient(135deg, #f5921e 0%, #ea580c 100%);
+  --brand-glow: 0 4px 15px rgba(245, 146, 30, 0.25);
+}
+
+/* ── Global Utility Classes ── */
+.lum-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-main);
+  transition: var(--transition);
+}
+
+.lum-card:hover {
+  box-shadow: var(--shadow-float);
+}
+
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+}
+
+/* ── Modern Table Defaults ── */
+.modern-table-container {
+  background: white;
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: var(--shadow-main);
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.modern-table thead th {
+  padding: 16px 24px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.modern-table tbody tr {
+  background: #fbfbfc;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.modern-table tbody tr:hover {
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+.modern-table td {
+  padding: 15px 24px;
+  vertical-align: middle;
+}
+
+/* ── Reset & Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sub);
+}
+
+/* ── Utility Animations ── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Material Overrides ── */
+.mat-raised-button.mat-primary,
+.mat-flat-button.mat-primary,
+.mat-fab.mat-primary,
+.mat-mini-fab.mat-primary {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%) !important;
+  color: white !important;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  box-shadow: 0 4px 15px var(--orange-glow);
+}
+
+.mat-raised-button.mat-primary:hover,
+.mat-flat-button.mat-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--orange-glow);
+}
+
+.mat-stroked-button.mat-primary {
+  color: var(--orange);
+  border-color: var(--orange);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.mat-stroked-button.mat-primary:hover {
+  background-color: var(--orange-light);
+}
+
+/* Material form fields */
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  color: var(--border-solid);
+}
+
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: var(--orange) !important;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-label {
+  color: var(--sub);
+}
+
+.mat-input-element {
+  color: var(--text);
+}
+
+.mat-select-panel,
+.mat-autocomplete-panel {
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ── Card Utility ── */
+.lum-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.lum-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Badge Utility ── */
+.lum-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.lum-badge--success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--green);
+}
+
+.lum-badge--warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--yellow);
+}
+
+.lum-badge--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--red);
+}
+
+.lum-badge--info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--blue);
+}
+
+.lum-badge--orange {
+  background: var(--orange-light);
+  color: var(--orange);
+}
+
+/* ── Container ── */
+.container {
+  padding: 2rem;
+}
+
+

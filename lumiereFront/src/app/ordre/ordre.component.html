@@ -1,0 +1,334 @@
+﻿<div class="view-container">
+  <!-- Header Section -->
+  <div class="view-header">
+    <div class="title-section">
+      <div class="icon-circle">
+        <i class="fa fa-truck-moving"></i>
+      </div>
+      <div class="text-content">
+        <h2>Suivi des Expéditions</h2>
+        <p class="subtitle-gray">Progression en temps réel et gestion des ordres de transport</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export-excel" (click)="exporterExcel()">
+        <i class="fa fa-file-excel"></i> EXPORTER EXCEL
+      </button>
+    </div>
+  </div>
+
+  <!-- Modern Filters Panel -->
+  <div class="premium-filters-card">
+    <div class="filters-grid-new">
+      <!-- First Row -->
+      <div class="filter-item">
+        <label>Période du</label>
+        <div class="modern-input-box">
+          <i class="fa fa-calendar-alt icon-left"></i>
+          <input type="date" [(ngModel)]="dateDebut" />
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>au</label>
+        <div class="modern-input-box">
+          <i class="fa fa-calendar-alt icon-left"></i>
+          <input type="date" [(ngModel)]="dateFin" />
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>Client</label>
+        <div class="modern-input-box">
+          <i class="fa fa-user icon-left"></i>
+          <input type="text" placeholder="Nom du client..." [(ngModel)]="filtreClient" />
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>Site</label>
+        <div class="modern-input-box">
+          <i class="fa fa-building icon-left"></i>
+          <select [(ngModel)]="filtreSite">
+            <option value="">Tous les sites</option>
+            <option *ngFor="let site of siteOptions" [value]="site">{{ site }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>Statut</label>
+        <div class="modern-input-box">
+          <i class="fa fa-info-circle icon-left"></i>
+          <select [(ngModel)]="filtreStatut">
+            <option value="">Tous les statuts</option>
+            <option *ngFor="let st of statutOptions" [value]="st">{{ st }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>Chauffeur</label>
+        <div class="modern-input-box">
+          <i class="fa fa-id-badge icon-left"></i>
+          <input type="text" placeholder="Nom..." [(ngModel)]="filtreChauffeur" />
+        </div>
+      </div>
+
+      <!-- Second Row -->
+      <div class="filter-item">
+        <label>Destination</label>
+        <div class="modern-input-box">
+          <i class="fa fa-map-marker-alt icon-left"></i>
+          <input type="text" placeholder="Ville..." [(ngModel)]="filtreDestination" />
+        </div>
+      </div>
+      <div class="filter-item">
+        <label>Source</label>
+        <div class="modern-input-box">
+          <i class="fa fa-map-marker icon-left"></i>
+          <input type="text" placeholder="Ville..." [(ngModel)]="filtreSource" />
+        </div>
+      </div>
+
+      <!-- Buttons at the end of Second Row area -->
+       <div class="filter-actions-right">
+          <button class="btn-search-orange" (click)="filtrerParDate()">
+            <i class="fa fa-search"></i> RECHERCHER
+          </button>
+          <button class="btn-reset-white" (click)="resetFiltre()">
+            <i class="fa fa-sync-alt"></i> RÉINITIALISER
+          </button>
+       </div>
+    </div>
+  </div>
+
+  <!-- Orders Table Section -->
+  <div class="orders-table-wrapper">
+    <div class="table-info-bar">
+      <i class="fa fa-list-ul"></i>
+      <span>{{ ordresFiltres.length }} ordres trouvés</span>
+    </div>
+
+    <table class="premium-modern-table">
+      <thead>
+        <tr>
+          <th width="18%">DATES & IDENTITÉ</th>
+          <th width="18%">SOURCE / DESTINATION</th>
+          <th width="15%">DÉTAILS & COMMS</th>
+          <th width="12%">CHAUFFEUR / CAMION</th>
+          <th width="30%">PROGRESSION</th>
+          <th width="7%">ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let ordre of ordresFiltres">
+          <tr *ngIf="ordre.statut !== 'NON_CONFIRME'" class="order-card-row" [ngClass]="ordre.statut.toLowerCase()">
+            <!-- Column 1: Dates & Identité -->
+            <td class="cell-identity">
+              <div class="client-name-bold">{{ ordre.nomclient || 'Client Inconnu' }}</div>
+              <div class="order-number-gray">{{ ordre.orderNumber }}</div>
+              <div class="date-stacked">
+                <span class="date-item"><i class="fa fa-clock"></i> Saisie: {{ ordre.dateSaisie | date:'dd/MM/yyyy' }}</span>
+                <span class="date-item orange-text"><i class="fa fa-calendar-alt"></i> Prévu: {{ ordre.livraisonDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </td>
+
+            <!-- Column 2: Source / Destination -->
+            <td class="cell-itinerary">
+              <div class="itinerary-point source">
+                <span class="dot green-dot"></span>
+                <div class="point-info">
+                  <div class="point-name">{{ ordre.chargementNom }}</div>
+                  <div class="point-city">{{ ordre.chargementVille }}</div>
+                </div>
+              </div>
+              <div class="itinerary-point destination">
+                <span class="dot red-dot"></span>
+                <div class="point-info">
+                  <div class="point-name">{{ ordre.livraisonNom }}</div>
+                  <div class="point-city">{{ ordre.livraisonVille }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Column 3: Détails & Comms -->
+            <td class="cell-details">
+              <div class="badges-flex">
+                <span class="badge-mini-green" title="Site">{{ ordre.siteclient }}</span>
+                <span class="badge-mini-blue" title="Article">{{ ordre.codeArticle }}</span>
+              </div>
+              
+              <!-- New info icons -->
+              <div class="info-icons-row">
+                <span class="info-tag" *ngIf="ordre.poids" title="Poids">
+                  <i class="fa fa-weight-hanging"></i> {{ ordre.poids }} kg
+                </span>
+                <span class="info-tag" *ngIf="ordre.nombrePalettes" title="Palettes">
+                  <i class="fa fa-boxes-stacked"></i> {{ ordre.nombrePalettes }} pal
+                </span>
+                <span class="info-tag" *ngIf="ordre.volume" title="Volume">
+                  <i class="fa fa-cube"></i> {{ ordre.volume }} m³
+                </span>
+              </div>
+
+              <div class="comment-bubble-box" *ngIf="ordre.commentaires && ordre.commentaires.length > 0">
+                <i class="fa fa-comment-dots"></i>
+                <span class="comment-preview">{{ ordre.commentaires[0] }}...</span>
+              </div>
+            </td>
+
+            <!-- Column 4: Chauffeur -->
+            <td class="cell-chauffeur">
+              <div class="chauffeur-status-box" [ngClass]="{'unassigned': !ordre.chauffeur}">
+                <i class="fa fa-user-slash" *ngIf="!ordre.chauffeur"></i>
+                <i class="fa fa-user-tie" *ngIf="ordre.chauffeur"></i>
+                <span>{{ ordre.chauffeur || 'Non assigné' }}</span>
+              </div>
+            </td>
+
+            <!-- Column 5: Progression (Timeline Graphique) -->
+            <td class="cell-progression">
+               <div class="graphical-timeline">
+                  <div class="timeline-nodes">
+                    <!-- Steps with Lines in between -->
+                    <div class="node" [ngClass]="getTimelineClass(0, ordre.events, ordre.statut)">
+                      <div class="circle"><i class="fa fa-warehouse"></i></div>
+                      <span class="label">Départ</span>
+                    </div>
+                    <div class="line" [ngClass]="getTimelineClassLine(1, ordre.events, ordre.statut)"></div>
+                    
+                    <div class="node" [ngClass]="getTimelineClass(1, ordre.events, ordre.statut)">
+                      <div class="circle"><i class="fa fa-boxes"></i></div>
+                      <span class="label">Chargement</span>
+                    </div>
+                    <div class="line" [ngClass]="getTimelineClassLine(2, ordre.events, ordre.statut)"></div>
+
+                    <div class="node" [ngClass]="getTimelineClass(2, ordre.events, ordre.statut)">
+                      <div class="circle"><i class="fa fa-truck-moving"></i></div>
+                      <span class="label">Chargé</span>
+                    </div>
+                    <div class="line" [ngClass]="getTimelineClassLine(3, ordre.events, ordre.statut)"></div>
+
+                    <div class="node" [ngClass]="getTimelineClass(3, ordre.events, ordre.statut)">
+                      <div class="circle"><i class="fa fa-road"></i></div>
+                      <span class="label">Livraison</span>
+                    </div>
+                    <div class="line" [ngClass]="getTimelineClassLine(4, ordre.events, ordre.statut)"></div>
+
+                    <div class="node" [ngClass]="getTimelineClass(4, ordre.events, ordre.statut)">
+                      <div class="circle"><i class="fa fa-check-double"></i></div>
+                      <span class="label">Livré</span>
+                    </div>
+                    <div class="line" [ngClass]="getTimelineClassLine(5, ordre.events, ordre.statut)"></div>
+
+                    <div class="node" [ngClass]="getTimelineClass(5, ordre.events, ordre.statut)">
+                      <div class="circle"><i class="fa fa-flag-checkered"></i></div>
+                      <span class="label">Fin</span>
+                    </div>
+                  </div>
+                  <div class="current-status-text" [ngClass]="ordre.statut.toLowerCase()">
+                    {{ ordre.statut }}
+                  </div>
+               </div>
+            </td>
+
+            <!-- Column 6: Actions vertically -->
+            <td class="cell-actions">
+              <div class="vertical-actions">
+                <button class="icon-btn-rounded-green" (click)="voirMap(ordre)" title="Localiser">
+                  <i class="fa fa-map-marker-alt"></i>
+                </button>
+                <button class="icon-btn-rounded-blue" (click)="detail(ordre)" routerLink="/material/ordredetail" title="Voir">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <button class="icon-btn-rounded-orange" (click)="openModal(); getEmail(ordre.client)" title="Email">
+                  <i class="fa fa-envelope"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Premium Email Modal -->
+<div class="modal-overlay" [ngClass]="{'show': isModalOpen}" (click)="closeModal($event)">
+  <div class="premium-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header-gradient">
+      <div class="header-content">
+        <i class="fa fa-paper-plane"></i>
+        <h5>Envoyer un Email</h5>
+      </div>
+      <button class="btn-close-white" (click)="closeModal()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-premium">
+      <form (ngSubmit)="onSubmit()" class="modern-form">
+        <div class="form-group-modern">
+          <label>Destinataire</label>
+          <input type="email" name="to" [(ngModel)]="email.to" required placeholder="email@exemple.com" />
+        </div>
+        <div class="form-group-modern mt-3">
+          <label>Objet</label>
+          <input type="text" name="subject" [(ngModel)]="email.subject" required placeholder="Sujet de l'email..." />
+        </div>
+        <div class="form-group-modern mt-3">
+          <label>Message</label>
+          <textarea name="body" [(ngModel)]="email.body" required rows="6"
+            placeholder="Votre message ici..."></textarea>
+        </div>
+
+        <div class="modal-footer-premium">
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="btn-save">
+            <i class="fa fa-paper-plane"></i> Envoyer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Premium Map Modal -->
+<div class="modal-overlay" [ngClass]="{'show': isMapModalOpen}" (click)="closeMapModal()">
+  <div class="premium-modal map-modal-size" (click)="$event.stopPropagation()">
+    <div class="modal-header-gradient">
+      <div class="header-content">
+        <i class="fa fa-map-marked-alt"></i>
+        <h5 *ngIf="selectedOrdreForMap">Localisation : {{ selectedOrdreForMap.orderNumber }}</h5>
+      </div>
+      <button class="btn-close-white" (click)="closeMapModal()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-map">
+      <!-- Placeholder for Map API (Google Maps / Leaflet) -->
+      <!-- Real OpenStreetMap / Leaflet container -->
+      <div id="osm-map" style="width: 100%; height: 100%; position: relative; z-index: 1; border-radius: 20px;"></div>
+      
+      <!-- Overlays (Information text above map) -->
+      <div class="map-overlay-info" *ngIf="selectedOrdreForMap" style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
+        <div class="info-card">
+          <span class="label">DÉPART</span>
+          <span class="value">{{ selectedOrdreForMap.chargementVille }}</span>
+        </div>
+        <div class="info-card-divider"></div>
+        <div class="info-card">
+          <span class="label">DESTINATION</span>
+          <span class="value">{{ selectedOrdreForMap.livraisonVille }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer-premium">
+        <div class="map-stats" *ngIf="selectedOrdreForMap">
+            <span><i class="fa fa-road"></i> Distance: -- km</span>
+            <span><i class="fa fa-clock"></i> ETA: -- : --</span>
+        </div>
+        <button type="button" class="btn-save" (click)="closeMapModal()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+

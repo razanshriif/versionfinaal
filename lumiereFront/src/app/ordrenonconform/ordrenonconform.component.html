@@ -1,0 +1,465 @@
+﻿<div class="container">
+  <div class="header">
+    <h1>Créer un Ordre </h1>
+    <p>Remplissez les champs ci-dessous pour créer un nouvel ordre.</p>
+  </div>
+
+  <form #ordreForm="ngForm" class="ordre-form">
+    <div class="form-section">
+      <div class="section-header">
+        <i class="fas fa-user"></i>
+        <h2>Informations Client</h2>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Code client</mat-label>
+            <input matInput [(ngModel)]="ordre.client" name="client" #clientModel="ngModel"
+              (click)="openClientSearchDialog('client')" required readonly>
+            <mat-error *ngIf="clientModel.invalid && (clientModel.touched || ordreForm.submitted)">Le code client est
+              requis.</mat-error>
+            <i class="fas fa-search" matSuffix></i>
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Nom du client</mat-label>
+            <input matInput [(ngModel)]="ordre.nomclient" name="nomclient" #nomclientModel="ngModel" required readonly>
+            <mat-error *ngIf="nomclientModel.invalid && (nomclientModel.touched || ordreForm.submitted)">Le nom du
+              client est requis.</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="col-md-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Site d'exploitation</mat-label>
+            <mat-select [(ngModel)]="ordre.siteclient" name="siteclient" #siteclientModel="ngModel" required>
+              <mat-option *ngFor="let site of siteOptions" [value]="site">{{site}}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="siteclientModel.invalid && (siteclientModel.touched || ordreForm.submitted)">Le site
+              d'exploitation est requis.</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <i class="fas fa-truck"></i>
+        <h2>Détails de l'Expédition</h2>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="sub-section">
+            <h3>Chargement</h3>
+            <div class="row">
+              <div class="col-md-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Code client de chargement</mat-label>
+                  <input matInput [(ngModel)]="ordre.codeclientcharg" name="codeclientcharg"
+                    #codeclientchargModel="ngModel" required (click)="openClientSearchDialog('chargement')" readonly>
+                  <mat-error
+                    *ngIf="codeclientchargModel.invalid && (codeclientchargModel.touched || ordreForm.submitted)">Le
+                    code client de chargement est requis.</mat-error>
+                  <i class="fas fa-search" matSuffix></i>
+                </mat-form-field>
+              </div>
+              <div class="col-md-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Nom Chargement</mat-label>
+                  <input matInput [(ngModel)]="ordre.chargementNom" name="chargementNom" #chargementNomModel="ngModel"
+                    required readonly>
+                  <mat-error
+                    *ngIf="chargementNomModel.invalid && (chargementNomModel.touched || ordreForm.submitted)">Le nom de
+                    chargement est requis.</mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Adresse 1 Chargement</mat-label>
+              <input matInput [(ngModel)]="ordre.chargementAdr1" name="chargementAdr1" #chargementAdr1Model="ngModel"
+                required>
+              <mat-error
+                *ngIf="chargementAdr1Model.invalid && (chargementAdr1Model.touched || ordreForm.submitted)">L'adresse 1
+                de chargement est requise.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Adresse 2 Chargement</mat-label>
+              <input matInput [(ngModel)]="ordre.chargementAdr2" name="chargementAdr2">
+            </mat-form-field>
+            <div class="row"><!--
+              <div class="col-md-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Ville Chargement</mat-label>
+                  <input matInput [(ngModel)]="ordre.chargementVille" name="chargementVille">
+                </mat-form-field>
+              </div>--->
+              <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Ville Chargement</mat-label>
+                  <input type="text" matInput [(ngModel)]="ordre.chargementVille" [matAutocomplete]="autoChargement"
+                    (input)="filterVilles(ordre.chargementVille)" name="chargementVille" #chargementVilleModel="ngModel"
+                    required />
+                  <mat-error
+                    *ngIf="chargementVilleModel.invalid && (chargementVilleModel.touched || ordreForm.submitted)">La
+                    ville de chargement est requise.</mat-error>
+
+                  <mat-autocomplete #autoChargement="matAutocomplete">
+                    <mat-option *ngFor="let ville of filteredVilles" [value]="ville">
+                      {{ ville }}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+              </div>
+              <div class="col-md-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Date de chargement</mat-label>
+                  <input matInput [matDatepicker]="pickerChargement" [(ngModel)]="chargementDate" name="chargementDate"
+                    #chargementDateModel="ngModel" required (ngModelChange)="updateChargementDate()">
+                  <mat-error
+                    *ngIf="chargementDateModel.invalid && (chargementDateModel.touched || ordreForm.submitted)">La date
+                    de chargement est requise.</mat-error>
+                  <mat-datepicker-toggle matSuffix [for]="pickerChargement"></mat-datepicker-toggle>
+                  <mat-datepicker #pickerChargement></mat-datepicker>
+                </mat-form-field>
+                <div class="row">
+                  <div class="col-md-6">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Heure</mat-label>
+                      <mat-select [(ngModel)]="chargementTime.hour" name="chargementHour" #chargementHourModel="ngModel"
+                        required (ngModelChange)="updateChargementDate()">
+                        <mat-option *ngFor="let hour of hours" [value]="hour">{{hour}}</mat-option>
+                      </mat-select>
+                      <mat-error
+                        *ngIf="chargementHourModel.invalid && (chargementHourModel.touched || ordreForm.submitted)">L'heure
+                        de chargement est requise.</mat-error>
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Minute</mat-label>
+                      <mat-select [(ngModel)]="chargementTime.minute" name="chargementMinute"
+                        #chargementMinuteModel="ngModel" required (ngModelChange)="updateChargementDate()">
+                        <mat-option *ngFor="let minute of minutes" [value]="minute">{{minute}}</mat-option>
+                      </mat-select>
+                      <mat-error
+                        *ngIf="chargementMinuteModel.invalid && (chargementMinuteModel.touched || ordreForm.submitted)">La
+                        minute de chargement est requise.</mat-error>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="sub-section">
+            <h3>Livraison</h3>
+            <div class="row">
+              <div class="col-md-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Code client livraison</mat-label>
+                  <input matInput [(ngModel)]="ordre.codeclientliv" name="codeclientliv" #codeclientlivModel="ngModel"
+                    required (click)="openClientSearchDialog('livraison')" readonly>
+                  <mat-error
+                    *ngIf="codeclientlivModel.invalid && (codeclientlivModel.touched || ordreForm.submitted)">Le code
+                    client de livraison est requis.</mat-error>
+                  <i class="fas fa-search" matSuffix></i>
+                </mat-form-field>
+              </div>
+              <div class="col-md-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Nom Livraison</mat-label>
+                  <input matInput [(ngModel)]="ordre.livraisonNom" name="livraisonNom" #livraisonNomModel="ngModel"
+                    required readonly>
+                  <mat-error *ngIf="livraisonNomModel.invalid && (livraisonNomModel.touched || ordreForm.submitted)">Le
+                    nom de livraison est requis.</mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Adresse 1 Livraison</mat-label>
+              <input matInput [(ngModel)]="ordre.livraisonAdr1" name="livraisonAdr1" #livraisonAdr1Model="ngModel"
+                required>
+              <mat-error
+                *ngIf="livraisonAdr1Model.invalid && (livraisonAdr1Model.touched || ordreForm.submitted)">L'adresse 1 de
+                livraison est requise.</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Adresse 2 Livraison</mat-label>
+              <input matInput [(ngModel)]="ordre.livraisonAdr2" name="livraisonAdr2">
+            </mat-form-field>
+            <div class="row">
+              <div class="col-md-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Code Postal</mat-label>
+                  <input matInput [(ngModel)]="ordre.codepostalliv" name="codepostalliv" #codepostallivModel="ngModel"
+                    required>
+                  <mat-error
+                    *ngIf="codepostallivModel.invalid && (codepostallivModel.touched || ordreForm.submitted)">Le code
+                    postal est requis.</mat-error>
+                </mat-form-field>
+              </div>
+              <!--
+              <div class="col-md-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Ville Livraison</mat-label>
+                  <input matInput [(ngModel)]="ordre.livraisonVille" name="livraisonVille">
+                </mat-form-field>
+              </div>
+               -->
+              <div class="col-md-4">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Ville Livraison</mat-label>
+                  <input type="text" matInput [(ngModel)]="ordre.livraisonVille" [matAutocomplete]="autoLivraison"
+                    (input)="filterVilles(ordre.livraisonVille)" name="livraisonVille" #livraisonVilleModel="ngModel"
+                    required />
+                  <mat-error
+                    *ngIf="livraisonVilleModel.invalid && (livraisonVilleModel.touched || ordreForm.submitted)">La ville
+                    de livraison est requise.</mat-error>
+                  <mat-autocomplete #autoLivraison="matAutocomplete">
+                    <mat-option *ngFor="let ville of filteredVilles" [value]="ville">
+                      {{ ville }}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+              </div>
+              <div class="col-md-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Date de livraison</mat-label>
+                  <input matInput [matDatepicker]="pickerLivraison" [(ngModel)]="livraisonDate" name="livraisonDate"
+                    #livraisonDateModel="ngModel" required (ngModelChange)="updateLivraisonDate()">
+                  <mat-error
+                    *ngIf="livraisonDateModel.invalid && (livraisonDateModel.touched || ordreForm.submitted)">La date de
+                    livraison est requise.</mat-error>
+                  <mat-datepicker-toggle matSuffix [for]="pickerLivraison"></mat-datepicker-toggle>
+                  <mat-datepicker #pickerLivraison></mat-datepicker>
+                </mat-form-field>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Heure</mat-label>
+                    <mat-select [(ngModel)]="livraisonTime.hour" name="livraisonHour" #livraisonHourModel="ngModel"
+                      required (ngModelChange)="updateLivraisonDate()">
+                      <mat-option *ngFor="let hour of hours" [value]="hour">{{hour}}</mat-option>
+                    </mat-select>
+                    <mat-error
+                      *ngIf="livraisonHourModel.invalid && (livraisonHourModel.touched || ordreForm.submitted)">L'heure
+                      de livraison est requise.</mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="col-md-4">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Minute</mat-label>
+                    <mat-select [(ngModel)]="livraisonTime.minute" name="livraisonMinute"
+                      #livraisonMinuteModel="ngModel" required (ngModelChange)="updateLivraisonDate()">
+                      <mat-option *ngFor="let minute of minutes" [value]="minute">{{minute}}</mat-option>
+                    </mat-select>
+                    <mat-error
+                      *ngIf="livraisonMinuteModel.invalid && (livraisonMinuteModel.touched || ordreForm.submitted)">La
+                      minute de livraison est requise.</mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="form-section">
+      <div class="section-header">
+        <i class="fas fa-box"></i>
+        <h2>Informations sur l'Article</h2>
+      </div>
+      <!--  zncizn codage article 
+      <div class="row">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Code Article</mat-label>
+            <input matInput [(ngModel)]="ordre.codeArticle" name="codeArticle" #codeArticleModel="ngModel" required
+              (ngModelChange)="onArticleCodeChange($event)">
+            <mat-error *ngIf="codeArticleModel.invalid && (codeArticleModel.touched || ordreForm.submitted)">Le code article est requis.</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="col-md-8">
+          <mat-form-field appearance="outline">
+            <mat-label>Désignation</mat-label>
+            <input matInput [(ngModel)]="ordre.designation" name="designation" #designationModel="ngModel" required readonly>
+            <mat-error *ngIf="designationModel.invalid && (designationModel.touched || ordreForm.submitted)">La désignation est requise.</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+      -->
+
+      <div class="row">
+
+        <!-- Code Article -->
+        <div class="col-md-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Code Article</mat-label>
+            <mat-select [(ngModel)]="ordre.codeArticle" name="codeArticle" #codeArticleModel="ngModel" required
+              (selectionChange)="onArticleCodeChange($any($event).value)">
+              
+              <mat-select-trigger>
+                <i class="fa {{ getArticleIcon(ordre.codeArticle).icon }} temp-icon" [style.color]="getArticleIcon(ordre.codeArticle).color" style="margin-right: 8px;"></i>
+                {{ ordre.codeArticle }}
+              </mat-select-trigger>
+
+              <mat-option *ngFor="let art of articleOptions" [value]="art.codeArticle">
+                <i class="fa {{ getArticleIcon(art.codeArticle).icon }} temp-icon" [style.color]="getArticleIcon(art.codeArticle).color" style="margin-right: 8px;"></i>
+                {{ art.codeArticle }}
+              </mat-option>
+            </mat-select>
+
+            <mat-error *ngIf="codeArticleModel.invalid && (codeArticleModel.touched || ordreForm.submitted)">
+              Le code article est requis.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Désignation -->
+        <div class="col-md-8">
+          <mat-form-field appearance="outline">
+            <mat-label>Désignation</mat-label>
+            <input matInput [(ngModel)]="ordre.designation" name="designation" #designationModel="ngModel" required
+              readonly>
+            <mat-error *ngIf="designationModel.invalid && (designationModel.touched || ordreForm.submitted)">
+              La désignation est requise.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+      </div>
+      <!--   ******************************************************************************************************************** -->
+      <div class="row">
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>Poids (kg)</mat-label>
+            <input matInput type="number" [(ngModel)]="ordre.poids" name="poids">
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>Volume (m³)</mat-label>
+            <input matInput type="number" [(ngModel)]="ordre.volume" name="volume">
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de Palettes</mat-label>
+            <input matInput type="number" [(ngModel)]="ordre.nombrePalettes" name="nombrePalettes"
+              #nombrePalettesModel="ngModel" required>
+            <mat-error *ngIf="nombrePalettesModel.invalid && (nombrePalettesModel.touched || ordreForm.submitted)">Le
+              nombre de palettes est requis.</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre de Colis</mat-label>
+            <input matInput type="number" [(ngModel)]="ordre.nombreColis" name="nombreColis">
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="section-header">
+        <i class="fas fa-comment"></i>
+        <h2>Commentaires</h2>
+      </div>
+
+      <div class="comment-options">
+        <!-- Type de Voyage -->
+        <div class="option-group">
+          <h4>Type de Voyage</h4>
+          <mat-radio-group [(ngModel)]="optionsCommentaire.typeVoyage" (change)="updateCommentaire()" name="typeVoyage"
+            #typeVoyageModel="ngModel" required>
+            <mat-radio-button value="Retour">Retour</mat-radio-button>
+            <mat-radio-button value="Dedie">Dédié</mat-radio-button>
+          </mat-radio-group>
+          <mat-error *ngIf="typeVoyageModel.invalid && (typeVoyageModel.touched || ordreForm.submitted)">Le type de
+            voyage est requis.</mat-error>
+        </div>
+
+        <!-- Type de Camion -->
+        <div class="option-group">
+          <h4>Type de Camion</h4>
+          <mat-radio-group [(ngModel)]="optionsCommentaire.typeCamion" (change)="updateCommentaire()" name="typeCamion"
+            #typeCamionModel="ngModel" required>
+            <mat-radio-button value="Cargo">Cargo</mat-radio-button>
+            <mat-radio-button value="NPR">NPR</mat-radio-button>
+            <mat-radio-button value="DMAX">DMAX</mat-radio-button>
+            <mat-radio-button value="NKR">NKR</mat-radio-button>
+            <mat-radio-button value="Semi">Semi</mat-radio-button>
+          </mat-radio-group>
+          <mat-error *ngIf="typeCamionModel.invalid && (typeCamionModel.touched || ordreForm.submitted)">Le type de
+            camion est requis.</mat-error>
+        </div>
+
+        <!-- Type de Semi -->
+        <div *ngIf="optionsCommentaire.typeCamion === 'Semi'" class="option-group semi-options">
+          <h4>Type de Semi</h4>
+          <mat-radio-group [(ngModel)]="optionsCommentaire.typeSemi" (change)="updateCommentaire()" name="typeSemi"
+            #typeSemiModel="ngModel" required>
+            <mat-radio-button value="plateau">Plateau</mat-radio-button>
+            <mat-radio-button value="Frigo">Frigo</mat-radio-button>
+            <mat-radio-button value="Bache">Bâche</mat-radio-button>
+          </mat-radio-group>
+          <mat-error *ngIf="typeSemiModel.invalid && (typeSemiModel.touched || ordreForm.submitted)">Le type de semi est
+            requis.</mat-error>
+        </div>
+
+        <!-- Type de Cargo -->
+        <div *ngIf="optionsCommentaire.typeCamion === 'Cargo'" class="option-group semi-options">
+          <h4>Type de Cargo</h4>
+          <mat-radio-group [(ngModel)]="optionsCommentaire.typeCargo" (change)="updateCommentaire()" name="typeCargo"
+            #typeCargoModel="ngModel" required>
+            <mat-radio-button value="plateau">Plateau</mat-radio-button>
+            <mat-radio-button value="Frigo">Frigo</mat-radio-button>
+            <mat-radio-button value="Bache">Bâche</mat-radio-button>
+          </mat-radio-group>
+          <mat-error *ngIf="typeCargoModel.invalid && (typeCargoModel.touched || ordreForm.submitted)">Le type de cargo est
+            requis.</mat-error>
+        </div>
+      </div>
+
+      <!-- ✅ Champ libre ajouté -->
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Commentaire libre</mat-label>
+        <textarea matInput [(ngModel)]="optionsCommentaire.commentaireLibre" (input)="updateCommentaire()"
+          name="commentaireLibre" rows="2" placeholder="Ajoutez un commentaire personnalisé..."></textarea>
+      </mat-form-field>
+
+      <!-- Commentaire final -->
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Commentaire final</mat-label>
+        <textarea matInput [(ngModel)]="commentaire" name="commentaire" rows="3" readonly></textarea>
+      </mat-form-field>
+
+      <button mat-stroked-button color="primary" (click)="ajoutercommentaire(commentaire)">
+        Ajouter le Commentaire
+      </button>
+
+      <div *ngIf="ordre.commentaires.length > 0" class="comments-list">
+        <h3>Commentaires ajoutés :</h3>
+        <ul>
+          <li *ngFor="let c of ordre.commentaires">{{ c }}</li>
+        </ul>
+      </div>
+    </div>
+
+
+
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="!ordreForm.valid" (click)="ajouter()">Créer
+        l'Ordre</button>
+      <button mat-button type="button" (click)="ordreForm.resetForm()">Annuler</button>
+    </div>
+  </form>
+</div>
+
+
+

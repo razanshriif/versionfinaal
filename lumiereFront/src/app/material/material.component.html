@@ -1,0 +1,146 @@
+﻿<mat-toolbar class="toolbar">
+  <button mat-icon-button aria-label="Toggle menu" (click)="toggleMenu()">
+    <i class="fas fa-bars"></i>
+  </button>
+  <img src="assets/otflow-horizontal.png" alt="OTFLOW Logistique Logo" class="logo">
+
+  <div class="toolbar-actions">
+
+    <!-- ── NOTIFICATION BELL ── -->
+    <div class="notif-wrapper">
+      <button class="notif-bell-btn" (click)="toggleNotifications(); $event.stopPropagation()" [class.has-unread]="hasNewNotifications">
+        <i class="fas fa-bell" [class.fa-shake]="hasNewNotifications"></i>
+        <span *ngIf="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+      </button>
+    </div>
+
+    <!-- ── USER PROFILE ── -->
+    <div class="user-chip" routerLink="/material/profil">
+      <div class="user-chip__avatar" *ngIf="!user.profileImageBase64">{{ getUserInitials() }}</div>
+      <img *ngIf="user.profileImageBase64" [src]="user.profileImageBase64" class="user-chip__img" alt="profil">
+      <div class="user-chip__info">
+        <span class="user-chip__name">{{ user.firstname }} {{ user.lastname }}</span>
+        <span class="user-chip__role">{{ user.role }}</span>
+      </div>
+      <i class="fas fa-chevron-down"></i>
+    </div>
+
+  </div>
+</mat-toolbar>
+
+<!-- ── NOTIFICATION OVERLAY ── -->
+<div *ngIf="showNotifications" class="notif-overlay" (click)="toggleNotifications()"></div>
+
+<!-- ── NOTIFICATION PANEL (Fixed at root) ── -->
+<div *ngIf="showNotifications" class="notif-panel" (click)="$event.stopPropagation()">
+  <div class="notif-panel__head">
+    <div class="notif-head-left">
+      <span class="notif-title">Notifications</span>
+      <span class="notif-count-chip" *ngIf="clients && clients.length > 0">{{ clients.length }}</span>
+    </div>
+    <button class="notif-read-all-btn" *ngIf="unreadCount > 0" (click)="markAllRead()">
+      <i class="fas fa-check-double"></i> Tout lire
+    </button>
+  </div>
+
+  <div class="notif-sep" *ngIf="unreadCount > 0">
+    <i class="fas fa-dot-circle"></i>
+    {{ unreadCount }} non lu{{ unreadCount > 1 ? 's' : '' }}
+  </div>
+
+  <ul class="notif-list">
+    <li *ngIf="!clients || clients.length === 0" class="notif-empty">
+      <i class="fas fa-bell-slash"></i>
+      <p>Aucune notification</p>
+    </li>
+
+    <li *ngFor="let n of clients"
+        class="notif-item"
+        [class.notif-item--unread]="!n.isRead"
+        (click)="markOneRead(n)">
+
+      <div class="notif-icon-wrap" [ngClass]="getNotifColor(n.type)">
+        <i [class]="getNotifIcon(n.type)"></i>
+      </div>
+
+      <div class="notif-body">
+        <div class="notif-meta">
+          <span class="notif-type">{{ n.type || 'Alerte' }}</span>
+          <span class="notif-time">{{ timeAgo(n.timestamp) }}</span>
+        </div>
+        <p class="notif-msg">{{ n.message || 'Nouvelle notification' }}</p>
+      </div>
+
+      <button class="notif-del-btn" (click)="deleteNotif(n, $event)">
+        <i class="fas fa-times"></i>
+      </button>
+    </li>
+  </ul>
+
+  <div class="notif-panel__foot" *ngIf="clients && clients.length > 0">
+    {{ clients.length }} notification{{ clients.length > 1 ? 's' : '' }} au total
+  </div>
+</div>
+
+<mat-sidenav-container class="sidenav-container" [ngClass]="{'collapsed': isCollapsed}">
+  <mat-sidenav #sidenav [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile && !isCollapsed" class="sidenav">
+    <nav class="sidenav-nav">
+      <a mat-list-item *ngIf="hasPermission('DASHBOARD')" routerLink="/material/dashboard" routerLinkActive="active"
+        class="nav-item">
+        <i class="fas fa-home"></i>
+        <span class="nav-text">DASHBOARD</span>
+      </a>
+      <a mat-list-item *ngIf="hasPermission('ORDRES')" (click)="toggleSubMenu('orders')" class="nav-item">
+        <i class="fas fa-clipboard-list"></i>
+        <span class="nav-text">ORDRES</span>
+        <i class="fas" [ngClass]="showOrdersSubMenu ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+      </a>
+      <div *ngIf="showOrdersSubMenu" class="sub-menu">
+        <a mat-list-item *ngIf="hasPermission('ORDRES_ADD')" routerLink="/material/nonplannifies"
+          routerLinkActive="active" class="sub-nav-item">
+          <i class="fa-solid fa-plus"></i>
+          <span class="nav-text">AJOUTER ORDRES</span>
+        </a>
+        <a mat-list-item *ngIf="hasPermission('ORDRES_VALIDATE')" routerLink="/material/ajouter"
+          routerLinkActive="active" class="sub-nav-item">
+          <i class="fa-solid fa-list-check"></i>
+          <span class="nav-text">NON_CONFIRMES</span>
+        </a>
+        <a mat-list-item *ngIf="hasPermission('ORDRES_TRACK')" routerLink="/material/ordres" routerLinkActive="active"
+          class="sub-nav-item">
+          <i class="fa-solid fa-truck"></i>
+          <span class="nav-text">SUIVIE DES ORDRES</span>
+        </a>
+      </div>
+      <a mat-list-item *ngIf="hasPermission('CLIENTS')" routerLink="/material/clients" routerLinkActive="active"
+        class="nav-item">
+        <i class="fas fa-user-friends"></i>
+        <span class="nav-text">CLIENTS</span>
+      </a>
+      <a mat-list-item *ngIf="hasPermission('ARTICLES')" routerLink="/material/articles" routerLinkActive="active"
+        class="nav-item">
+        <i class="fas fa-box"></i>
+        <span class="nav-text">ARTICLES</span>
+      </a>
+      <a mat-list-item *ngIf="hasPermission('USERS')" routerLink="/material/utilisateurs" routerLinkActive="active"
+        class="nav-item">
+        <i class="fas fa-users"></i>
+        <span class="nav-text">USERS</span>
+      </a>
+      <a mat-list-item *ngIf="user.role === 'ADMIN'" routerLink="/material/permissions" routerLinkActive="active"
+        class="nav-item">
+        <i class="fas fa-user-shield"></i>
+        <span class="nav-text">PERMISSIONS</span>
+      </a>
+      <a mat-list-item (click)="logout()" class="nav-item">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="nav-text">LOG OUT</span>
+      </a>
+    </nav>
+  </mat-sidenav>
+  <mat-sidenav-content class="main-content">
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+

@@ -1,0 +1,183 @@
+﻿<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="goToNotifications()">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">Mon Profil</h1>
+  </div>
+</ion-header>
+
+<ion-content class="premium-content">
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Chargement du profil…</p>
+  </div>
+
+  <div class="profile-body" *ngIf="!loading && user">
+
+    <!-- ── Avatar Card ── -->
+    <div class="profile-hero-card fade-up">
+      <div class="avatar-wrapper" (click)="fileInput.click()">
+        <img *ngIf="user.profileImageBase64" [src]="user.profileImageBase64" class="avatar-img" />
+        <span *ngIf="!user.profileImageBase64" class="avatar-initials">{{ getUserInitials() }}</span>
+        <div class="avatar-overlay">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      </div>
+      <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)">
+
+      <div class="profile-identity">
+        <h2 class="profile-fullname">{{ user.firstname }} {{ user.lastname }}</h2>
+        <p class="profile-email">
+          <ion-icon name="mail-outline"></ion-icon>
+          {{ user.email }}
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Tabs ── -->
+    <div class="profile-tabs fade-up">
+      <button class="tab-btn" [class.active]="activeTab === 'info'" (click)="activeTab = 'info'">
+        <ion-icon name="person-outline"></ion-icon>
+        Informations
+      </button>
+      <button class="tab-btn" [class.active]="activeTab === 'password'" (click)="activeTab = 'password'">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        Mot de passe
+      </button>
+    </div>
+
+    <!-- ── TAB: Info ── -->
+    <div class="profile-form-card fade-up" *ngIf="activeTab === 'info'">
+      <h3 class="form-title">
+        <ion-icon name="create-outline"></ion-icon>
+        Modifier mes informations
+      </h3>
+
+      <div class="form-row-two">
+        <div class="form-group">
+          <label>PRÉNOM</label>
+          <div class="input-wrapper">
+            <ion-icon name="person-outline"></ion-icon>
+            <input type="text" [(ngModel)]="user.firstname" placeholder="Prénom" class="modern-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>NOM</label>
+          <div class="input-wrapper">
+            <ion-icon name="person-outline"></ion-icon>
+            <input type="text" [(ngModel)]="user.lastname" placeholder="Nom" class="modern-input">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>TÉLÉPHONE</label>
+        <div class="input-wrapper">
+          <ion-icon name="call-outline"></ion-icon>
+          <input type="tel" [(ngModel)]="user.telephone" placeholder="Téléphone" class="modern-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>EMAIL</label>
+        <div class="input-wrapper input-disabled">
+          <ion-icon name="mail-outline"></ion-icon>
+          <input type="email" [value]="user.email" disabled class="modern-input">
+        </div>
+        <small class="form-hint">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          L'email ne peut pas être modifié
+        </small>
+      </div>
+
+      <ion-button expand="block" class="btn-save" (click)="saveProfileInfo()" [disabled]="isSavingInfo">
+        <ion-icon name="checkmark-outline" slot="start" *ngIf="!isSavingInfo"></ion-icon>
+        <ion-spinner name="crescent" slot="start" *ngIf="isSavingInfo" style="width:18px;height:18px;"></ion-spinner>
+        {{ isSavingInfo ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+      </ion-button>
+    </div>
+
+    <!-- ── TAB: Password ── -->
+    <div class="profile-form-card fade-up" *ngIf="activeTab === 'password'">
+      <h3 class="form-title">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        Changer le mot de passe
+      </h3>
+      <p class="form-subtitle">Pour votre sécurité, entrez votre mot de passe actuel avant d'en définir un nouveau.</p>
+
+      <div class="form-group">
+        <label>MOT DE PASSE ACTUEL</label>
+        <div class="input-wrapper">
+          <ion-icon name="key-outline"></ion-icon>
+          <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="••••••••" class="modern-input">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>NOUVEAU MOT DE PASSE</label>
+        <div class="input-wrapper">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Minimum 6 caractères" class="modern-input">
+        </div>
+        <!-- Strength indicator -->
+        <div class="password-strength" *ngIf="passwordForm.newPassword.length > 0">
+          <div class="strength-bar"
+               [class.weak]="passwordForm.newPassword.length < 6"
+               [class.medium]="passwordForm.newPassword.length >= 6 && passwordForm.newPassword.length < 10"
+               [class.strong]="passwordForm.newPassword.length >= 10">
+          </div>
+          <small [class.text-weak]="passwordForm.newPassword.length < 6"
+                 [class.text-medium]="passwordForm.newPassword.length >= 6 && passwordForm.newPassword.length < 10"
+                 [class.text-strong]="passwordForm.newPassword.length >= 10">
+            {{ passwordForm.newPassword.length < 6 ? 'Trop court' : passwordForm.newPassword.length < 10 ? 'Moyen' : 'Fort ✓' }}
+          </small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>CONFIRMER LE NOUVEAU MOT DE PASSE</label>
+        <div class="input-wrapper" [class.input-error]="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Répétez le mot de passe" class="modern-input">
+        </div>
+        <small class="form-error-hint" *ngIf="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          Les mots de passe ne correspondent pas
+        </small>
+      </div>
+
+      <ion-button expand="block" class="btn-save btn-save--danger" (click)="savePassword()" [disabled]="isSavingPassword">
+        <ion-icon name="shield-checkmark-outline" slot="start" *ngIf="!isSavingPassword"></ion-icon>
+        <ion-spinner name="crescent" slot="start" *ngIf="isSavingPassword" style="width:18px;height:18px;"></ion-spinner>
+        {{ isSavingPassword ? 'Modification…' : 'Modifier le mot de passe' }}
+      </ion-button>
+    </div>
+
+    <!-- Version footer -->
+    <div class="version-footer fade-up">
+      <span class="version-text">Version 2.4.0 — OTFLOW Logistics</span>
+    </div>
+
+  </div>
+
+</ion-content>
+
+
+

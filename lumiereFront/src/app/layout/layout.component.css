@@ -1,0 +1,238 @@
+﻿/* ═══════════════════════════════════════════════════════════
+   LAYOUT — OTFLOW Transport
+   White sidebar with subtle orange accents
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Sidebar ── */
+.sidenav {
+  background: #ffffff;
+  width: 260px;
+  height: calc(100vh - 70px);
+  position: fixed;
+  top: 70px;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-bottom: 24px;
+}
+
+/* ── Section Label ── */
+.sidenav__section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 20px 24px 8px;
+}
+
+/* ── Divider ── */
+.sidenav__divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 8px 20px;
+}
+
+/* ── Navigation ── */
+.sidenav__nav {
+  flex: 1;
+  padding: 0 12px;
+  list-style: none;
+  margin: 0;
+}
+
+.sidenav__nav .nav-item {
+  margin-bottom: 2px;
+}
+
+.sidenav__nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.sidenav__nav .nav-link:hover {
+  background: rgba(245, 146, 30, 0.05);
+  color: #f5921e;
+}
+
+/* ── Active State ── */
+.sidenav__nav .nav-link.active {
+  background: rgba(245, 146, 30, 0.1);
+  color: #f5921e;
+  font-weight: 700;
+}
+
+.sidenav__nav .nav-link.active .nav-icon {
+  background: #f5921e;
+  color: white;
+  box-shadow: 0 4px 10px rgba(245, 146, 30, 0.3);
+}
+
+.sidenav__nav .nav-link.active .nav-icon i {
+  color: white;
+}
+
+/* ── Nav Icon Box ── */
+.nav-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f4f6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover .nav-icon {
+  background: #eef0f3;
+}
+
+.nav-icon i {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* ── Submenu ── */
+.submenu-arrow {
+  margin-left: auto;
+  font-size: 0.6rem;
+  transition: transform 0.25s ease;
+  color: #94a3b8;
+}
+
+.submenu-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  list-style: none;
+  padding: 4px 0 4px 20px;
+  margin: 0;
+}
+
+.submenu .nav-link {
+  padding: 8px 14px 8px 16px;
+  font-size: 0.83rem;
+  color: #94a3b8;
+  border-radius: 8px;
+  gap: 10px;
+}
+
+.submenu .nav-link:hover {
+  color: #1a1c1f;
+  background: #f8f9fa;
+}
+
+.submenu .nav-link.active {
+  color: #f5921e;
+  background: rgba(245, 146, 30, 0.05);
+  font-weight: 600;
+}
+
+.sub-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4d4d8;
+  flex-shrink: 0;
+}
+
+.nav-link.active .sub-dot {
+  background: #f5921e;
+}
+
+/* ── Footer / Logout ── */
+.sidenav__footer {
+  padding: 0 12px 12px;
+  margin-top: auto;
+}
+
+.logout-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #ef4444 !important;
+  text-decoration: none !important;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.logout-link:hover {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.logout-link .nav-icon {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.logout-link .nav-icon i {
+  color: #ef4444;
+}
+
+/* ── Content Area ── */
+.content-container {
+  margin-top: 70px;
+  min-height: calc(100vh - 70px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 0;
+}
+
+.content-container.sidebar-open {
+  margin-left: 260px;
+}
+
+.router-outlet-container {
+  animation: fadeUp 0.35s ease-out;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 992px) {
+  .sidenav {
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .sidenav.open {
+    transform: translateX(0);
+  }
+
+  .content-container,
+  .content-container.sidebar-open {
+    margin-left: 0;
+  }
+}
+
+

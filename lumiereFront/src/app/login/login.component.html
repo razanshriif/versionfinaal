@@ -1,0 +1,43 @@
+﻿<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <img src="assets/otflow-logo.png" alt="OTFLOW Logistique">
+      </div>
+      <h2>Connexion</h2>
+      <p class="auth-subtitle">Accédez à votre espace transport</p>
+    </div>
+
+    <form class="auth-form" (ngSubmit)="login()">
+      <div class="form-group">
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input type="text" name="email" [(ngModel)]="email" placeholder="Email ou Identifiant" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="input-wrapper">
+          <i class="fas fa-lock"></i>
+          <input type="password" name="password" [(ngModel)]="password" placeholder="Mot de passe" required>
+        </div>
+      </div>
+
+      <div *ngIf="err" class="auth-error">
+        <i class="fas fa-exclamation-circle"></i> {{error}}
+      </div>
+
+      <button type="submit" class="auth-btn">
+        <span>Se Connecter</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+
+      <div class="auth-footer">
+        <span>Pas encore de compte ?</span>
+        <a routerLink="/register">Créer un compte</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+

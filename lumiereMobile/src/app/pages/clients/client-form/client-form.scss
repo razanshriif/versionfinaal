@@ -1,0 +1,241 @@
+﻿// --- Variables & Tokens ---
+$orange: #F7941D;
+$charcoal: #1a1c1f;
+$blanc-sale: #f5f2ed;
+$bg: #dcd7cc; // Darker cream for background
+$border: rgba(0, 0, 0, 0.06);
+$radius: 20px;
+
+.premium-content {
+    --background: transparent;
+}
+
+.glass-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #f5f2ed;
+    z-index: -1;
+    overflow: hidden;
+
+    .bubble {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba($orange, 0.05);
+        filter: blur(60px);
+        animation: float 15s infinite ease-in-out;
+
+        &:nth-child(1) {
+            width: 400px;
+            height: 400px;
+            top: -100px;
+            right: -100px;
+        }
+
+        &:nth-child(2) {
+            width: 300px;
+            height: 300px;
+            bottom: -50px;
+            left: -50px;
+            animation-name: floatReverse;
+            background: rgba($charcoal, 0.03);
+        }
+    }
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(-20px, 30px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes floatReverse {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(20px, -30px);
+    }
+
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
+.premium-toolbar {
+    --background: #ffffff;
+    --color: #1a1c1f;
+}
+
+.form-container {
+    padding: 16px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+// --- Premium Card System ---
+.section-card {
+    background: #ffffff;
+    border-radius: $radius;
+    border: none;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+}
+
+.section-header {
+    background: #ffffff; // White header
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+
+    ion-icon {
+        font-size: 20px;
+    }
+
+    &.blue-box {
+        background: #eef2ff;
+
+        ion-icon {
+            color: #6366f1;
+        }
+    }
+
+    &.orange-box {
+        background: #fff7ed;
+
+        ion-icon {
+            color: #f97316;
+        }
+    }
+
+    &.green-box {
+        background: #ecfdf5;
+
+        ion-icon {
+            color: #10b981;
+        }
+    }
+
+    &.dark-box {
+        background: #f1f5f9;
+
+        ion-icon {
+            color: #475569;
+        }
+    }
+}
+
+.section-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #4a5568;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+// --- Inputs ---
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+}
+
+.premium-input-item {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 14px;
+    padding: 10px 14px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+
+    &:focus-within {
+        background: #ffffff;
+        border-color: $orange;
+        box-shadow: 0 0 0 4px rgba($orange, 0.1);
+    }
+
+    ion-label {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        color: #94a3b8 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px !important;
+    }
+
+    ion-input,
+    ion-textarea,
+    ion-select {
+        --padding-start: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1c1f;
+    }
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+
+    ion-checkbox {
+        --size: 22px;
+        --border-radius: 8px;
+        --checkbox-background-checked: $orange;
+    }
+
+    ion-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+    }
+}
+
+.premium-button {
+    --border-radius: 18px;
+    --background: #1a1c1f;
+    --background-activated: #2c2f33;
+    --box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+    font-weight: 800;
+    height: 58px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.mt-3 {
+    margin-top: 16px;
+}
+
+.mt-4 {
+    margin-top: 24px;
+}

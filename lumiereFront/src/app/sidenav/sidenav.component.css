@@ -1,0 +1,40 @@
+﻿/* Old sidenav component — styles moved to layout.component.css */
+/* Keeping minimal styles to prevent black background override */
+.sidenav {
+  background-color: #ffffff;
+  color: #64748b;
+  width: 250px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.sidenav a {
+  text-decoration: none;
+  color: #64748b;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.sidenav a p {
+  margin: 0;
+  padding: 10px;
+}
+
+.sidenav a.active p,
+.sidenav a:hover p {
+  color: #f5921e;
+}
+
+.sidenav .logout {
+  color: #ef4444;
+}
+
+.sidenav .logout:hover {
+  color: #f87171;
+}
+
+

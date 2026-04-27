@@ -1,0 +1,125 @@
+﻿<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="goToNotifications()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <span class="lum-pip" *ngIf="stats.notifications > 0"></span>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">Mes Livraisons</h1>
+  </div>
+
+  <!-- Segmented Tabs Attached to Header -->
+  <div class="segmented-tabs">
+    <div class="tab-item" [class.active]="activeTab === 'today'" (click)="setTab('today')">
+      <span>Aujourd'hui</span>
+      <div class="indicator"></div>
+    </div>
+    <div class="tab-item" [class.active]="activeTab === 'date'" (click)="setTab('date')">
+      <span>Par date</span>
+      <div class="indicator"></div>
+    </div>
+    <div class="tab-item" [class.active]="activeTab === 'history'" (click)="setTab('history')">
+      <span>Historique</span>
+      <div class="indicator"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="liv-content premium-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadLivraisons($event)">
+    <ion-refresher-content refreshingSpinner="dots"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="swipe-container" #swipeContainer (scroll)="onScroll($event)">
+    <!-- Today Column -->
+    <div class="swipe-column">
+      <div class="list-body">
+        <div class="today-banner fade-up">
+          <div class="banner-inner">
+            <span class="label">Aujourd'hui</span>
+            <span class="date">{{ getTodayLabel() }}</span>
+          </div>
+        </div>
+        <ng-container *ngTemplateOutlet="listView; context: { items: getTabItems('today') }"></ng-container>
+      </div>
+    </div>
+
+    <!-- Date Column -->
+    <div class="swipe-column">
+      <div class="list-body">
+        <div class="filter-wrapper fade-up">
+          <div class="date-picker-card">
+            <div class="card-header">Sélectionnez une date</div>
+            <ion-datetime presentation="date" [(ngModel)]="selectedDate" (ionChange)="onDateChange()"
+              class="inline-datetime" locale="fr-FR" [max]="todayStr"></ion-datetime>
+          </div>
+        </div>
+        <ng-container *ngTemplateOutlet="listView; context: { items: getTabItems('date') }"></ng-container>
+      </div>
+    </div>
+
+    <!-- History Column -->
+    <div class="swipe-column">
+      <div class="list-body">
+        <div class="filter-wrapper fade-up">
+          <div class="unified-search-container">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-input [(ngModel)]="searchTerm" (ionInput)="onSearch()" placeholder="Rechercher..."></ion-input>
+          </div>
+        </div>
+        <ng-container *ngTemplateOutlet="listView; context: { items: getTabItems('history') }"></ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reusable List Template -->
+  <ng-template #listView let-items="items">
+    <div class="delivery-list" *ngIf="!isLoading">
+      <div class="delivery-card fade-up" *ngFor="let liv of items" (click)="viewDetails(liv)">
+        <div class="card-main">
+          <div class="card-top">
+            <span class="id-pill">{{ '#' + liv.id }}</span>
+            <span class="status-pill" [class]="getStatusKey(liv.statut)">{{ getStatusLabel(liv.statut) }}</span>
+          </div>
+
+          <div class="route-info">
+            <span class="town">{{ liv.chargementVille || '---' }}</span>
+            <span class="arrow">→</span>
+            <span class="town">{{ liv.livraisonVille || '---' }}</span>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-liv fade-up" *ngIf="items.length === 0">
+        <div class="empty-icon">
+          <ion-icon name="car-outline"></ion-icon>
+        </div>
+        <h3>Aucune livraison</h3>
+        <p>Il n'y a pas de livraisons pour cette sélection.</p>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div class="delivery-list" *ngIf="isLoading">
+      <div class="delivery-card skeleton" *ngFor="let s of [1,2,3]"></div>
+    </div>
+  </ng-template>
+</ion-content>
+
+
+

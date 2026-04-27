@@ -1,0 +1,104 @@
+<!-- Header Bar -->
+<nav class="header-bar">
+  <div class="header-left">
+    <button class="hdr-btn menu-btn" title="Menu" (click)="menuClicked.emit()">
+      <i class="fa fa-bars"></i>
+    </button>
+    <div class="header-brand">
+      <img src="assets/otflow-horizontal.png" alt="OTFLOW" class="header-logo">
+      <!-- <div class="header-brand-text">
+        <span class="header-brand-name">OTFLOW</span>
+        <span class="header-brand-sub">TRANSPORT</span>
+      </div> -->
+    </div>
+  </div>
+
+  <div class="header-right">
+
+    <!-- Notification Bell -->
+    <div class="notification-wrapper">
+      <button class="hdr-btn notif-btn" (click)="toggleNotifications()" title="Notifications" [class.notif-active]="hasUnread">
+        <i class="fa fa-bell" [class.bell-ring]="hasUnread"></i>
+        <span *ngIf="unreadCount > 0" class="notif-count-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+      </button>
+
+      <!-- Premium Dropdown -->
+      <div *ngIf="showNotifications" class="notif-dropdown" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="notif-dropdown__header">
+          <div class="notif-header-left">
+            <h6>Notifications</h6>
+            <span class="notif-total-badge" *ngIf="notifications.length > 0">{{ notifications.length }}</span>
+          </div>
+          <button class="notif-mark-all-btn" *ngIf="unreadCount > 0" (click)="markAllRead()">
+            <i class="fas fa-check-double"></i> Tout lire
+          </button>
+        </div>
+
+        <!-- Unread separator -->
+        <div class="notif-section-label" *ngIf="unreadCount > 0">
+          <i class="fas fa-circle notif-dot-unread"></i>
+          {{ unreadCount }} non lu{{ unreadCount > 1 ? 's' : '' }}
+        </div>
+
+        <!-- List -->
+        <ul class="notif-dropdown__list">
+          <li *ngIf="!notifications || notifications.length === 0" class="no-notif">
+            <i class="fas fa-bell-slash no-notif-icon"></i>
+            <p>Aucune notification</p>
+          </li>
+
+          <li *ngFor="let notif of notifications"
+              class="notif-item"
+              [class.notif-item--unread]="!notif.isRead"
+              (click)="markOneRead(notif)">
+
+            <!-- Coloured Icon -->
+            <div class="notif-item__icon" [ngClass]="getNotifColor(notif.type)">
+              <i [class]="getNotifIcon(notif.type)"></i>
+            </div>
+
+            <!-- Content -->
+            <div class="notif-item__content">
+              <div class="notif-item__top">
+                <span class="notif-item__type">{{ notif.type || 'Alerte' }}</span>
+                <span class="notif-item__time">{{ timeAgo(notif.timestamp) }}</span>
+              </div>
+              <p class="notif-item__msg">{{ notif.message || 'Nouvelle notification' }}</p>
+              <div class="notif-unread-dot" *ngIf="!notif.isRead"></div>
+            </div>
+
+            <!-- Delete button -->
+            <button class="notif-delete-btn" (click)="deleteNotif(notif, $event)" title="Supprimer">
+              <i class="fas fa-times"></i>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Footer -->
+        <div class="notif-dropdown__footer" *ngIf="notifications.length > 0">
+          <span>{{ notifications.length }} notification{{ notifications.length > 1 ? 's' : '' }} au total</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Profile -->
+    <div class="user-profile" routerLink="/material/profil" title="Mon profil" style="cursor:pointer">
+      <div class="user-avatar" *ngIf="!userAvatar || userAvatar.length <= 2">
+        {{ userAvatar || 'U' }}
+      </div>
+      <div class="user-info">
+        <span class="user-name">{{ userName || 'Admin' }}</span>
+        <span class="user-role" *ngIf="userRole">{{ userRole }}</span>
+      </div>
+      <i class="fas fa-chevron-down user-chevron"></i>
+    </div>
+  </div>
+
+</nav>
+
+<!-- Overlay to close on outside click -->
+<div *ngIf="showNotifications" class="notif-overlay" (click)="toggleNotifications()"></div>
+
+

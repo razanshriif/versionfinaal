@@ -1,0 +1,349 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.premium-content {
+    --background: var(--bg-app);
+}
+
+// ── Segmented Tabs (3 tabs) ──
+.segmented-tabs {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    padding: 0 8px;
+    z-index: 10;
+    flex-shrink: 0;
+
+    .tab-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 12px 0;
+        position: relative;
+        color: #888;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.2s;
+        cursor: pointer;
+
+        span {
+            transition: color 0.2s;
+        }
+
+        .count-badge {
+            background: var(--orange);
+            color: #fff;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 0 4px;
+
+            &.pending {
+                background: #f59e0b;
+            }
+
+            &.confirmed {
+                background: #10b981;
+            }
+        }
+
+        .indicator {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--orange);
+            border-radius: 3px 3px 0 0;
+            transition: width 0.3s ease;
+        }
+
+        &.active {
+            color: var(--orange);
+
+            .indicator {
+                width: 80%;
+            }
+        }
+    }
+}
+
+.swipe-container {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.swipe-column {
+    flex: 0 0 100%;
+    width: 100%;
+    scroll-snap-align: start;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.list-body {
+    padding: 16px 12px 120px;
+    background: transparent;
+}
+
+::ng-deep .transparent-list {
+    background: transparent !important;
+    --background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+::ng-deep .transparent-item {
+    --background: transparent !important;
+    background: transparent !important;
+    --inner-padding-end: 0 !important;
+    --padding-start: 0 !important;
+    --inner-padding-start: 0 !important;
+    --ripple-color: transparent !important;
+    --background-focused: transparent !important;
+    --background-hover: transparent !important;
+    --min-height: 0 !important;
+    --inner-border-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+::ng-deep ion-item-sliding {
+    margin-bottom: 12px !important;
+    display: block !important;
+}
+
+// ── Premium Card Design ──
+.delivery-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.15s, box-shadow 0.15s;
+
+    &:active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    // ── Header Row ──
+    .card-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+
+        .client-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.2;
+            flex: 1;
+        }
+
+        .card-badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+    }
+
+    // ── Route Row ──
+    .card-route-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #f8fafc;
+        border-radius: 12px;
+
+        .route-point {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            min-width: 0;
+
+            span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .route-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #94a3b8;
+                flex-shrink: 0;
+
+                &.orange {
+                    background: var(--orange);
+                }
+            }
+        }
+
+        .route-arrow {
+            color: #94a3b8;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+    }
+
+    // ── Meta chips row ──
+    .card-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+
+        .meta-chip {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+
+            ion-icon {
+                font-size: 13px;
+                color: var(--orange);
+            }
+
+            &.date {
+                margin-left: auto;
+                background: transparent;
+                color: #94a3b8;
+            }
+        }
+    }
+
+    // ── ID row ──
+    .card-id-row {
+        display: flex;
+        justify-content: flex-end;
+    }
+}
+
+// ── Status Pills ──
+.status-pill {
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    &.draft {
+        background: #fef3c7 !important;
+        color: #d97706 !important;
+    }
+
+    &.pending-pill {
+        background: #fef3c7 !important;
+        color: #d97706 !important;
+    }
+
+    &.status-validated { background: #ecfdf5; color: #059669; }
+    &.status-progress  { background: #eff6ff; color: #2563eb; }
+    &.status-delivered { background: #f0fdf4; color: #16a34a; }
+    &.status-cancelled { background: #fef2f2; color: #dc2626; }
+    &.status-pending   { background: #fef3c7; color: #d97706; }
+}
+
+.id-tag {
+    background: #18170F;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+// ── Empty State ──
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 32px 40px;
+    text-align: center;
+
+    .empty-icon-wrap {
+        width: 80px;
+        height: 80px;
+        border-radius: 24px;
+        background: #FFF4ED;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+
+        ion-icon {
+            font-size: 36px;
+            color: var(--orange);
+        }
+
+        &.pending-icon {
+            background: #fffbeb;
+            ion-icon { color: #f59e0b; }
+        }
+
+        &.confirmed-icon {
+            background: #ecfdf5;
+            ion-icon { color: #10b981; }
+        }
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 8px;
+    }
+
+    .empty-sub {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-sub);
+        line-height: 1.5;
+        margin: 0;
+    }
+}
+
+// ── Skeleton ──
+.delivery-card.skeleton {
+    height: 100px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

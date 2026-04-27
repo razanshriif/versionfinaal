@@ -1,0 +1,256 @@
+<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="goToNotifications()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <span class="lum-pip" *ngIf="stats.notifications > 0"></span>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">Mes Ordres</h1>
+    <button class="lum-filter-btn" (click)="toggleFilter()">
+      <ion-icon name="funnel-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="search-wrapper">
+    <div class="unified-search-container">
+      <ion-icon name="search-outline"></ion-icon>
+      <ion-input [ngModel]="searchTerm" (ionInput)="onSearch($event)"
+        placeholder="Rechercher par client, ville..."></ion-input>
+    </div>
+  </div>
+
+  <!-- Segmented Tabs (3 tabs) -->
+  <div class="segmented-tabs">
+    <div class="tab-item" [class.active]="listMode === 'draft'" (click)="setListMode('draft')">
+      <span>Brouillons</span>
+      <span class="count-badge" *ngIf="draftCount > 0">{{ draftCount }}</span>
+      <div class="indicator"></div>
+    </div>
+    <div class="tab-item" [class.active]="listMode === 'pending'" (click)="setListMode('pending')">
+      <span>En attente</span>
+      <span class="count-badge pending" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+      <div class="indicator"></div>
+    </div>
+    <div class="tab-item" [class.active]="listMode === 'confirmed'" (click)="setListMode('confirmed')">
+      <span>Confirmés</span>
+      <span class="count-badge confirmed" *ngIf="confirmedCount > 0">{{ confirmedCount }}</span>
+      <div class="indicator"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="premium-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content refreshingSpinner="dots"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="swipe-container" #swipeContainer (scroll)="onScroll($event)">
+
+    <!-- Column 1: Brouillons -->
+    <div class="swipe-column">
+      <div class="list-body">
+        <div class="order-list" *ngIf="!loading">
+          <div class="empty-state" *ngIf="draftDemandes.length === 0">
+            <div class="empty-icon-wrap">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <h3 class="empty-title">Aucun brouillon</h3>
+            <p class="empty-sub">Vos commandes en cours d'édition apparaîtront ici.</p>
+          </div>
+          <ion-list class="transparent-list" *ngIf="draftDemandes.length > 0">
+            <ion-item-sliding *ngFor="let d of draftDemandes">
+              <ion-item (click)="viewDetails(d)" class="transparent-item" lines="none">
+                <div class="delivery-card fade-up">
+                  <div class="card-header-row">
+                    <div class="client-name">{{ getClientDisplay(d) }}</div>
+                    <span class="status-pill draft">BROUILLON</span>
+                  </div>
+
+                  <div class="card-route-row" *ngIf="d.chargementVille || d.livraisonVille">
+                    <div class="route-point pickup">
+                      <div class="route-dot"></div>
+                      <span>{{ d.chargementVille || '—' }}</span>
+                    </div>
+                    <div class="route-arrow">
+                      <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </div>
+                    <div class="route-point delivery">
+                      <div class="route-dot orange"></div>
+                      <span>{{ d.livraisonVille || '—' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="card-meta-row">
+                    <div class="meta-chip" *ngIf="d.designation">
+                      <ion-icon name="cube-outline"></ion-icon>
+                      <span>{{ d.designation }}</span>
+                    </div>
+                    <div class="meta-chip" *ngIf="d.poids">
+                      <ion-icon name="barbell-outline"></ion-icon>
+                      <span>{{ d.poids }} kg</span>
+                    </div>
+                    <div class="meta-chip date">
+                      <ion-icon name="calendar-outline"></ion-icon>
+                      <span>{{ formatDate(d.dateSaisie) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="card-id-row" *ngIf="d.orderNumber">
+                    <span class="id-tag">{{ d.orderNumber }}</span>
+                  </div>
+                </div>
+              </ion-item>
+
+              <ion-item-options side="end">
+                <ion-item-option (click)="editDemande(d, $event)" class="sliding-btn edit">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-item-option>
+                <ion-item-option (click)="deleteDemande(d, $event)" color="danger" class="sliding-btn delete">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-item-option>
+              </ion-item-options>
+            </ion-item-sliding>
+          </ion-list>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 2: En attente (NON_PLANIFIE) -->
+    <div class="swipe-column">
+      <div class="list-body">
+        <div class="order-list" *ngIf="!loading">
+          <div class="empty-state" *ngIf="pendingDemandes.length === 0">
+            <div class="empty-icon-wrap pending-icon">
+              <ion-icon name="hourglass-outline"></ion-icon>
+            </div>
+            <h3 class="empty-title">Aucun ordre en attente</h3>
+            <p class="empty-sub">Les ordres confirmés en attente de planification apparaîtront ici.</p>
+          </div>
+          <ng-container *ngIf="pendingDemandes.length > 0">
+            <div class="delivery-card fade-up" *ngFor="let d of pendingDemandes" (click)="viewDetails(d)">
+              <div class="card-header-row">
+                <div class="client-name">{{ getClientDisplay(d) }}</div>
+                <span class="status-pill pending-pill">EN ATTENTE</span>
+              </div>
+
+              <div class="card-route-row" *ngIf="d.chargementVille || d.livraisonVille">
+                <div class="route-point pickup">
+                  <div class="route-dot"></div>
+                  <span>{{ d.chargementVille || '—' }}</span>
+                </div>
+                <div class="route-arrow">
+                  <ion-icon name="arrow-forward-outline"></ion-icon>
+                </div>
+                <div class="route-point delivery">
+                  <div class="route-dot orange"></div>
+                  <span>{{ d.livraisonVille || '—' }}</span>
+                </div>
+              </div>
+
+              <div class="card-meta-row">
+                <div class="meta-chip" *ngIf="d.designation">
+                  <ion-icon name="cube-outline"></ion-icon>
+                  <span>{{ d.designation }}</span>
+                </div>
+                <div class="meta-chip" *ngIf="d.nombreColis">
+                  <ion-icon name="layers-outline"></ion-icon>
+                  <span>{{ d.nombreColis }} colis</span>
+                </div>
+                <div class="meta-chip date">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ formatDate(d.dateSaisie) }}</span>
+                </div>
+              </div>
+
+              <div class="card-id-row" *ngIf="d.orderNumber">
+                <span class="id-tag">{{ d.orderNumber }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 3: Confirmés -->
+    <div class="swipe-column">
+      <div class="list-body">
+        <div class="order-list" *ngIf="!loading">
+          <div class="empty-state" *ngIf="confirmedDemandes.length === 0">
+            <div class="empty-icon-wrap confirmed-icon">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+            </div>
+            <h3 class="empty-title">Aucun ordre confirmé</h3>
+            <p class="empty-sub">Les ordres validés et en cours de traitement s'afficheront ici.</p>
+          </div>
+          <ng-container *ngIf="confirmedDemandes.length > 0">
+            <div class="delivery-card fade-up" *ngFor="let d of confirmedDemandes" (click)="viewDetails(d)">
+              <div class="card-header-row">
+                <div class="client-name">{{ getClientDisplay(d) }}</div>
+                <div class="card-badges">
+                  <span class="id-tag" *ngIf="d.orderNumber">{{ d.orderNumber }}</span>
+                  <span class="status-pill" [class]="getStatusClass(d.statut)">{{ getStatusLabel(d.statut) }}</span>
+                </div>
+              </div>
+
+              <div class="card-route-row" *ngIf="d.chargementVille || d.livraisonVille">
+                <div class="route-point pickup">
+                  <div class="route-dot"></div>
+                  <span>{{ d.chargementVille || '—' }}</span>
+                </div>
+                <div class="route-arrow">
+                  <ion-icon name="arrow-forward-outline"></ion-icon>
+                </div>
+                <div class="route-point delivery">
+                  <div class="route-dot orange"></div>
+                  <span>{{ d.livraisonVille || '—' }}</span>
+                </div>
+              </div>
+
+              <div class="card-meta-row">
+                <div class="meta-chip" *ngIf="d.designation">
+                  <ion-icon name="cube-outline"></ion-icon>
+                  <span>{{ d.designation }}</span>
+                </div>
+                <div class="meta-chip" *ngIf="d.poids">
+                  <ion-icon name="barbell-outline"></ion-icon>
+                  <span>{{ d.poids }} kg</span>
+                </div>
+                <div class="meta-chip" *ngIf="d.nombreColis">
+                  <ion-icon name="layers-outline"></ion-icon>
+                  <span>{{ d.nombreColis }} colis</span>
+                </div>
+                <div class="meta-chip date">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ formatDate(d.dateSaisie) }}</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Loading Skeleton -->
+  <div class="order-list" *ngIf="loading">
+    <div class="delivery-card skeleton" *ngFor="let s of [1,2,3,4]"></div>
+  </div>
+
+  <ion-infinite-scroll (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

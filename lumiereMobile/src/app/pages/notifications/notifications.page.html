@@ -1,0 +1,127 @@
+﻿<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="loadNotifications()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <span class="lum-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">Notifications</h1>
+    <button class="lum-filter-btn" (click)="loadNotifications()">
+      <ion-icon name="refresh-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="premium-content">
+  <div class="glass-background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
+
+  <div class="notif-page-wrapper">
+
+    <!-- Page title + count badge + Tout lire -->
+    <div class="header-section">
+      <div class="header-left">
+        <h1 class="page-title">Centre d'alertes</h1>
+        <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }} non lues</span>
+      </div>
+      <button class="mark-all-btn" *ngIf="unreadCount > 0" (click)="markAllAsRead()">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        Tout lire
+      </button>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="filter-pills-row">
+      <button
+        *ngFor="let f of filters"
+        class="filter-pill"
+        [class.active]="activeFilter === f.key"
+        (click)="applyFilter(f.key)">
+        {{ f.label }}
+        <span class="pill-count" *ngIf="f.key === 'unread' && unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="isLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Chargement des alertes...</p>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty-state" *ngIf="!isLoading && notifications.length === 0">
+      <div class="empty-icon-box">
+        <ion-icon name="notifications-off-outline"></ion-icon>
+      </div>
+      <h2>Aucune notification</h2>
+      <p>Rien à afficher pour ce filtre.</p>
+    </div>
+
+    <!-- Notification Cards -->
+    <div class="notification-list" *ngIf="!isLoading && notifications.length > 0">
+      <div
+        *ngFor="let notif of notifications"
+        class="notif-card"
+        [class.unread]="!notif.read"
+        (click)="markAsRead(notif.id)">
+
+        <!-- Typed icon -->
+        <div class="notif-icon-box" [ngClass]="getColorClass(notif.type)">
+          <ion-icon [name]="getIcon(notif.type)"></ion-icon>
+        </div>
+
+        <!-- Content — smart RAPPEL parsing -->
+        <div class="notif-content">
+          <div class="notif-meta-row">
+            <span class="notif-type-label" [ngClass]="getColorClass(notif.type)">
+              {{ notif.type || 'ALERTE' }}
+            </span>
+            <span class="notif-time">{{ formatDate(notif.timestamp) }}</span>
+          </div>
+
+          <!-- RAPPEL: split into title + time -->
+          <ng-container *ngIf="notif.type?.toUpperCase() === 'RAPPEL'; else plainMsg">
+            <ng-container *ngIf="parseRappelMessage(notif.message) as parsed; else plainMsg">
+              <p class="notif-title">{{ parsed.title }}</p>
+              <p class="notif-subtime">
+                <ion-icon name="time-outline"></ion-icon>
+                Prévu pour {{ parsed.time }}
+              </p>
+            </ng-container>
+          </ng-container>
+
+          <!-- Default: plain message -->
+          <ng-template #plainMsg>
+            <p class="notif-title">{{ notif.message }}</p>
+          </ng-template>
+        </div>
+
+        <!-- Close button -->
+        <button class="close-btn" (click)="deleteNotification(notif.id); $event.stopPropagation()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="spacer"></div>
+</ion-content>
+
+
+

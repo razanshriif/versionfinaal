@@ -1,0 +1,111 @@
+<ion-content [fullscreen]="true" class="map-content">
+  <!-- Floating Header -->
+  <div class="floating-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="navCtrl.back()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+      <div class="header-info" *ngIf="selectedLivraison">
+        <span class="subtitle">Suivi en temps réel</span>
+        <h1>{{ selectedLivraison.nomclient || selectedLivraison.client }}</h1>
+      </div>
+      <div class="header-info" *ngIf="!selectedLivraison">
+        <h1>Suivi Live</h1>
+      </div>
+    </div>
+
+    <button class="header-tracing-btn" *ngIf="selectedLivraison" (click)="replotRoute(); $event.stopPropagation()">
+      <ion-icon name="analytics-outline"></ion-icon>
+      <span>Traçage</span>
+    </button>
+  </div>
+
+  <!-- The Leaflet map container -->
+  <div id="osm-map" class="map-container"></div>
+
+  <!-- Bottom Panel Info -->
+  <div class="map-bottom-info fade-up" *ngIf="selectedLivraison" [class.expanded]="isExpanded" (click)="toggleExpand()">
+    <div class="drag-handle"></div>
+    <div class="info-content">
+      <div class="info-header">
+        <div class="truck-pill">
+          <ion-icon name="bus-outline"></ion-icon>
+          <span>{{ selectedLivraison.orderNumber || '#' + selectedLivraison.id }}</span>
+        </div>
+        <div class="status-badge" [ngClass]="getStatusKey(selectedLivraison.statut)">
+          {{ getStatusLabel(selectedLivraison.statut) }}
+        </div>
+      </div>
+
+      <div class="location-details" *ngIf="isExpanded">
+        <div class="loc-row">
+          <div class="dot start"></div>
+          <div class="loc-text">
+            <span class="label">Départ</span>
+            <span class="value">{{ selectedLivraison.chargementVille || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="route-line"></div>
+        <div class="loc-row">
+          <div class="dot end"></div>
+          <div class="loc-text">
+            <span class="label">Destination</span>
+            <span class="value">{{ selectedLivraison.livraisonVille || 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extended Trip Details (Only when expanded) -->
+      <div class="trip-extra-details fade-up" *ngIf="isExpanded">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="d-icon"><ion-icon name="person-outline"></ion-icon></div>
+            <div class="d-text">
+              <span class="d-label">Chauffeur</span>
+              <span class="d-value">{{ selectedLivraison.chauffeur || 'Non assigné' }}</span>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="selectedLivraison.telchauffeur">
+            <div class="d-icon"><ion-icon name="call-outline"></ion-icon></div>
+            <div class="d-text">
+              <span class="d-label">Contact</span>
+              <span class="d-value">{{ selectedLivraison.telchauffeur }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="d-icon"><ion-icon name="bus-outline"></ion-icon></div>
+            <div class="d-text">
+              <span class="d-label">Véhicule</span>
+              <span class="d-value">{{ selectedLivraison.matricule || selectedLivraison.camion || 'N/A' }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="d-icon"><ion-icon name="calendar-outline"></ion-icon></div>
+            <div class="d-text">
+              <span class="d-label">Date Livraison</span>
+              <span class="d-value">{{ selectedLivraison.livraisonDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="specs-bar">
+          <div class="spec">
+            <ion-icon name="barbell-outline"></ion-icon>
+            <span>{{ selectedLivraison.poids || 0 }} kg</span>
+          </div>
+          <div class="spec">
+            <ion-icon name="cube-outline"></ion-icon>
+            <span>{{ selectedLivraison.nombrePalettes || 0 }} palettes</span>
+          </div>
+          <div class="spec" *ngIf="selectedLivraison.voycle">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>Voy. {{ selectedLivraison.voycle }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+
+

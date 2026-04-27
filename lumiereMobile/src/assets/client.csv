@@ -1,0 +1,5 @@
+code,adresse,civilite,client,code_iso,codeclient,codepostal,confiere,contact,email,fax,id_edi,id_tva,nom,numero_portable,pays,s_type,service,site_exploitation,societe_facturation,statut,telephone,type,ville,owner_id
+2,GROMBALIA,TUN,AZIZA,0,05,8040,1,,,,0,123,"MAGAZIN AZIZA GROM",72885662,TUN,,MAG,GROM,AZIZA,CONFIRME,,MAG,NABEUL,NULL
+3,GROMBALIA,TUN,ANWAR,0,03,45,0,,,,0,0,ANWAR,72885662,TUN,,MAG,GROM,ANWAR,CONFIRME,,MAG,NABEUL,70
+4,belli,TUN,aziza,20025,456,8005,0,,,,555,475,aziza,72885662,TUN,,MAG,belli,aziza,CONFIRME,,MAG,NABEUL,69
+5,BAR,TUN,GIAS,0,499,8005,1,,,,0,0,GIAS2,72885600,TUN,,GIAS,BAR,Gias2,CONFIRME,,MAG,NABEUL,NULL

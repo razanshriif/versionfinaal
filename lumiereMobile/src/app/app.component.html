@@ -1,0 +1,99 @@
+﻿<ion-app>
+  <ion-router-outlet></ion-router-outlet>
+
+  <!-- ── Global Brand Identity Lines ── -->
+  <div class="brand-lines">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+
+  <!-- Floating Add Menu Overlay -->
+  <div class="bnav__menu-overlay" *ngIf="showAddMenu" (click)="toggleAddMenu()"></div>
+
+  <!-- Floating Add Menu -->
+  <div class="bnav__menu" [class.bnav__menu--active]="showAddMenu">
+
+    <div class="bnav__menu-item" (click)="goTo('/demandes/create'); toggleAddMenu()">
+      <div class="bnav__menu-icon">
+        <ion-icon name="cube-outline"></ion-icon>
+      </div>
+      <span class="bnav__menu-label" style="color: #1a1a1a !important;">Ordre</span>
+    </div>
+
+    <div class="bnav__menu-item" (click)="goTo('/clients/create'); toggleAddMenu()">
+      <div class="bnav__menu-icon">
+        <ion-icon name="person-add-outline"></ion-icon>
+      </div>
+      <span class="bnav__menu-label" style="color: #1a1a1a !important;">Client</span>
+    </div>
+
+  </div>
+
+  <!-- ── Custom Bottom Nav (app-level) ── -->
+  <nav class="bottom-nav" *ngIf="showNav">
+
+    <!-- Accueil -->
+    <div class="bnav__item" [class.bnav__item--active]="isActive('home')" (click)="goTo('home')">
+      <div class="bnav__icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9h9l9 0M3 9l9-6 9 6M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9" />
+          <path d="M9 22V12h6v10" />
+        </svg>
+      </div>
+      <span class="bnav__label">Accueil</span>
+    </div>
+
+    <!-- Ordres -->
+    <div class="bnav__item" [class.bnav__item--active]="isActive('demandes')" (click)="goTo('demandes')">
+      <div class="bnav__icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+          <path d="m3.3 7 8.7 5 8.7-5" />
+          <path d="M12 22V12" />
+        </svg>
+      </div>
+      <span class="bnav__label">Ordres</span>
+    </div>
+
+    <!-- Add FAB -->
+    <div class="bnav__fab" (click)="toggleAddMenu()">
+      <div class="bnav__fab-ring">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Suivi -->
+    <div class="bnav__item" [class.bnav__item--active]="isActive('livraisons')" (click)="goTo('livraisons/tracking')">
+      <div class="bnav__icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      </div>
+      <span class="bnav__label">Suivi</span>
+    </div>
+
+    <!-- Profil -->
+    <div class="bnav__item" [class.bnav__item--active]="isActive('profile')" (click)="goTo('profile')">
+      <div class="bnav__icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </div>
+      <span class="bnav__label">Profil</span>
+    </div>
+
+  </nav>
+
+
+</ion-app>
+
+
+

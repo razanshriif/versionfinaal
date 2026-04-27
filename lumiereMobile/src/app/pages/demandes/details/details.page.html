@@ -1,0 +1,161 @@
+﻿<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="goToNotifications()">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">Suivi Ordre</h1>
+    <button class="lum-filter-btn" (click)="generatePDF()" *ngIf="ordre">
+      <ion-icon name="document-text-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="premium-content">
+  <div class="glass-background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding mt-5">
+    <ion-spinner color="primary"></ion-spinner>
+    <p class="text-muted mt-2">Chargement des détails...</p>
+  </div>
+
+  <div *ngIf="!isLoading && ordre" class="details-container">
+    <!-- Header Status Card -->
+    <div class="premium-card glass-card shadow-lg status-header-card">
+      <div class="status-top-row">
+        <div class="order-number">
+          <span class="label">Ordre N°</span>
+          <span class="value">{{ ordre.id }}</span>
+        </div>
+        <div class="status-pill" [ngClass]="ordre.statut.toLowerCase() || 'en_attente'">
+          <div class="status-dot"></div>
+          {{ ordre.statut }}
+        </div>
+      </div>
+      <div class="date-row">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Saisi le {{ ordre.dateSaisie | date:'dd MMMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <!-- Client Card -->
+    <div class="premium-card glass-card shadow-lg mt-4">
+      <h2 class="section-title">Client</h2>
+      <div class="client-info-display">
+        <div class="avatar-box">
+          {{ (ordre.nomclient || 'C').charAt(0).toUpperCase() }}
+        </div>
+        <div class="client-text">
+          <h3>{{ ordre.nomclient }}</h3>
+          <p class="code">Code: {{ ordre.client }}</p>
+          <p class="site" *ngIf="ordre.siteclient">
+            <ion-icon name="business-outline"></ion-icon>
+            {{ ordre.siteclient }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logistics Timeline Card -->
+    <div class="premium-card glass-card shadow-lg mt-4">
+      <h2 class="section-title">Logistique</h2>
+
+      <div class="route-timeline">
+        <div class="timeline-item">
+          <div class="timeline-marker pickup"></div>
+          <div class="timeline-content">
+            <div class="type">CHARGEMENT</div>
+            <div class="location-name">{{ ordre.chargementNom }}</div>
+            <div class="address">{{ ordre.chargementAdr1 }}</div>
+            <div class="city-date">
+              <span class="city">{{ ordre.chargementVille }}</span>
+              <span class="dot"></span>
+              <span class="date">{{ ordre.chargementDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-connector"></div>
+
+        <div class="timeline-item">
+          <div class="timeline-marker delivery"></div>
+          <div class="timeline-content">
+            <div class="type">LIVRAISON</div>
+            <div class="location-name">{{ ordre.livraisonNom }}</div>
+            <div class="address">{{ ordre.livraisonAdr1 }}</div>
+            <div class="city-date">
+              <span class="city">{{ ordre.livraisonVille }}</span>
+              <span class="dot"></span>
+              <span class="date">{{ ordre.livraisonDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goods Card -->
+    <div class="premium-card glass-card shadow-lg mt-4">
+      <h2 class="section-title">Marchandise</h2>
+
+      <div class="goods-grid">
+        <div class="goods-item">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          <div class="goods-text">
+            <span class="label">Article</span>
+            <span class="value">{{ ordre.codeArticle || 'N/A' }}</span>
+          </div>
+        </div>
+        <div class="goods-item">
+          <ion-icon name="cube-outline"></ion-icon>
+          <div class="goods-text">
+            <span class="label">Désignation</span>
+            <span class="value">{{ ordre.designation }}</span>
+          </div>
+        </div>
+        <div class="goods-item">
+          <ion-icon name="barbell-outline"></ion-icon>
+          <div class="goods-text">
+            <span class="label">Poids</span>
+            <span class="value">{{ ordre.poids }} kg</span>
+          </div>
+        </div>
+        <div class="goods-item">
+          <ion-icon name="layers-outline"></ion-icon>
+          <div class="goods-text">
+            <span class="label">Colis</span>
+            <span class="value">{{ ordre.nombreColis }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="premium-card glass-card shadow-lg mt-4" *ngIf="ordre.commentaires && ordre.commentaires.length > 0">
+      <h2 class="section-title">Commentaires</h2>
+      <div class="comment-box">
+        <p *ngFor="let comm of ordre.commentaires">{{ comm }}</p>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+</ion-content>
+
+
+

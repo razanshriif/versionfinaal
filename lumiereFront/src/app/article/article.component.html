@@ -1,0 +1,267 @@
+﻿<div class="article-container">
+  <!-- Article List -->
+  <div *ngIf="mode === 'list'">
+    <div class="header">
+      <h2 class="page-title"><i class="fas fa-box"></i> Liste des Articles</h2>
+      <div class="header-controls">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input type="text" [(ngModel)]="searchTerm" (input)="searchArticles()" placeholder="Rechercher un article...">
+        </div>
+        <button mat-raised-button color="warn" class="export-button" (click)="exportToExcel()" title="Exporter">
+          <i class="fas fa-file-excel"></i> Export
+        </button>
+        <button *ngIf="user.role === 'ADMIN'" mat-raised-button class="create-button" (click)="onCreate()">
+          <i class="fas fa-plus"></i> Créer un Article
+        </button>
+      </div>
+    </div>
+
+    <mat-card class="article-card">
+      <mat-card-header>
+        <mat-card-title><i class="fas fa-box"></i> Articles</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="table-responsive">
+          <table mat-table [dataSource]="filteredArticles" class="mat-elevation-z2">
+            <ng-container matColumnDef="codeArticle">
+              <th mat-header-cell *matHeaderCellDef>Code</th>
+              <td mat-cell *matCellDef="let article">{{ article.codeArticle }}</td>
+            </ng-container>
+            <ng-container matColumnDef="label">
+              <th mat-header-cell *matHeaderCellDef>Label</th>
+              <td mat-cell *matCellDef="let article">{{ article.label }}</td>
+            </ng-container>
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let article">{{ article.type }}</td>
+            </ng-container>
+            <ng-container matColumnDef="typeDeMarchandise">
+              <th mat-header-cell *matHeaderCellDef>Marchandise</th>
+              <td mat-cell *matCellDef="let article">{{ article.typeDeMarchandise }}</td>
+            </ng-container>
+            <ng-container matColumnDef="typeDeRemorque">
+              <th mat-header-cell *matHeaderCellDef>Remorque</th>
+              <td mat-cell *matCellDef="let article">{{ article.typeDeRemorque }}</td>
+            </ng-container>
+            <ng-container matColumnDef="unite">
+              <th mat-header-cell *matHeaderCellDef>Unité</th>
+              <td mat-cell *matCellDef="let article">{{ article.unite }}</td>
+            </ng-container>
+            <ng-container matColumnDef="quantiteMinimum">
+              <th mat-header-cell *matHeaderCellDef>Quantité Minimum</th>
+              <td mat-cell *matCellDef="let article">{{ article.quantiteMinimum }}</td>
+            </ng-container>
+            <ng-container matColumnDef="prixUnitaire">
+              <th mat-header-cell *matHeaderCellDef>Prix Unitaire</th>
+              <td mat-cell *matCellDef="let article">{{ article.prixUnitaire }}</td>
+            </ng-container>
+            <ng-container matColumnDef="vente">
+              <th mat-header-cell *matHeaderCellDef>Vente</th>
+              <td mat-cell *matCellDef="let article">{{ article.vente }}</td>
+            </ng-container>
+            <ng-container matColumnDef="achat">
+              <th mat-header-cell *matHeaderCellDef>Achat</th>
+              <td mat-cell *matCellDef="let article">{{ article.achat }}</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let article">
+                <button mat-icon-button color="primary" (click)="onDetail(article)" matTooltip="Détails">
+                  <i class="fas fa-info-circle"></i>
+                </button>
+                <button *ngIf="user.role === 'ADMIN'" mat-icon-button color="warn" (click)="onEdit(article)"
+                  matTooltip="Modifier">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button *ngIf="user.role === 'ADMIN'" mat-icon-button color="accent"
+                  (click)="deleteArticle(article.id!)" matTooltip="Supprimer">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row
+              *matHeaderRowDef="['codeArticle', 'label', 'type', 'typeDeMarchandise', 'typeDeRemorque', 'unite', 'quantiteMinimum', 'prixUnitaire', 'vente', 'achat', 'actions']">
+            </tr>
+            <tr mat-row
+              *matRowDef="let row; columns: ['codeArticle', 'label', 'type', 'typeDeMarchandise', 'typeDeRemorque', 'unite', 'quantiteMinimum', 'prixUnitaire', 'vente', 'achat', 'actions'];">
+            </tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Create Article -->
+  <div *ngIf="mode === 'create'">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title><i class="fas fa-plus"></i> Créer un Article</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form #articleForm="ngForm" (ngSubmit)="createArticle()">
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Code</mat-label>
+              <input matInput [(ngModel)]="article!.codeArticle" name="codeArticle" required>
+              <mat-error *ngIf="articleForm.control.get('codeArticle')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Label</mat-label>
+              <input matInput [(ngModel)]="article!.label" name="label" required>
+              <mat-error *ngIf="articleForm.control.get('label')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Type</mat-label>
+              <input matInput [(ngModel)]="article!.type" name="type" required>
+              <mat-error *ngIf="articleForm.control.get('type')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Marchandise</mat-label>
+              <input matInput type="number" [(ngModel)]="article!.typeDeMarchandise" name="typeDeMarchandise" required>
+              <mat-error *ngIf="articleForm.control.get('typeDeMarchandise')?.hasError('required')">Champ
+                requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Remorque</mat-label>
+              <input matInput [(ngModel)]="article!.typeDeRemorque" name="typeDeRemorque" required>
+              <mat-error *ngIf="articleForm.control.get('typeDeRemorque')?.hasError('required')">Champ
+                requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Unité</mat-label>
+              <input matInput [(ngModel)]="article!.unite" name="unite" required>
+              <mat-error *ngIf="articleForm.control.get('unite')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Quantité Minimum</mat-label>
+              <input matInput type="number" [(ngModel)]="article!.quantiteMinimum" name="quantiteMinimum" required>
+              <mat-error *ngIf="articleForm.control.get('quantiteMinimum')?.hasError('required')">Champ
+                requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Prix Unitaire</mat-label>
+              <input matInput type="number" [(ngModel)]="article!.prixUnitaire" name="prixUnitaire" required>
+              <mat-error *ngIf="articleForm.control.get('prixUnitaire')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Vente</mat-label>
+              <input matInput type="number" [(ngModel)]="article!.vente" name="vente" required>
+              <mat-error *ngIf="articleForm.control.get('vente')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Achat</mat-label>
+              <input matInput type="number" [(ngModel)]="article!.achat" name="achat" required>
+              <mat-error *ngIf="articleForm.control.get('achat')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-actions">
+            <button type="submit" mat-raised-button color="primary" [disabled]="articleForm.invalid">Créer</button>
+            <button type="button" mat-raised-button color="warn" (click)="mode = 'list'">Annuler</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Edit Article -->
+  <div *ngIf="mode === 'edit'">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title><i class="fas fa-edit"></i> Modifier un Article</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form #articleForm="ngForm" (ngSubmit)="updateArticle()">
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Code</mat-label>
+              <input matInput [(ngModel)]="article.codeArticle" name="codeArticle" required>
+              <mat-error *ngIf="articleForm.control.get('codeArticle')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Label</mat-label>
+              <input matInput [(ngModel)]="article.label" name="label" required>
+              <mat-error *ngIf="articleForm.control.get('label')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Type</mat-label>
+              <input matInput [(ngModel)]="article.type" name="type" required>
+              <mat-error *ngIf="articleForm.control.get('type')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Marchandise</mat-label>
+              <input matInput type="number" [(ngModel)]="article.typeDeMarchandise" name="typeDeMarchandise" required>
+              <mat-error *ngIf="articleForm.control.get('typeDeMarchandise')?.hasError('required')">Champ
+                requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Remorque</mat-label>
+              <input matInput [(ngModel)]="article.typeDeRemorque" name="typeDeRemorque" required>
+              <mat-error *ngIf="articleForm.control.get('typeDeRemorque')?.hasError('required')">Champ
+                requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Unité</mat-label>
+              <input matInput [(ngModel)]="article.unite" name="unite" required>
+              <mat-error *ngIf="articleForm.control.get('unite')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Quantité Minimum</mat-label>
+              <input matInput type="number" [(ngModel)]="article.quantiteMinimum" name="quantiteMinimum" required>
+              <mat-error *ngIf="articleForm.control.get('quantiteMinimum')?.hasError('required')">Champ
+                requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Prix Unitaire</mat-label>
+              <input matInput type="number" [(ngModel)]="article.prixUnitaire" name="prixUnitaire" required>
+              <mat-error *ngIf="articleForm.control.get('prixUnitaire')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Vente</mat-label>
+              <input matInput type="number" [(ngModel)]="article.vente" name="vente" required>
+              <mat-error *ngIf="articleForm.control.get('vente')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Achat</mat-label>
+              <input matInput type="number" [(ngModel)]="article.achat" name="achat" required>
+              <mat-error *ngIf="articleForm.control.get('achat')?.hasError('required')">Champ requis</mat-error>
+            </mat-form-field>
+          </div>
+          <div class="form-actions">
+            <button type="submit" mat-raised-button color="primary" [disabled]="articleForm.invalid">Mettre à
+              jour</button>
+            <button type="button" mat-raised-button color="warn" (click)="mode = 'list'">Annuler</button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Article Details -->
+  <div *ngIf="mode === 'detail'">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title><i class="fas fa-info-circle"></i> Détails de l'Article</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="detail-grid">
+          <p><strong>Code:</strong> {{ article.codeArticle }}</p>
+          <p><strong>Label:</strong> {{ article.label }}</p>
+          <p><strong>Type:</strong> {{ article.type }}</p>
+          <p><strong>Marchandise:</strong> {{ article.typeDeMarchandise }}</p>
+          <p><strong>Remorque:</strong> {{ article.typeDeRemorque }}</p>
+          <p><strong>Unité:</strong> {{ article.unite }}</p>
+          <p><strong>Quantité Minimum:</strong> {{ article.quantiteMinimum }}</p>
+          <p><strong>Prix Unitaire:</strong> {{ article.prixUnitaire }}</p>
+          <p><strong>Vente:</strong> {{ article.vente }}</p>
+          <p><strong>Achat:</strong> {{ article.achat }}</p>
+        </div>
+        <div class="form-actions">
+          <button mat-raised-button color="warn" (click)="onBack()">Retour à la Liste</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+

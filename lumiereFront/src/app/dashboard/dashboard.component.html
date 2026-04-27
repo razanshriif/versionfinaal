@@ -1,0 +1,311 @@
+﻿<div class="view-container">
+
+  <!-- ─── HEADER ────────────────────────────────────────────────────────────── -->
+  <div class="view-header">
+    <div class="title-section">
+      <div class="icon-box"><i class="fas fa-chart-line"></i></div>
+      <div>
+        <h2>Tableau de Bord</h2>
+        <p class="subtitle">
+          <ng-container *ngIf="isAdmin">Vue Administrateur — contrôle total</ng-container>
+          <ng-container *ngIf="isCommercial">Vue Commercial — gestion opérationnelle</ng-container>
+          <ng-container *ngIf="isClient">Bienvenue <strong>{{ currentUser?.firstname }}</strong> — suivi de vos
+            commandes</ng-container>
+        </p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="role-chip" [class]="userRole.toLowerCase()">
+        <i class="fa fa-user-tag"></i> {{ userRole }}
+      </span>
+      <span class="date-badge">
+        <i class="fa fa-calendar-alt"></i> {{ today | date:'EEEE d MMMM yyyy' : '' : 'fr' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       STAFF VIEW  (ADMIN + COMMERCIAL)
+  ════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="isStaff">
+
+    <!-- KPI Row 1 — Core metrics -->
+    <div class="stat-grid">
+
+      <div class="stat-box clients pulse-on-hover">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+          <span class="label">Clients Actifs</span>
+          <h3 class="value">{{ clientsCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" [style.width]="getClientsProgress()"></div>
+        </div>
+      </div>
+
+      <div class="stat-box articles pulse-on-hover">
+        <div class="stat-icon"><i class="fas fa-box"></i></div>
+        <div class="stat-info">
+          <span class="label">Total Articles</span>
+          <h3 class="value">{{ articlesCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" [style.width]="getArticlesProgress()"></div>
+        </div>
+      </div>
+
+      <div class="stat-box orders pulse-on-hover">
+        <div class="stat-icon"><i class="fas fa-truck"></i></div>
+        <div class="stat-info">
+          <span class="label">Commandes Totales</span>
+          <h3 class="value">{{ ordersCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" [style.width]="getOrdersProgress()"></div>
+        </div>
+      </div>
+
+      <!-- Users count — ADMIN only -->
+      <div class="stat-box users pulse-on-hover" *ngIf="isAdmin">
+        <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
+        <div class="stat-info">
+          <span class="label">Utilisateurs</span>
+          <h3 class="value">{{ usersCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" [style.width]="getUsersProgress()"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- KPI Row 2 — Operational insight -->
+    <div class="kpi-grid">
+
+      <div class="kpi-card danger">
+        <div class="kpi-left">
+          <div class="kpi-icon"><i class="fa fa-exclamation-triangle"></i></div>
+          <div>
+            <span class="kpi-label">Non Planifiés</span>
+            <span class="kpi-value">{{ nonPlanifieOrdersCount }}</span>
+          </div>
+        </div>
+        <span class="kpi-badge">Action requise</span>
+      </div>
+
+      <div class="kpi-card info">
+        <div class="kpi-left">
+          <div class="kpi-icon"><i class="fa fa-shipping-fast"></i></div>
+          <div>
+            <span class="kpi-label">En Livraison</span>
+            <span class="kpi-value">{{ enCoursDeLivraisonCount }}</span>
+          </div>
+        </div>
+        <span class="kpi-badge">En cours</span>
+      </div>
+
+      <!-- Pending users — ADMIN only -->
+      <div class="kpi-card warning" *ngIf="isAdmin">
+        <div class="kpi-left">
+          <div class="kpi-icon"><i class="fa fa-user-clock"></i></div>
+          <div>
+            <span class="kpi-label">Comptes en Attente</span>
+            <span class="kpi-value">{{ pendingUsersCount }}</span>
+          </div>
+        </div>
+        <span class="kpi-badge">Approbation</span>
+      </div>
+
+      <div class="kpi-card success">
+        <div class="kpi-left">
+          <div class="kpi-icon"><i class="fa fa-check-double"></i></div>
+          <div>
+            <span class="kpi-label">Taux de Complétion</span>
+            <span class="kpi-value">{{ completionRate }}%</span>
+          </div>
+        </div>
+        <span class="kpi-badge">Livré / Total</span>
+      </div>
+
+    </div>
+
+    <!-- Charts + Alerts — Staff -->
+    <div class="dashboard-bottom">
+      <div class="charts-col">
+
+        <div class="chart-card lum-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-pie"></i> Répartition des Ordres</h5>
+            <span class="chart-badge">6 statuts</span>
+          </div>
+          <div class="chart-body">
+            <apx-chart #donutChart [series]="donutChartOptions.series" [chart]="donutChartOptions.chart"
+              [labels]="donutChartOptions.labels" [colors]="donutChartOptions.colors"
+              [legend]="donutChartOptions.legend" [tooltip]="donutChartOptions.tooltip"
+              [responsive]="donutChartOptions.responsive">
+            </apx-chart>
+          </div>
+        </div>
+
+        <div class="chart-card lum-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-bar"></i> Statut des Ordres</h5>
+            <span class="chart-badge">Détail</span>
+          </div>
+          <div class="chart-body">
+            <apx-chart #barChart [series]="barChartOptions.series" [chart]="barChartOptions.chart"
+              [plotOptions]="barChartOptions.plotOptions" [dataLabels]="barChartOptions.dataLabels"
+              [colors]="barChartOptions.colors" [xaxis]="barChartOptions.xaxis"
+              [responsive]="barChartOptions.responsive">
+            </apx-chart>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Alerts panel -->
+      <div class="alerts-col">
+        <div class="alerts-card lum-card">
+          <div class="chart-header">
+            <h5><i class="fa fa-bell"></i> Activités & Alertes</h5>
+          </div>
+          <div class="alerts-body">
+
+            <div class="status-summary">
+              <div class="status-row" *ngFor="let s of [
+                { label: 'Non Planifié',  val: nonPlanifieOrdersCount,  color: '#ef4444' },
+                { label: 'Planifié',      val: planifieOrdersCount,      color: '#f59e0b' },
+                { label: 'En Chargement', val: enCoursDeChargementCount, color: '#3b82f6' },
+                { label: 'Chargé',        val: chargeCount,              color: '#8b5cf6' },
+                { label: 'En Livraison',  val: enCoursDeLivraisonCount,  color: '#06b6d4' },
+                { label: 'Livré',         val: livreCount,               color: '#10b981' }
+              ]">
+                <div class="status-dot" [style.background]="s.color"></div>
+                <span class="status-name">{{ s.label }}</span>
+                <div class="status-bar-wrap">
+                  <div class="status-bar-fill" [style.background]="s.color"
+                    [style.width]="ordersCount > 0 ? (s.val / ordersCount * 100) + '%' : '0%'"></div>
+                </div>
+                <span class="status-count">{{ s.val }}</span>
+              </div>
+            </div>
+
+            <div class="alert-divider">Alertes</div>
+            <a *ngFor="let a of alerts" [routerLink]="a.link" class="alert-item {{ a.type }}">
+              <div class="alert-icon"><i class="fa {{ a.icon }}"></i></div>
+              <span class="alert-msg">{{ a.message }}</span>
+              <i class="fa fa-chevron-right alert-arrow"></i>
+            </a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ════════════════════════════════════════════════════════════
+       CLIENT VIEW — order tracking only
+  ════════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="isClient">
+
+    <!-- Client order KPIs -->
+    <div class="stat-grid client-grid">
+
+      <div class="stat-box orders pulse-on-hover">
+        <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+        <div class="stat-info">
+          <span class="label">Mes Commandes</span>
+          <h3 class="value">{{ ordersCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" [style.width]="getOrdersProgress()"></div>
+        </div>
+      </div>
+
+      <div class="stat-box" style="--accent:#f59e0b">
+        <div class="stat-icon" style="background:#fffbeb;color:#f59e0b"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+          <span class="label">En Attente</span>
+          <h3 class="value">{{ nonPlanifieOrdersCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" style="background:#f59e0b"
+            [style.width]="ordersCount > 0 ? (nonPlanifieOrdersCount / ordersCount * 100)+'%' : '5%'"></div>
+        </div>
+      </div>
+
+      <div class="stat-box" style="--accent:#06b6d4">
+        <div class="stat-icon" style="background:#e0f2fe;color:#0284c7"><i class="fas fa-shipping-fast"></i></div>
+        <div class="stat-info">
+          <span class="label">En Livraison</span>
+          <h3 class="value">{{ enCoursDeLivraisonCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" style="background:#06b6d4" [style.width]="getDeliveryProgress()"></div>
+        </div>
+      </div>
+
+      <div class="stat-box users pulse-on-hover">
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info">
+          <span class="label">Livrées</span>
+          <h3 class="value">{{ livreCount }}</h3>
+        </div>
+        <div class="stat-progress">
+          <div class="bar" style="background:#10b981"
+            [style.width]="ordersCount > 0 ? (livreCount / ordersCount * 100)+'%' : '5%'">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Completion rate strip -->
+    <div class="completion-strip" *ngIf="ordersCount > 0">
+      <span class="c-label">Progression globale</span>
+      <div class="c-bar-wrap">
+        <div class="c-bar-fill" [style.width]="completionRate + '%'"></div>
+      </div>
+      <span class="c-value">{{ completionRate }}% livré</span>
+    </div>
+
+    <!-- Client charts + alerts -->
+    <div class="dashboard-bottom">
+      <div class="charts-col">
+        <div class="chart-card lum-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-pie"></i> Suivi de mes Commandes</h5>
+            <span class="chart-badge">En temps réel</span>
+          </div>
+          <div class="chart-body">
+            <apx-chart #donutChart [series]="donutChartOptions.series" [chart]="donutChartOptions.chart"
+              [labels]="donutChartOptions.labels" [colors]="donutChartOptions.colors"
+              [legend]="donutChartOptions.legend" [tooltip]="donutChartOptions.tooltip"
+              [responsive]="donutChartOptions.responsive">
+            </apx-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="alerts-col">
+        <div class="alerts-card lum-card">
+          <div class="chart-header">
+            <h5><i class="fa fa-bell"></i> Notifications</h5>
+          </div>
+          <div class="alerts-body">
+            <a *ngFor="let a of alerts" [routerLink]="a.link" class="alert-item {{ a.type }}">
+              <div class="alert-icon"><i class="fa {{ a.icon }}"></i></div>
+              <span class="alert-msg">{{ a.message }}</span>
+              <i class="fa fa-chevron-right alert-arrow"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>
+
+

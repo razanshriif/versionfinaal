@@ -1,0 +1,272 @@
+﻿// ─────────────────────────────────────────
+// OTFLOW — App-Level Bottom Nav
+// ─────────────────────────────────────────
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-top: 1px solid var(--border-card);
+    display: flex;
+    align-items: center;
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    height: calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: 1000;
+    pointer-events: auto;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+
+    // Tablet cap: center the nav on large screens
+    @media (min-width: 600px) {
+        max-width: 600px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 24px 24px 0 0;
+        border-left: 1px solid var(--border-card);
+        border-right: 1px solid var(--border-card);
+    }
+}
+
+.bnav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    transition: all 0.2s;
+    position: relative;
+
+    &:active {
+        transform: scale(0.94);
+    }
+
+    .bnav__icon-wrap {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+        svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--text-sub);
+            stroke-width: 2;
+            transition: inherit;
+        }
+    }
+
+    .bnav__label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: inherit;
+    }
+
+    &--active {
+        .bnav__icon-wrap {
+            background: var(--orange-pale);
+
+            svg {
+                stroke: var(--orange);
+                transform: scale(1.05);
+            }
+        }
+
+        .bnav__label {
+            color: var(--orange);
+            font-weight: 800;
+        }
+    }
+}
+
+@keyframes highlightPop {
+    0% {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.bnav__icon-wrap {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+}
+
+.bnav__label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #71717a; // Darker grey for contrast
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+}
+
+// ── Centre FAB ──
+.bnav__fab {
+    flex: 0 0 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    margin-top: -10px;
+}
+
+.bnav__fab-ring {
+    width: 50px;
+    height: 50px;
+    border-radius: 18px;
+    background: var(--orange);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+
+    svg {
+        width: 24px;
+        height: 24px;
+        stroke: #fff !important;
+    }
+
+    &:active {
+        transform: scale(0.9);
+        box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2);
+    }
+}
+
+// ── Floating Add Menu ──
+.bnav__menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s;
+}
+
+.bnav__menu {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px) scale(0.9);
+    display: flex;
+    gap: 24px;
+    z-index: 1001;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    &--active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+.bnav__menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+
+    .bnav__menu-icon {
+        width: 62px;
+        height: 62px;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        display: grid;
+        place-items: center;
+        color: var(--orange);
+        font-size: 28px;
+        transition: all 0.2s;
+
+        &:active {
+            transform: scale(0.92);
+        }
+    }
+
+    .bnav__menu-label {
+        background: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #1a1a1a; // Darker/black for visibility
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+// ── Global Chatbot FAB ──────────────────
+.global-chatbot-fab {
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
+    z-index: 2000 !important;
+    pointer-events: auto !important;
+}
+
+.premium-chatbot-btn {
+    --background: var(--orange);
+    --background-activated: var(--orange-deep);
+    --color: #ffffff;
+    --box-shadow: 0 8px 30px rgba(249, 115, 22, 0.4);
+    --border-radius: 16px;
+    width: 48px;
+    height: 48px;
+    transition: transform 0.2s;
+
+    ion-icon {
+        font-size: 20px;
+    }
+
+    &:active {
+        transform: scale(0.92);
+    }
+
+    animation: floatButton 3s infinite ease-in-out;
+}
+
+@keyframes floatButton {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}

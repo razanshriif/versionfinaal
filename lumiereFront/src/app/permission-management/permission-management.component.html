@@ -1,0 +1,124 @@
+﻿<div class="permission-wrapper">
+    <div class="header-card">
+        <div class="title-group">
+            <h1><i class="fas fa-user-lock"></i> Gestion des Droits d'Accès</h1>
+            <p>Configurez les permissions granulaires pour chaque module du système OTFLOW.</p>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="config-mode-toggle">
+            <button class="mode-btn" [class.active]="configMode === 'ROLE'" (click)="configMode = 'ROLE'; onModeChange()">
+                <i class="fas fa-layer-group"></i> Par Rôle
+            </button>
+            <button class="mode-btn" [class.active]="configMode === 'USER'" (click)="configMode = 'USER'; onModeChange()">
+                <i class="fas fa-user-cog"></i> Par Utilisateur
+            </button>
+        </div>
+
+        <!-- Role Selector -->
+        <div class="role-selector-box" *ngIf="configMode === 'ROLE'">
+            <label>Rôle à configurer :</label>
+            <div class="custom-select">
+                <select [(ngModel)]="selectedRole" class="role-dropdown" (change)="loadPermissionsByRole()">
+                    <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+                </select>
+                <i class="fas fa-caret-down"></i>
+            </div>
+        </div>
+
+        <!-- User Selector -->
+        <div class="role-selector-box" *ngIf="configMode === 'USER'">
+            <label>Chercher & Sélectionner Utilisateur :</label>
+
+            <!-- User Search Field -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" [(ngModel)]="searchTerm" placeholder="Chercher par nom ou rôle..." class="search-input">
+                <i class="fas fa-times clear-search" *ngIf="searchTerm" (click)="searchTerm = ''"></i>
+            </div>
+
+            <div class="custom-select">
+                <select [(ngModel)]="selectedUserId" class="role-dropdown" (change)="loadPermissionsByUser()">
+                    <option [value]="null" disabled>-- {{ filteredUsers.length }} utilisateur(s) trouvé(s) --</option>
+                    <option *ngFor="let user of filteredUsers" [value]="user.id">
+                        {{ user.firstname }} {{ user.lastname }} ({{ user.role }})
+                    </option>
+                </select>
+                <i class="fas fa-caret-down"></i>
+            </div>
+            <div class="user-mode-badge" *ngIf="selectedUserId">
+                <i class="fas fa-info-circle"></i>
+                Les permissions ici remplacent celles du rôle pour cet utilisateur uniquement.
+            </div>
+        </div>
+    </div>
+
+    <!-- No user selected placeholder -->
+    <div class="empty-user-notice" *ngIf="configMode === 'USER' && !selectedUserId">
+        <i class="fas fa-user-slash"></i>
+        <p>Sélectionnez un utilisateur pour configurer ses permissions individuelles.</p>
+    </div>
+
+    <div class="content-area" *ngIf="configMode === 'ROLE' || selectedUserId">
+        <div class="module-accordions">
+            <div *ngFor="let mod of modules" class="module-card" [class.expanded]="expandedModule === mod.key">
+
+                <div class="module-header" (click)="toggleModule(mod.key)">
+                    <div class="module-identity">
+                        <div class="module-icon-container">
+                            <i [class]="mod.icon"></i>
+                        </div>
+                        <div class="module-info">
+                            <span class="module-name">{{ mod.label }}</span>
+                            <span class="module-status" *ngIf="getPermission(mod.key) as p">
+                                <span class="status-badge" [class.enabled]="p.enabled">
+                                    {{ p.enabled ? 'Accès Activé' : 'Accès Refusé' }}
+                                </span>
+                                <span class="action-count" *ngIf="mod.actions.length > 0">
+                                    {{ mod.actions.length }} options de contrôle
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="module-controls">
+                        <label class="main-toggle" (click)="$event.stopPropagation()">
+                            <input type="checkbox" *ngIf="getPermission(mod.key) as p" [(ngModel)]="p.enabled">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <i class="fas fa-chevron-right chevron-icon"></i>
+                    </div>
+                </div>
+
+                <div class="module-body" *ngIf="mod.actions.length > 0">
+                    <div class="actions-grid">
+                        <div class="action-card" *ngFor="let action of mod.actions">
+                            <div class="action-info">
+                                <span class="action-label">{{ action.label }}</span>
+                                <small class="action-key">{{ action.key }}</small>
+                            </div>
+                            <div class="action-switch">
+                                <label class="switch">
+                                    <input type="checkbox" *ngIf="getPermission(action.key) as subP"
+                                        [(ngModel)]="subP.enabled" [disabled]="!getPermission(mod.key)?.enabled">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-save-panel" *ngIf="configMode === 'ROLE' || selectedUserId">
+        <button class="save-btn" (click)="savePermissions()" [disabled]="isLoading"
+            title="Enregistrer la Configuration">
+            <i class="fas fa-save" *ngIf="!isLoading"></i>
+            <span class="loader" *ngIf="isLoading"></span>
+        </button>
+    </div>
+
+</div>
+
+

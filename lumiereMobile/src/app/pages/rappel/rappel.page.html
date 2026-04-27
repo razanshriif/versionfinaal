@@ -1,0 +1,235 @@
+﻿<!-- ══ HEADER ══ -->
+<ion-header class="ion-no-border">
+    <div class="lum-logo-bar">
+        <div class="lum-logo-wrap">
+            <img src="assets/otflow-horizontal.png" alt="Otflow" />
+        </div>
+        <div class="lum-logo-actions">
+            <button class="lum-icon-btn" (click)="navCtrl.navigateForward('/notifications')">
+                <ion-icon name="notifications-outline"></ion-icon>
+            </button>
+            <button class="lum-icon-btn" (click)="logout()">
+                <ion-icon name="log-out-outline"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+    <div class="lum-sub-bar">
+        <button class="lum-back-btn" (click)="navCtrl.back()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+        <span class="lum-page-title">Mes Rappels</span>
+    </div>
+
+    <div class="lum-segment-container">
+        <ion-segment [value]="selectedSegment" (ionChange)="segmentChanged($event)" class="premium-segment">
+            <ion-segment-button value="manual">
+                <ion-icon name="person-outline"></ion-icon>
+                <ion-label>Mes Rappels</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="ia">
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <ion-label>Assistant IA</ion-label>
+            </ion-segment-button>
+        </ion-segment>
+    </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="premium-content">
+
+    <!-- IA Assistant Quick Action -->
+    <div class="ia-quick-action fade-up" *ngIf="selectedSegment === 'ia'">
+        <div class="ia-banner" (click)="navCtrl.navigateForward('/chatbot')">
+            <div class="ia-banner-content">
+                <div class="ia-banner-icon-wrap">
+                    <ion-icon name="sparkles-outline" class="ia-banner-icon"></ion-icon>
+                </div>
+                <div class="ia-banner-text">
+                    <strong>Demander à l'assistant</strong>
+                    <span>Créer un rappel avec l'IA OTFLOW</span>
+                </div>
+            </div>
+            <div class="ia-banner-chevron-btn">
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="groupedRappels.length === 0" class="empty-state-container fade-up">
+        <div class="empty-icon-box">
+            <ion-icon [name]="selectedSegment === 'ia' ? 'sparkles-outline' : 'time-outline'"></ion-icon>
+        </div>
+        <h2 class="empty-title">Aucun rappel</h2>
+        <p class="empty-subtitle">
+            {{ selectedSegment === 'ia' ? 'L\'IA n\'a pas encore généré de rappels.' : 'Vous n\'avez pas encore créé de rappels.' }}
+        </p>
+        <ion-button *ngIf="selectedSegment === 'ia'" fill="clear" (click)="navCtrl.navigateForward('/chatbot')" class="parler-ia-btn">
+            <ion-icon name="sparkles-outline" slot="start"></ion-icon>
+            Parler à l'assistant
+        </ion-button>
+    </div>
+
+    <!-- Grouped Rappels List -->
+    <div class="list-container-premium" *ngIf="groupedRappels.length > 0">
+        <div *ngFor="let group of groupedRappels" class="rappel-section fade-up">
+
+            <!-- Section header -->
+            <div class="section-divider">
+                <span class="sec-label">{{ group.label }}</span>
+                <span class="sec-badge">{{ group.items.length }}</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <div *ngFor="let r of group.items"
+                 class="rappel-premium-card"
+                 [class.is-done]="r.fait"
+                 [class.ia-card]="r.source === 'ia' || selectedSegment === 'ia'">
+
+                <!-- Round checkbox -->
+                <ion-checkbox [checked]="r.fait" (ionChange)="toggleFait(r, $event)" class="rappel-checkbox">
+                </ion-checkbox>
+
+                <!-- Main content -->
+                <div class="card-main-content" (click)="openModal(r)">
+                    <div class="card-header-info">
+                        <div class="time-label">
+                            <ion-icon name="time-outline"></ion-icon>
+                            {{ formatTime(r.date) }}
+                        </div>
+                        <div class="ia-tag" *ngIf="r.source === 'ia' || selectedSegment === 'ia'">
+                            <ion-icon name="sparkles-outline"></ion-icon>
+                            IA
+                        </div>
+                    </div>
+                    <h3 class="rappel-title">{{ r.titre }}</h3>
+                    <p class="rappel-subtitle" *ngIf="r.note">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        {{ r.note }}
+                    </p>
+                </div>
+
+                <!-- Actions -->
+                <div class="card-actions">
+                    <button class="rappel-action-btn delete" (click)="deleteRappel(r, $event)">
+                        <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                    <button class="chevron-btn" (click)="openModal(r)">
+                        <ion-icon name="chevron-forward-outline"></ion-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fab for Manual Creation -->
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="selectedSegment === 'manual'">
+        <ion-fab-button (click)="openModal()">
+            <ion-icon name="add-outline"></ion-icon>
+        </ion-fab-button>
+    </ion-fab>
+
+    <!-- ══ MODAL: CREATE/EDIT ══ -->
+    <ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()" class="rappel-modal-premium">
+        <ng-template>
+            <ion-header class="ion-no-border">
+                <ion-toolbar>
+                    <div class="modal-header-content">
+                        <ion-title>{{ editingRappel ? 'Détails du Rappel' : 'Nouveau Rappel' }}</ion-title>
+                        <ion-buttons slot="end">
+                            <button class="modal-close-btn" (click)="closeModal()">
+                                <ion-icon name="close-outline"></ion-icon>
+                            </button>
+                        </ion-buttons>
+                    </div>
+                </ion-toolbar>
+            </ion-header>
+
+            <ion-content class="modal-content-area">
+                <div class="modal-form-wrapper">
+
+                    <!-- 1. Title Input -->
+                    <div class="form-group fade-up">
+                        <label>TITRE</label>
+                        <div class="custom-input-box">
+                            <ion-icon name="create-outline"></ion-icon>
+                            <input type="text" [(ngModel)]="newRappel.titre" placeholder="Quoi faire ?" class="manual-input">
+                        </div>
+                    </div>
+
+                    <!-- 2. Date Preview Pill -->
+                    <div class="date-preview-pill fade-up">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                        <span>{{ getFormattedSelectedDate() }}</span>
+                    </div>
+
+                    <!-- 3. Custom Calendar -->
+                    <div class="custom-calendar-container fade-up">
+                        <div class="cal-month-nav">
+                            <button (click)="changeMonth(-1)"><ion-icon name="chevron-back-outline"></ion-icon></button>
+                            <span class="cal-month-label">{{ monthNames[viewDate.getMonth()] }} {{ viewDate.getFullYear() }}</span>
+                            <button (click)="changeMonth(1)"><ion-icon name="chevron-forward-outline"></ion-icon></button>
+                        </div>
+                        <div class="cal-weekdays">
+                            <span *ngFor="let day of weekDays">{{ day }}</span>
+                        </div>
+                        <div class="cal-grid">
+                            <div *ngFor="let d of calendarDays"
+                                 class="cal-day"
+                                 [class.empty]="!d.day"
+                                 [class.today]="d.isToday"
+                                 [class.selected]="d.isSelected"
+                                 (click)="selectDay(d.day)">
+                                {{ d.day }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Time Strip -->
+                    <div class="time-strip-container fade-up">
+                        <label>HEURE DU RAPPEL</label>
+                        <div class="time-controls">
+                            <div class="time-unit">
+                                <button (click)="adjustTime('h', 1)"><ion-icon name="chevron-up-outline"></ion-icon></button>
+                                <span class="time-val">{{ pad(selHour) }}</span>
+                                <button (click)="adjustTime('h', -1)"><ion-icon name="chevron-down-outline"></ion-icon></button>
+                            </div>
+                            <span class="time-sep">:</span>
+                            <div class="time-unit">
+                                <button (click)="adjustTime('m', 5)"><ion-icon name="chevron-up-outline"></ion-icon></button>
+                                <span class="time-val">{{ pad(selMin) }}</span>
+                                <button (click)="adjustTime('m', -5)"><ion-icon name="chevron-down-outline"></ion-icon></button>
+                            </div>
+                            <div class="time-chip">
+                                <ion-icon name="time-outline"></ion-icon>
+                                {{ pad(selHour) }}:{{ pad(selMin) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Notes -->
+                    <div class="form-group fade-up">
+                        <label>NOTES (OPTIONNEL)</label>
+                        <div class="custom-textarea-box">
+                            <textarea [(ngModel)]="newRappel.note" placeholder="Plus de détails..." rows="2"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+            </ion-content>
+
+            <ion-footer class="ion-no-border" *ngIf="selectedSegment === 'manual' || !editingRappel">
+                <div class="modal-footer-pad">
+                    <ion-button expand="block" (click)="saveRappel()" class="premium-button shadow-primary"
+                                [disabled]="!newRappel.titre">
+                        {{ editingRappel ? 'Enregistrer' : 'Créer le rappel' }}
+                    </ion-button>
+                </div>
+            </ion-footer>
+        </ng-template>
+    </ion-modal>
+
+</ion-content>
+
+
+

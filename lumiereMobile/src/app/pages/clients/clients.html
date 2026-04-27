@@ -1,0 +1,94 @@
+﻿<ion-header class="ion-no-border">
+    <div class="lum-logo-bar">
+        <div class="lum-logo-wrap">
+            <img src="assets/otflow-horizontal.png" alt="Otflow" />
+        </div>
+        <div class="lum-logo-actions">
+            <button class="lum-icon-btn" (click)="goToNotifications()">
+                <ion-icon name="notifications-outline"></ion-icon>
+                <span class="lum-pip" *ngIf="stats.notifications > 0"></span>
+            </button>
+            <button class="lum-icon-btn" (click)="logout()">
+                <ion-icon name="log-out-outline"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+    <div class="lum-sub-bar">
+        <button class="lum-back-btn" (click)="navCtrl.back()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+        <h1 class="lum-page-title">Clients</h1>
+        <button class="lum-filter-btn" (click)="createClient()">
+            <ion-icon name="add-outline"></ion-icon>
+        </button>
+    </div>
+
+    <div class="search-wrapper">
+        <div class="unified-search-container">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-input [ngModel]="searchTerm" (ionInput)="onSearchChange($event)"
+                placeholder="Rechercher un client..."></ion-input>
+        </div>
+    </div>
+</ion-header>
+
+<ion-content class="premium-content">
+    <ion-refresher slot="fixed" (ionRefresh)="loadClients($event)">
+        <ion-refresher-content refreshingSpinner="dots"></ion-refresher-content>
+    </ion-refresher>
+
+    <div class="list-body">
+        <!-- Client List -->
+        <div class="client-list" *ngIf="!isLoading">
+            <ion-list class="transparent-list">
+                <ion-item-sliding *ngFor="let client of filteredClients">
+                    <ion-item (click)="editClient(client)" class="transparent-item" lines="none">
+                        <div class="client-card fade-up">
+                            <div class="client-avatar">
+                                {{ (client.nom || 'C').charAt(0).toUpperCase() }}
+                            </div>
+                            <div class="client-info">
+                                <h2 class="client-name">{{ client.nom }}</h2>
+                                <div class="info-row">
+                                    <span class="client-code">{{ client.code }}</span>
+                                    <div class="client-city">
+                                        <ion-icon name="location-outline"></ion-icon>
+                                        {{ client.ville || '---' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+                        </div>
+                    </ion-item>
+
+                    <ion-item-options side="end">
+                        <ion-item-option (click)="editClient(client)" class="sliding-btn edit">
+                            <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                        </ion-item-option>
+                        <ion-item-option (click)="deleteClient(client)" color="danger" class="sliding-btn delete">
+                            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                        </ion-item-option>
+                    </ion-item-options>
+                </ion-item-sliding>
+            </ion-list>
+
+            <!-- Empty State -->
+            <div class="empty-clients fade-up" *ngIf="filteredClients.length === 0">
+                <div class="empty-icon">
+                    <ion-icon name="people-outline"></ion-icon>
+                </div>
+                <h3>Aucun client</h3>
+                <p>Commencez par ajouter votre premier client.</p>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="client-list" *ngIf="isLoading">
+            <div class="client-card skeleton" *ngFor="let s of [1,2,3,4,5]"></div>
+        </div>
+    </div>
+</ion-content>
+
+
+

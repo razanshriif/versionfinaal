@@ -1,0 +1,501 @@
+﻿:host {
+  display: block;
+  height: 100%;
+}
+
+.premium-content {
+  --background: var(--bg-app);
+}
+
+.form-body {
+  padding: 16px;
+  padding-bottom: 40px;
+}
+
+// ── Step Indicator ──
+.step-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0;
+
+  .step-dot {
+    width: 32px;
+    height: 8px;
+    border-radius: 100px;
+    background: #EDE9E4;
+    transition: all 0.3s;
+
+    &.active {
+      width: 48px;
+      background: var(--orange);
+    }
+  }
+}
+
+// ── Section Cards ──
+.form-section {
+  background: #fff;
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-card);
+    }
+  }
+}
+
+// ── Form Inputs ──
+.ds-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ds-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .input-wrapper {
+    background: #FAFAFA;
+    border: 1px solid var(--border-input);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+
+    &:focus-within {
+      border-color: var(--orange);
+      background: #fff;
+    }
+
+    ion-input,
+    ion-textarea {
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      --placeholder-color: var(--text-sub);
+    }
+
+    ion-icon {
+      color: var(--text-sub);
+      font-size: 18px;
+    }
+  }
+
+  &.readonly {
+    .input-wrapper {
+      background: #EDE9E4;
+      border-color: transparent;
+      opacity: 0.8;
+    }
+  }
+}
+
+// ── Radio Group Design ──
+.custom-radio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.radio-pill {
+  border: 2px solid var(--border-card);
+  border-radius: 16px;
+  padding: 14px 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  &.active {
+    background: #FFF4ED;
+    border-color: var(--orange);
+    box-shadow: 0 4px 12px rgba(247, 148, 29, 0.15);
+
+    .radio-icon-box {
+      background: var(--orange);
+      ion-icon { color: #fff; }
+    }
+
+    .radio-label {
+      color: var(--orange);
+    }
+
+    .radio-desc {
+      color: rgba(247, 148, 29, 0.7);
+    }
+  }
+
+  ion-radio {
+    display: none;
+  }
+
+  .radio-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--bg-app);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s;
+
+    ion-icon {
+      font-size: 20px;
+      color: var(--text-sub);
+    }
+  }
+
+  .radio-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .radio-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-main);
+    transition: color 0.25s;
+  }
+
+  .radio-desc {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-sub);
+    transition: color 0.25s;
+  }
+}
+
+// ── Transport Recommendations ──
+.reco-banner {
+  background: #FFF4ED;
+  border: 1px dashed var(--orange);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 20px;
+
+  .reco-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--orange);
+    margin-bottom: 8px;
+  }
+
+  .reco-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.5;
+  }
+}
+
+.footer-actions-integrated {
+  padding: 16px 0 calc(80px + env(safe-area-inset-bottom, 0px));
+  background: transparent;
+}
+
+.auto-comment-preview {
+  margin-top: 16px;
+  background: rgba(var(--orange-rgb), 0.05);
+  border: 1px dashed var(--orange);
+  border-radius: 12px;
+  padding: 12px;
+
+  .preview-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+
+    ion-icon {
+      color: var(--orange);
+      font-size: 18px;
+    }
+
+    span {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--orange);
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .preview-content {
+    font-size: 14px;
+    color: var(--text-main);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .preview-hint {
+    margin: 8px 0 0;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+}
+
+// ── Transport Sub-types ──
+.sub-type-container {
+  margin-top: 16px;
+  background: #FAFAFA;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-input);
+
+  .label {
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-sub);
+  }
+
+  .radio-pill.mini {
+    padding: 8px 12px;
+    border-radius: 10px;
+
+    ion-icon {
+      font-size: 16px;
+    }
+
+    span {
+      font-size: 12px;
+    }
+  }
+}
+
+// ── Modals Refinement ──
+ion-modal {
+  --border-radius: 24px 24px 0 0;
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: #E6E1DB;
+    border-radius: 100px;
+    margin: 12px auto;
+  }
+}
+
+// ── Search & Filter in Modals ──
+.unified-search-container {
+  background: var(--bg-app);
+  border-radius: 14px;
+  padding: 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--text-sub);
+  }
+
+  ion-searchbar {
+    --background: transparent;
+    --box-shadow: none;
+    --padding-start: 0;
+    --color: var(--text-main);
+    padding: 0;
+  }
+}
+
+// ── Client & Article Cards in Modals ──
+.client-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+
+  &:active {
+    background: var(--bg-app);
+    transform: scale(0.98);
+  }
+
+  .client-avatar {
+    width: 44px;
+    height: 44px;
+    background: var(--orange-light);
+    color: var(--orange);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+
+    &.article {
+      background: #E8F0FE;
+      color: #1A73E8;
+    }
+  }
+
+  .client-info {
+    flex: 1;
+    overflow: hidden;
+
+    .client-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0 0 4px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+
+      .client-code {
+        color: var(--text-sub);
+        font-family: monospace;
+        font-weight: 600;
+      }
+
+      .client-city {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-sub);
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .article-tag {
+    background: #F1F3F4;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+  }
+}
+
+// ── Site Picker Grid ──
+.sites-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px;
+
+  .site-chip {
+    background: #fff;
+    border: 1px solid var(--border-card);
+    border-radius: 12px;
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+
+    &.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+
+      ion-icon,
+      span {
+        color: #fff;
+      }
+    }
+
+    ion-icon {
+      font-size: 20px;
+      color: var(--text-sub);
+    }
+
+    span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+  }
+}
+
+.footer-actions-integrated {
+  padding: 24px 16px;
+  background: transparent;
+
+  .button-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+.premium-button {
+  --border-radius: 18px;
+  --background: #1a1c1f;
+  --background-activated: #2c2f33;
+  --color: #ffffff;
+  --box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+  font-weight: 800;
+  height: 58px;
+  font-size: 16px;
+  text-transform: none;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::part(native) {
+    padding: 0 24px;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.spacer {
+  height: 120px;
+}
