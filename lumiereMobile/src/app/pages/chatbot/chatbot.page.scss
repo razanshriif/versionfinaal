@@ -1,21 +1,12 @@
 // Premium Chatbot Mobile Redesign
 :host {
-    --cb-primary: #ff8c42;
-    --cb-primary-gradient: linear-gradient(135deg, #ff8c42 0%, #ff5e3a 100%);
-    --cb-midnight: #1a1c2c;
-    --cb-glass: rgba(255, 255, 255, 0.85);
-}
-
-// Header logo (right side)
-:host ion-header .header-right-group .global-logo {
-    height: 38px;
-    width: auto;
-    max-width: 56px;
-    object-fit: contain;
+    --cb-primary: var(--orange);
+    --cb-primary-gradient: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+    --bg-app: #F2EEE9;
 }
 
 .premium-content {
-    --background: transparent;
+    --background: var(--bg-app);
 }
 
 .glass-background {
@@ -24,14 +15,14 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background: var(--bg-app);
     z-index: -1;
 }
 
 .bubble {
     position: absolute;
     border-radius: 50%;
-    background: rgba(255, 140, 66, 0.1);
+    background: rgba(255, 135, 50, 0.05);
     filter: blur(60px);
 }
 
@@ -47,25 +38,24 @@
     height: 300px;
     bottom: -50px;
     left: -50px;
-    background: rgba(72, 52, 212, 0.08);
+    background: rgba(255, 135, 50, 0.03);
 }
 
 .chat-container {
     display: flex;
     flex-direction: column;
-    padding: 20px 20px 140px; // Padding at bottom for the input bar
+    padding: 20px 20px 140px; 
     min-height: 100%;
 }
 
 .messages-wrapper {
     flex: 1;
     padding: 20px;
-    overflow-y: auto;
 }
 
 .message-row {
     display: flex;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 
     &.user-message {
@@ -74,8 +64,8 @@
         .message-bubble {
             background: var(--cb-primary-gradient);
             color: white;
-            border-radius: 24px 24px 4px 24px;
-            box-shadow: 0 10px 25px rgba(255, 140, 66, 0.2);
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 8px 20px rgba(255, 135, 50, 0.2);
         }
     }
 
@@ -84,61 +74,54 @@
 
         .message-bubble {
             background: #ffffff;
-            color: #1a1c2c;
-            border-radius: 24px 24px 24px 4px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            color: #1e293b;
+            border-radius: 20px 20px 20px 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
             border: 1px solid rgba(0, 0, 0, 0.02);
         }
     }
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 .message-bubble {
-    max-width: 82%;
-    padding: 16px 20px;
+    max-width: 85%;
+    padding: 14px 18px;
 
     .message-text {
-        font-size: 0.95rem;
+        font-size: 14px;
         font-weight: 500;
-        line-height: 1.6;
-
-        .bullet-item {
-            display: block;
-            padding-left: 4px;
-            margin: 2px 0;
-        }
+        line-height: 1.5;
     }
 
     .message-time {
-        font-size: 0.65rem;
+        font-size: 10px;
         font-weight: 700;
-        opacity: 0.5;
-        margin-top: 8px;
+        opacity: 0.4;
+        margin-top: 6px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 }
 
 .typing-indicator {
-    padding: 12px 20px;
-    margin-bottom: 20px;
+    padding: 8px 16px;
+    margin-bottom: 10px;
 
     .typing-dots {
         display: flex;
-        gap: 6px;
+        gap: 5px;
         background: white;
-        padding: 12px 18px;
-        border-radius: 20px;
+        padding: 10px 16px;
+        border-radius: 18px;
         width: fit-content;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 
         span {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             background: var(--cb-primary);
             border-radius: 50%;
             animation: typingBounce 0.8s infinite alternate;
@@ -151,73 +134,48 @@
 
 @keyframes typingBounce {
     from { transform: translateY(0); opacity: 0.4; }
-    to { transform: translateY(-8px); opacity: 1; }
+    to { transform: translateY(-6px); opacity: 1; }
 }
 
 ion-footer {
     --background: transparent;
-    padding: 10px 20px 35px;
+    padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
 }
 
 .input-container {
     background: #ffffff;
     border-radius: 24px;
-    padding: 8px 8px 8px 22px;
+    padding: 6px 6px 6px 18px;
     display: flex;
     align-items: center;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.02);
 
     ion-textarea {
-        --padding-top: 14px;
-        --padding-bottom: 14px;
-        --color: #1a1c2c;
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+        --color: #1e293b;
         --placeholder-color: #94a3b8;
-        font-weight: 500;
+        font-weight: 600;
         --highlight-color-focused: transparent !important;
         --highlight-height: 0 !important;
-        --border-width: 0 !important;
-        --border-style: none !important;
     }
 
     .send-btn {
         --background: var(--cb-primary-gradient);
-        --border-radius: 16px;
-        --box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
-        width: 50px;
-        height: 50px;
+        --border-radius: 18px;
+        --box-shadow: 0 4px 12px rgba(255, 135, 50, 0.25);
+        width: 48px;
+        height: 48px;
         margin: 0;
         transition: transform 0.2s;
 
         &:active {
             transform: scale(0.9);
         }
-    }
-}
 
-// Dark mode refinements
-@media (prefers-color-scheme: dark) {
-    .glass-background {
-        background: linear-gradient(135deg, #0f172a 0%, #1a1c2c 100%);
-    }
-
-    .message-row.bot-message .message-bubble {
-        background: #232a3b;
-        color: #f8fafc;
-        border-color: rgba(255, 255, 255, 0.05);
-    }
-
-    .typing-dots {
-        background: #232a3b !important;
-    }
-
-    .input-container {
-        background: #232a3b;
-        border-color: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
-    }
-
-    .input-container ion-textarea {
-        --color: #f8fafc;
+        ion-icon {
+            font-size: 20px;
+        }
     }
 }
