@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -23,7 +23,7 @@ export class ExportService {
     async exportExcel(data: any[], title: string, fileName: string, columns: any[]) {
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'OTFLOW Transport';
-        workbook.company = 'OTFLOW Logistique';
+        (workbook as any).company = 'OTFLOW Logistique';
         workbook.created = new Date();
 
         const worksheet = workbook.addWorksheet(title, {
