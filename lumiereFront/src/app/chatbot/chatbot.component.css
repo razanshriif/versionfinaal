@@ -1,4 +1,4 @@
-﻿:host {
+:host {
     --cb-primary: #ff8c42;
     --cb-primary-gradient: linear-gradient(135deg, #ff8c42 0%, #ff5e3a 100%);
     --cb-midnight: #1a1c2c;
@@ -389,8 +389,9 @@
     padding: 10px 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--cb-midnight);
+    color: #1a1c2c !important; /* Force dark text on light background */
     outline: none;
+    caret-color: var(--cb-primary);
 }
 
 .send-btn {
@@ -445,11 +446,16 @@
     }
 
     .chat-input {
-        background: #334155;
+        background: #334155 !important;
+        border-color: rgba(255, 255, 255, 0.1);
     }
 
     .chat-input input {
-        color: white;
+        color: #ffffff !important;
+    }
+
+    .chat-input input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
     }
 
     .typing-indicator {

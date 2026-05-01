@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -66,7 +66,12 @@ export class OrdreComponent implements OnInit {
   };
   eventCount: number = 0;
 
-  constructor(private modalService: NgbModal, private service: OrdreService, private http: HttpClient) { }
+  constructor(
+    private modalService: NgbModal, 
+    private service: OrdreService, 
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
     this.filtrerParDate();
@@ -145,6 +150,7 @@ export class OrdreComponent implements OnInit {
       this.ordres = ordres;
       this.ordresFiltres = this.ordres;
       this.sortEvents();
+      this.cdr.detectChanges();
     });
   }
 
@@ -343,6 +349,7 @@ export class OrdreComponent implements OnInit {
           (o.chargementVille && o.chargementVille.toLowerCase().includes(this.filtreSource.toLowerCase()));
         return o.statut !== 'NON_CONFIRME' && matchesSource;
       });
+      this.cdr.detectChanges();
     });
   }
 

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrdreService } from '../ordre.service';
@@ -18,7 +18,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 export class AjouterordreComponent implements OnInit {
 
 
-  constructor(private service: OrdreService, private snackBar: MatSnackBar) { };
+  constructor(
+    private service: OrdreService, 
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
+  ) { };
 
 
   ordre = {
@@ -84,6 +88,7 @@ export class AjouterordreComponent implements OnInit {
         }
       }
       this.updateSelectionCount();
+      this.cdr.detectChanges();
     });
   }
   ajouter() {

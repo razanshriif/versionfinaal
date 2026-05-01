@@ -1,4 +1,4 @@
-﻿import { Component, ViewChild, OnInit, OnDestroy } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
@@ -47,7 +47,8 @@ export class MaterialComponent implements OnInit, OnDestroy {
     private service: NotificationService,
     private authService: AuthService,
     private router: Router,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -102,6 +103,7 @@ export class MaterialComponent implements OnInit, OnDestroy {
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
         this.hasNewNotifications = this.clients.some(n => !n.isRead);
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error fetching notifications:', err)
     });

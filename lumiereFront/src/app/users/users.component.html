@@ -1,4 +1,4 @@
-﻿<!-- Button to Open the Modal -->
+<!-- Button to Open the Modal -->
 
 <div class="user-view-container">
   <!-- View Header -->
@@ -20,7 +20,7 @@
         <i class="fa fa-file-excel"></i> <span>Export</span>
       </button>
       <button type="button" class="btn-create" (click)="openModal()">
-        <i class="fa fa-plus-circle"></i> <span>Add User</span>
+        <i class="fa fa-plus-circle"></i> <span>Cree User</span>
       </button>
     </div>
   </div>
@@ -197,39 +197,33 @@
 <div id="approveClientModal" class="modal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content premium-modal">
-      <div class="modal-header-gradient success" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 15px 20px; color: white;">
-        <div class="header-content" style="display: flex; align-items: center; gap: 10px;">
+      <div class="modal-header-gradient success">
+        <div class="header-content">
           <i class="fa fa-user-check"></i>
-          <h5 class="modal-title" style="margin: 0; font-weight: 600;">Approbation du Client</h5>
+          <h5 class="modal-title">Approbation du Client</h5>
         </div>
-        <button type="button" class="btn-close-white" (click)="closeApprovalModal()" style="background: none; border: none; color: white; cursor: pointer;">
+        <button type="button" class="btn-close-white" (click)="closeApprovalModal()">
           <i class="fa fa-times"></i>
         </button>
       </div>
-      <div class="modal-body-premium" style="padding: 25px;">
-        <p class="modal-hint" style="margin-bottom: 20px; color: #666;">Veuillez remplir les identifiants métier pour finaliser l'inscription de <strong>{{ selectedUser?.firstname }} {{ selectedUser?.lastname }}</strong>.</p>
+      <div class="modal-body-premium">
+        <p class="modal-hint">Veuillez remplir les identifiants métier pour finaliser l'inscription de <strong>{{ selectedUser?.firstname }} {{ selectedUser?.lastname }}</strong>.</p>
         
         <div class="form-section">
-          <div class="form-group-modern fluid" style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">Code Client (Logiciel Métier)</label>
-            <input type="text" [(ngModel)]="approvalData.codeClient" placeholder="Ex: CL-2024-001" required
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; outline: none;">
+          <div class="form-group-modern fluid" style="margin-bottom: 20px;">
+            <label>Code Client (Logiciel Métier)</label>
+            <input type="text" [(ngModel)]="approvalData.codeClient" placeholder="Ex: CL-2024-001" required>
           </div>
           <div class="form-group-modern fluid">
-            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #444;">ID EDI (Identifiant Échange de Données)</label>
-            <input type="text" [(ngModel)]="approvalData.idEdi" placeholder="Ex: EDI_9988" required
-              style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; outline: none;">
+            <label>ID EDI (Identifiant Échange de Données)</label>
+            <input type="text" [(ngModel)]="approvalData.idEdi" placeholder="Ex: EDI_9988" required>
           </div>
         </div>
 
-        <div class="modal-footer-premium" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 12px;">
-          <button type="button" class="btn-cancel" (click)="closeApprovalModal()" 
-            style="padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer; transition: all 0.2s;">
-            Annuler
-          </button>
+        <div class="modal-footer-premium">
+          <button type="button" class="btn-cancel" (click)="closeApprovalModal()">Annuler</button>
           <button type="button" class="btn-save success" (click)="onConfirmApproval()" 
-            [disabled]="!approvalData.codeClient || !approvalData.idEdi"
-            style="padding: 10px 25px; border-radius: 8px; background: #28a745; color: white; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s;">
+            [disabled]="!approvalData.codeClient || !approvalData.idEdi">
             <i class="fa fa-check-circle"></i> Valider & Activer
           </button>
         </div>

@@ -63,14 +63,12 @@ public class ChatbotService {
 
     public String getChatResponseWithHistory(String userMessage, List<Map<String, String>> history, String userEmail, String platform) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String systemPrompt = "Tu es 'Otflow Smart Assist', une IA conversationnelle d'élite de niveau GPT-4. " +
-                             "IMPORTANT: Tu es un humain professionnel, pas un robot. " +
-                             "RÈGLE CRITIQUE #1 (SALUTATIONS): Si l'utilisateur te dit 'Bonjour', 'Salut', 'Aslema', ou toute autre salutation sans demande précise, réponds UNIQUEMENT par une salutation chaleureuse (ex: 'Bonjour ! Comment puis-je vous aider dans vos transports aujourd'hui ?'). NE DÉCLENCHE AUCUN OUTIL. Ne liste pas les ordres. Ne donne pas de stats. C'est une faute grave de donner des infos non demandées. " +
-                             "RÈGLE CRITIQUE #2 (PAS DE CODE): Ne mentionne JAMAIS de balises comme <function> ou des noms d'outils dans ton texte. " +
-                             "CONNAISSANCE DE L'APP: Tu connais les onglets ACCUEIL (stats), ORDRES (Brouillons, En attente, Confirmés), SUIVI (Carte), et PROFIL. " +
-                             "LANGUE: Parle la langue de l'utilisateur. S'il parle Darija tunisienne, réponds chaleureusement en Darija. " +
-                             "OUTILS: list_my_orders, get_order_details, create_reminder, create_order_draft, find_orders_by_client_name, get_fleet_stats, search_article. " +
-                             "RESTE DISCRET: Tu es un expert. Un expert n'étale pas sa science sans qu'on lui demande.";
+        String systemPrompt = "Tu es 'Otflow Smart Assist', l'assistant IA officiel de Lumière Transport (expert logistique). " +
+                             "DATE ACTUELLE: " + currentTime + ". " +
+                             "INSTRUCTIONS: Réponds aux questions en utilisant exclusivement les outils (functions) mis à ta disposition. " +
+                             "Ne simule jamais d'appels d'outils en texte, utilise l'API de tools native. " +
+                             "Si l'utilisateur dit simplement 'Bonjour', réponds par un message d'accueil court et professionnel. " +
+                             "Sois précis, poli et concis.";
 
         if ("groq".equalsIgnoreCase(provider)) {
             return callGroq(userMessage, history, systemPrompt, userEmail, platform);
@@ -182,7 +180,7 @@ public class ChatbotService {
         requestBody.put("messages", messages);
         requestBody.put("tools", getGroqTools(platform));
         requestBody.put("tool_choice", "auto");
-        requestBody.put("temperature", 0.1); // Lower temperature for more consistent tool calling
+        requestBody.put("temperature", 0.0); // Absolute precision for tools
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
@@ -193,52 +191,46 @@ public class ChatbotService {
             Map message = (Map) firstChoice.get("message");
 
             if (message.containsKey("tool_calls")) {
-                List toolCalls = (List) message.get("tool_calls");
-                Map firstCall = (Map) toolCalls.get(0);
-                Map function = (Map) firstCall.get("function");
-                String functionName = (String) function.get("name");
-                
-                // Parse args from JSON string (Groq/OpenAI format)
-                String argsJson = (String) function.get("arguments");
-                Map<String, Object> args = new HashMap<>();
-                if (argsJson != null && !argsJson.trim().isEmpty() && !argsJson.equals("{}")) {
-                    try {
-                        args = new com.fasterxml.jackson.databind.ObjectMapper().readValue(argsJson, Map.class);
-                    } catch (Exception e) {
-                        log.error("Error parsing Groq tool arguments: {}", argsJson, e);
-                    }
-                }
-                if (args == null) args = new HashMap<>();
-
-                log.info("Groq requested tool: {} with args: {}", functionName, args);
-                Object result = executeTool(functionName, args, userEmail, platform);
-                log.info("Tool result: {}", result);
-
-                // Si c'est un message de refus (web), on le retourne directement sans 2ème tour
-                if (result instanceof String && ((String) result).startsWith("D\u00e9sol\u00e9")) {
-                    return (String) result;
-                }
-
-                // Second Turn for Groq
+                List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
                 List<Map<String, Object>> followUpMessages = new ArrayList<>(messages);
                 followUpMessages.add(message);
-                
-                Map<String, Object> toolResponse = new HashMap<>();
-                toolResponse.put("role", "tool");
-                toolResponse.put("tool_call_id", firstCall.get("id"));
-                toolResponse.put("name", functionName);
-                toolResponse.put("content", String.valueOf(result));
-                followUpMessages.add(toolResponse);
+
+                for (Map<String, Object> toolCall : toolCalls) {
+                    Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                    String functionName = (String) function.get("name");
+                    String toolCallId = (String) toolCall.get("id");
+                    
+                    // Parse args
+                    String argsJson = (String) function.get("arguments");
+                    Map<String, Object> args = new HashMap<>();
+                    if (argsJson != null && !argsJson.trim().isEmpty() && !argsJson.equals("{}")) {
+                        try {
+                            args = new com.fasterxml.jackson.databind.ObjectMapper().readValue(argsJson, Map.class);
+                        } catch (Exception e) {
+                            log.error("Error parsing arguments for tool {}: {}", functionName, argsJson);
+                        }
+                    }
+
+                    log.info("Executing tool: {} with ID: {}", functionName, toolCallId);
+                    Object result = executeTool(functionName, args, userEmail, platform);
+                    
+                    Map<String, Object> toolResponse = new HashMap<>();
+                    toolResponse.put("role", "tool");
+                    toolResponse.put("tool_call_id", toolCallId);
+                    toolResponse.put("name", functionName);
+                    toolResponse.put("content", String.valueOf(result));
+                    followUpMessages.add(toolResponse);
+                }
 
                 requestBody.put("messages", followUpMessages);
                 HttpEntity<Map<String, Object>> followUpRequest = new HttpEntity<>(requestBody, headers);
                 
-                log.info("Sending follow-up turn to Groq...");
+                log.info("Sending follow-up turn to Groq with {} tool results...", toolCalls.size());
                 Map<String, Object> finalResponse = restTemplate.postForObject(GROQ_API_URL, followUpRequest, Map.class);
                 String finalResult = extractTextFromGroq(finalResponse);
                 
-                if (finalResult == null || finalResult.trim().isEmpty() || finalResult.contains("pas pu générer")) {
-                    return "Voici les informations trouvées :\n" + result;
+                if (finalResult == null || finalResult.trim().isEmpty()) {
+                    return "J'ai récupéré les informations demandées mais je n'ai pas pu générer de résumé.";
                 }
                 return finalResult;
             }
@@ -296,7 +288,11 @@ public class ChatbotService {
         listOrders.put("description", "Lister mes ordres de transport récents. Peut filtrer par statut.");
         listOrders.put("parameters", Map.of(
             "type", "object",
-            "properties", Map.of("status", Map.of("type", "string", "description", "Statut à filtrer (ex: NON_PLANIFIE, NON_CONFIRME)")),
+            "properties", Map.of(
+                "status", Map.of("type", "string", "description", "Statut à filtrer (ex: NON_PLANIFIE, NON_CONFIRME)"),
+                "date_from", Map.of("type", "string", "description", "Date de début au format YYYY-MM-DD"),
+                "location", Map.of("type", "string", "description", "Lieu, ville ou nom du site (ex: BAR, Tunis)")
+            ),
             "required", List.of()
         ));
         tools.add(listOrders);
@@ -389,6 +385,17 @@ public class ChatbotService {
         ));
         tools.add(createDraft);
 
+        // Tool: list_users_by_role
+        Map<String, Object> listUsers = new HashMap<>();
+        listUsers.put("name", "list_users_by_role");
+        listUsers.put("description", "Lister les utilisateurs par rôle (ex: COMMERCIAL, ADMIN).");
+        listUsers.put("parameters", Map.of(
+            "type", "object",
+            "properties", Map.of("role", Map.of("type", "string", "description", "Le rôle (COMMERCIAL, ADMIN, etc.)")),
+            "required", List.of("role")
+        ));
+        tools.add(listUsers);
+
         return tools;
     }
 
@@ -439,29 +446,70 @@ public class ChatbotService {
                 List<String> codes = myClients.stream().map(Client::getCodeclient).filter(Objects::nonNull).toList();
                 
                 String statusFilter = (String) args.get("status");
+                String dateFromStr = (String) args.get("date_from");
+                String locationFilter = (String) args.get("location");
                 List<Ordre> orders;
 
-                if (user.isStaff() || codes.isEmpty()) {
-                    // Accès global pour le staff ou si aucun client lié (permission étendue)
-                    if (statusFilter != null && !statusFilter.isEmpty()) {
-                        orders = ordreRepository.findAll((root, query, cb) -> 
-                            cb.equal(root.get("statut"), Statut.valueOf(statusFilter.toUpperCase()))
-                        );
-                    } else {
-                        orders = ordreRepository.findAll(org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
-                    }
-                } else {
-                    // Filtrage par clients rattachés
-                    if (statusFilter != null && !statusFilter.isEmpty()) {
-                        orders = ordreRepository.findAll((root, query, cb) -> 
-                            cb.and(root.get("client").in(codes), cb.equal(root.get("statut"), Statut.valueOf(statusFilter.toUpperCase())))
-                        );
-                    } else {
-                        orders = ordreRepository.findRecentOrdersByClientCodes(codes, org.springframework.data.domain.PageRequest.of(0, 10));
+                Statut filteredStatut = null;
+                if (statusFilter != null && !statusFilter.isEmpty()) {
+                    try {
+                        filteredStatut = Statut.valueOf(statusFilter.toUpperCase().replace(" ", "_"));
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Invalid status received from AI: {}", statusFilter);
                     }
                 }
 
-                if (orders.isEmpty()) return "Aucun ordre trouvé" + (statusFilter != null ? " avec le statut " + statusFilter : "") + ".";
+                final Statut finalS = filteredStatut;
+                final Date finalDate;
+                if (dateFromStr != null && !dateFromStr.isEmpty()) {
+                    try {
+                        finalDate = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(dateFromStr);
+                    } catch (Exception e) {
+                        log.warn("Invalid date format from AI: {}", dateFromStr);
+                        return "Format de date invalide (attendu: YYYY-MM-DD).";
+                    }
+                } else {
+                    finalDate = null;
+                }
+
+                orders = ordreRepository.findAll((root, query, cb) -> {
+                    List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+                    
+                    // Permission check (clients filter)
+                    if (!user.isStaff() && !codes.isEmpty()) {
+                        predicates.add(root.get("client").in(codes));
+                    }
+
+                    // Status filter
+                    if (finalS != null) {
+                        predicates.add(cb.equal(root.get("statut"), finalS));
+                    }
+
+                    // Date filter (on dateSaisie or chargementDate)
+                    if (finalDate != null) {
+                        predicates.add(cb.greaterThanOrEqualTo(root.get("dateSaisie"), finalDate));
+                    }
+
+                    // Location filter (on ville or nom site)
+                    if (locationFilter != null && !locationFilter.isEmpty()) {
+                        String loc = "%" + locationFilter.toLowerCase() + "%";
+                        predicates.add(cb.or(
+                            cb.like(cb.lower(root.get("chargementVille")), loc),
+                            cb.like(cb.lower(root.get("livraisonVille")), loc),
+                            cb.like(cb.lower(root.get("chargementNom")), loc),
+                            cb.like(cb.lower(root.get("livraisonNom")), loc)
+                        ));
+                    }
+
+                    return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+                }, org.springframework.data.domain.PageRequest.of(0, 15, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "dateSaisie"))).getContent();
+
+                if (orders.isEmpty()) {
+                    String msg = "Aucun ordre trouvé";
+                    if (locationFilter != null) msg += " pour le site '" + locationFilter + "'";
+                    if (dateFromStr != null) msg += " depuis le " + dateFromStr;
+                    return msg + ".";
+                }
                 
                 StringBuilder ordersRes = new StringBuilder("Voici les ordres trouvés :\n");
                 for (Ordre o : orders.stream().limit(10).toList()) {
@@ -574,6 +622,22 @@ public class ChatbotService {
                 draft.setOrderNumber("IA-" + System.currentTimeMillis() / 1000);
                 ordreRepository.save(draft);
                 return "Brouillon créé avec succès: ID " + draft.getOrderNumber() + " (" + draft.getChargementNom() + " vers " + draft.getLivraisonNom() + ")";
+
+            case "list_users_by_role":
+                String roleStr = (String) args.get("role");
+                try {
+                    Role r = Role.valueOf(roleStr.toUpperCase());
+                    List<User> users = userRepository.findByRole(r);
+                    if (users.isEmpty()) return "Aucun utilisateur trouvé avec le rôle " + roleStr;
+                    StringBuilder usersSb = new StringBuilder("Liste des utilisateurs (" + roleStr + ") :\n");
+                    for (User u : users) {
+                        usersSb.append("• ").append(u.getFirstname()).append(" ").append(u.getLastname())
+                               .append(" (").append(u.getEmail()).append(")\n");
+                    }
+                    return usersSb.toString();
+                } catch (Exception e) {
+                    return "Rôle invalide. Les rôles possibles sont: CLIENT, COMMERCIAL, ADMIN.";
+                }
 
             default: return "Unknown tool";
         }

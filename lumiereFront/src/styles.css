@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════
    OTFLOW TRANSPORT — Global Design System
    Unified palette from mobile app
    ═══════════════════════════════════════════════════════════ */
@@ -15,7 +15,7 @@
   /* ── Neutrals ── */
   --charcoal: #1a1c1f;
   --charcoal-light: #2c2f33;
-  --bg: #ffffff;
+  --bg: #fbfbfc;
   --card: #ffffff;
   --text: #1a1c1f;
   --sub: #64748b;
@@ -42,14 +42,14 @@
   --sidebar-width: 260px;
 
   /* ── Premium Effects ── */
-  --glass: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-blur: blur(12px);
+  --glass: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur: blur(4px);
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
-  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.04);
-  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --shadow-main: 0 4px 15px rgba(0, 0, 0, 0.03);
+  --shadow-float: 0 8px 25px rgba(0, 0, 0, 0.06);
   --brand-gradient: linear-gradient(135deg, #f5921e 0%, #ea580c 100%);
-  --brand-glow: 0 4px 15px rgba(245, 146, 30, 0.25);
+  --brand-glow: 0 4px 12px rgba(245, 146, 30, 0.15);
 }
 
 /* ── Global Utility Classes ── */

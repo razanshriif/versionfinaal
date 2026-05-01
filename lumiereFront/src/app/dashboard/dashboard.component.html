@@ -1,4 +1,4 @@
-﻿<div class="view-container">
+<div class="view-container">
 
   <!-- ─── HEADER ────────────────────────────────────────────────────────────── -->
   <div class="view-header">
@@ -65,8 +65,8 @@
         </div>
       </div>
 
-      <!-- Users count — ADMIN only -->
-      <div class="stat-box users pulse-on-hover" *ngIf="isAdmin">
+      <!-- Users count — ADMIN + COMMERCIAL -->
+      <div class="stat-box users pulse-on-hover" *ngIf="isAdmin || isCommercial">
         <div class="stat-icon"><i class="fas fa-user-shield"></i></div>
         <div class="stat-info">
           <span class="label">Utilisateurs</span>
@@ -104,8 +104,8 @@
         <span class="kpi-badge">En cours</span>
       </div>
 
-      <!-- Pending users — ADMIN only -->
-      <div class="kpi-card warning" *ngIf="isAdmin">
+      <!-- Pending users — ADMIN + COMMERCIAL -->
+      <div class="kpi-card warning" *ngIf="isAdmin || isCommercial">
         <div class="kpi-left">
           <div class="kpi-icon"><i class="fa fa-user-clock"></i></div>
           <div>

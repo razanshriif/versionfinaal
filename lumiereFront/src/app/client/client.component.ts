@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -72,7 +72,8 @@ export class ClientComponent implements OnInit {
     private ser: NotificationService,
     private authService: AuthService,
     private exportService: ExportService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -88,6 +89,7 @@ export class ClientComponent implements OnInit {
     this.service.afficher().subscribe(clients => {
       this.clients = clients;
       this.filterClients();
+      this.cdr.detectChanges();
     });
   }
 
@@ -205,6 +207,7 @@ export class ClientComponent implements OnInit {
     this.authService.profile().subscribe(
       (data) => {
         this.user = data;
+        this.cdr.detectChanges();
       },
       (error) => console.error('Erreur lors du chargement du profil', error)
     );

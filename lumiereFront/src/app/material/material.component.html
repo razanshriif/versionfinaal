@@ -1,8 +1,10 @@
-﻿<mat-toolbar class="toolbar">
-  <button mat-icon-button aria-label="Toggle menu" (click)="toggleMenu()">
-    <i class="fas fa-bars"></i>
-  </button>
-  <img src="assets/otflow-horizontal.png" alt="OTFLOW Logistique Logo" class="logo">
+<mat-toolbar class="toolbar">
+  <div class="toolbar-brand">
+    <button class="menu-toggle-btn" aria-label="Toggle menu" (click)="toggleMenu()">
+      <i class="fas fa-bars"></i>
+    </button>
+    <img src="assets/otflow-horizontal.png" alt="OTFLOW Logistique Logo" class="logo">
+  </div>
 
   <div class="toolbar-actions">
 
@@ -21,9 +23,15 @@
       <div class="user-chip__info">
         <span class="user-chip__name">{{ user.firstname }} {{ user.lastname }}</span>
         <span class="user-chip__role">{{ user.role }}</span>
+        <i class="fas fa-chevron-down"></i>
       </div>
-      <i class="fas fa-chevron-down"></i>
     </div>
+
+    <!-- ── LOGOUT BUTTON ── -->
+    <button class="logout-toolbar-btn" (click)="logout()">
+      <i class="fas fa-sign-out-alt"></i>
+      Déconnexion
+    </button>
 
   </div>
 </mat-toolbar>
@@ -132,10 +140,17 @@
         <i class="fas fa-user-shield"></i>
         <span class="nav-text">PERMISSIONS</span>
       </a>
-      <a mat-list-item (click)="logout()" class="nav-item">
-        <i class="fas fa-sign-out-alt"></i>
-        <span class="nav-text">LOG OUT</span>
-      </a>
+
+      <!-- ── SECTION: ACTIONS ── -->
+      <div class="nav-divider"></div>
+      
+      <div class="quick-stats-card">
+        <div class="stats-label">Système OTFLOW</div>
+        <div class="stats-status">
+          <span class="status-dot"></span> Connecté
+        </div>
+      </div>
+
     </nav>
   </mat-sidenav>
   <mat-sidenav-content class="main-content">

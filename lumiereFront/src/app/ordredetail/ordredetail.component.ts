@@ -1,4 +1,4 @@
-﻿import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrdreService } from '../ordre.service';
 import html2canvas from 'html2canvas';
@@ -15,7 +15,9 @@ import jsPDF from 'jspdf';
   styleUrl: './ordredetail.component.css'
 })
 export class OrdredetailComponent {
-  constructor(private service: OrdreService) { }
+  constructor(private service: OrdreService, private cdr: ChangeDetectorRef) { 
+    this.cdr.detectChanges();
+  }
   ordre: any = this.service.detail;
 
 

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PermissionService } from '../permission.service';
@@ -99,7 +99,8 @@ export class PermissionManagementComponent implements OnInit {
 
     constructor(
         private permissionService: PermissionService,
-        private userService: UsersService
+        private userService: UsersService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
@@ -112,6 +113,7 @@ export class PermissionManagementComponent implements OnInit {
             next: (data) => {
                 this.permissions = data;
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Failed to load permissions', err);
@@ -122,6 +124,7 @@ export class PermissionManagementComponent implements OnInit {
         this.userService.getClients().subscribe({
             next: (data) => {
                 this.users = data;
+                this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load users', err)
         });
@@ -142,6 +145,7 @@ export class PermissionManagementComponent implements OnInit {
             next: (data) => {
                 this.permissions = data;
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Failed to load permissions', err);
@@ -162,6 +166,7 @@ export class PermissionManagementComponent implements OnInit {
                     enabled: data[key] || false
                 }));
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Failed to load user permissions', err);

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpClientModule } from '@angular/common/http';
@@ -38,7 +38,7 @@ export class ProfileComponent implements OnInit {
   errorMessage = '';
   imagePreview: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadProfile();
@@ -57,6 +57,7 @@ export class ProfileComponent implements OnInit {
         this.user = { ...data };
         this.imagePreview = data.profileImageBase64 || null;
         this.isLoading = false;
+        this.cdr.detectChanges();
         console.log('Profile loaded, user id:', this.user.id);
       },
       error: (err) => {
