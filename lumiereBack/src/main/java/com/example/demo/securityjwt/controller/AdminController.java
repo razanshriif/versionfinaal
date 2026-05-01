@@ -110,12 +110,13 @@ public class AdminController {
                     emailService.sendAccountActivatedEmail(user.getEmail(), fullName);
                 }
 
-                // Create in-app notification
+                // Create in-app notification for Admins/Commercials
                 Notification notification = new Notification();
                 notification.setType("ACCOUNT_APPROVED");
                 notification.setMessage(
                         "✅ Inscription acceptée pour " + fullName + ". Complétez son profil pour l'activer.");
                 notification.setRead(false);
+                notification.setTargetRole(com.example.demo.Entity.Role.ADMIN); // Hide from clients
                 notificationRepository.save(notification);
             } else if (status == Status.REJECTED) {
                 emailService.sendAccountRejectedEmail(user.getEmail(), fullName);

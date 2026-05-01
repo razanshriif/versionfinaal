@@ -606,6 +606,7 @@ public class ChatbotService {
                 Notification note = new Notification();
                 note.setType("RAPPEL");
                 note.setMessage("📅 Rappel: " + text + " (Prévu pour: " + timeStr + ")");
+                note.setTargetUserId(user.getId()); // Target only the creator
                 notificationRepository.save(note);
                 return "Rappel créé avec succès: '" + text + "' pour " + timeStr;
 

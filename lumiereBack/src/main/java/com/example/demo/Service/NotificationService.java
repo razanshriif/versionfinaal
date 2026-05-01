@@ -57,18 +57,14 @@ public class NotificationService {
     public boolean markAsRead(Long id) {
         Optional<Notification> opt = notificationRepository.findById(id);
         if (opt.isPresent()) {
-            Notification notification = opt.get();
-            notification.setRead(true);
-            notificationRepository.save(notification);
+            notificationRepository.delete(opt.get());
             return true;
         }
         return false;
     }
 
     public void markAllAsRead() {
-        List<Notification> unread = notificationRepository.findByIsReadFalse();
-        unread.forEach(n -> n.setRead(true));
-        notificationRepository.saveAll(unread);
+        notificationRepository.deleteAll();
     }
 
     public void deleteAllRead() {
