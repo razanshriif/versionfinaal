@@ -41,6 +41,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
   article: Article = {};
   mode: 'list' | 'create' | 'edit' | 'detail' = 'list';
   private subscription: Subscription = new Subscription();
+  private refreshInterval: any;
 
   constructor(
     private articleService: ArticleService,
@@ -83,10 +84,20 @@ export class ArticleComponent implements OnInit, OnDestroy {
     });
 
     this.profile();
+    
+    // Auto-refresh every 30 seconds
+    this.refreshInterval = setInterval(() => {
+      if (this.mode === 'list') {
+        this.loadArticles();
+      }
+    }, 30000);
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   loadArticles(): void {

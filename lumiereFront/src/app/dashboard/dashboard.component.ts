@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgApexchartsModule, ChartComponent } from 'ng-apexcharts';
@@ -77,6 +77,7 @@ export class DashboardComponent implements OnInit {
 
   public donutChartOptions: DonutChartOptions;
   public barChartOptions: BarChartOptions;
+  private refreshInterval: any;
 
   constructor(
     private service: DashboardService,
@@ -94,7 +95,18 @@ export class DashboardComponent implements OnInit {
       this.currentUser = user;
       this.userRole = user.role?.toUpperCase() ?? '';
       this.loadData();
+      
+      // Auto-refresh every 30 seconds
+      this.refreshInterval = setInterval(() => {
+        this.loadData();
+      }, 30000);
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   // ── Data loading ────────────────────────────────────────────────────────

@@ -51,7 +51,8 @@ public class OrdreController {
 	// ✅ GET tous les ordres (Filtré par rôle)
 	@GetMapping
 	public List<Ordre> getAllOrdres(Authentication authentication) {
-		User user = (User) authentication.getPrincipal();
+		User principal = (User) authentication.getPrincipal();
+		User user = userRepository.findById(principal.getId()).orElse(principal);
 		
 		if (user.isStaff()) {
 			return ordreService.findAll();
@@ -258,7 +259,8 @@ public class OrdreController {
 	// ✅ GET statistiques — Filtré par rôle
 	@GetMapping("/statistiques")
 	public ResponseEntity<Map<String, Long>> getStatistiques(Authentication authentication) {
-		User user = (User) authentication.getPrincipal();
+		User principal = (User) authentication.getPrincipal();
+		User user = userRepository.findById(principal.getId()).orElse(principal);
 		Map<String, Long> stats = new HashMap<>();
 		
 		if (user.isStaff()) {
@@ -339,7 +341,8 @@ public class OrdreController {
 			@RequestParam(required = false) String site,
 			@RequestParam(required = false) String destination) {
 		
-		User user = (User) authentication.getPrincipal();
+		User principal = (User) authentication.getPrincipal();
+		User user = userRepository.findById(principal.getId()).orElse(principal);
 		List<String> restrictedClientCodes = null;
 		
 		if (!user.isStaff()) {

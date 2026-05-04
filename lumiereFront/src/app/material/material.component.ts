@@ -189,8 +189,8 @@ export class MaterialComponent implements OnInit, OnDestroy {
   }
 
   loadPermissions() {
-    if (!this.user || !this.user.role) return;
-    this.permissionService.getPermissionsByRole(this.user.role).subscribe({
+    if (!this.user || !this.user.id) return;
+    this.permissionService.getPermissionsByUser(this.user.id).subscribe({
       next: (perms: any) => { this.permissions = perms; },
       error: (err: any) => console.error('Failed to load permissions', err)
     });

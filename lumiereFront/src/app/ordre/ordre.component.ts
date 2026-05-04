@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -25,6 +25,7 @@ export class OrdreComponent implements OnInit {
   isMapModalOpen = false;
   selectedOrdreForMap: any = null;
   map: any = null;
+  private refreshInterval: any;
 
 
   dateDebut: string = this.getTodayDate();
@@ -74,8 +75,19 @@ export class OrdreComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Initial fetch
     this.filtrerParDate();
-    this.autoRefreshPage();
+    
+    // Set up periodic refresh (every 30 seconds)
+    this.refreshInterval = setInterval(() => {
+      this.filtrerParDate();
+    }, 30000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   private getTodayDate(): string {
@@ -322,13 +334,7 @@ export class OrdreComponent implements OnInit {
 
 
   autoRefreshPage(): void {
-    setInterval(() => {
-      this.ordres.forEach(ordre => {
-        if (ordre.statut === 'Fin' && !ordre.events[5]) {
-          ordre.events[5] = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        }
-      });
-    }, 3 * 60 * 1000); // 3 minutes
+    // Legacy method, kept for compatibility if needed, but periodic fetch is better
   }
 
 

@@ -43,7 +43,7 @@
       <table class="premium-table">
         <thead>
           <tr>
-            <th>ID</th>
+            
             <th>Collaborateur</th>
             <th>Email</th>
             <th>Rôle Système</th>
@@ -54,9 +54,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let client of filteredUsers" class="hover-row">
-            <td class="id-cell">
-              <span class="id-badge">#{{ client.id }}</span>
-            </td>
+            
             <td>
               <div class="user-identity">
                 <div class="avatar-mini">{{ client.firstname[0] }}{{ client.lastname[0] }}</div>
