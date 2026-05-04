@@ -27,8 +27,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.example.demo.Entity.Ordre;
 import com.example.demo.Entity.Statut;
+import com.example.demo.Entity.User;
+import com.example.demo.Entity.Client;
 import com.example.demo.Service.OrdreService;
 import com.example.demo.Service.PlaFileService;
+import com.example.demo.Repository.UserRepository;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/v1/ordres")
@@ -42,19 +46,19 @@ public class OrdreController {
 	private PlaFileService plaFileService;
 
 	@Autowired
-	private com.example.demo.Repository.UserRepository userRepository;
+	private UserRepository userRepository;
 
 	// ✅ GET tous les ordres (Filtré par rôle)
 	@GetMapping
-	public List<Ordre> getAllOrdres(org.springframework.security.core.Authentication authentication) {
-		com.example.demo.Entity.User user = (com.example.demo.Entity.User) authentication.getPrincipal();
+	public List<Ordre> getAllOrdres(Authentication authentication) {
+		User user = (User) authentication.getPrincipal();
 		
 		if (user.isStaff()) {
 			return ordreService.findAll();
 		} else {
 			// Client filtering
 			List<String> clientCodes = user.getOwnedClients().stream()
-				.map(com.example.demo.Entity.Client::getCodeclient)
+				.map(Client::getCodeclient)
 				.toList();
 			if (clientCodes.isEmpty()) return new ArrayList<>();
 			return ordreService.findByClientCodes(clientCodes);
@@ -253,8 +257,8 @@ public class OrdreController {
 
 	// ✅ GET statistiques — Filtré par rôle
 	@GetMapping("/statistiques")
-	public ResponseEntity<Map<String, Long>> getStatistiques(org.springframework.security.core.Authentication authentication) {
-		com.example.demo.Entity.User user = (com.example.demo.Entity.User) authentication.getPrincipal();
+	public ResponseEntity<Map<String, Long>> getStatistiques(Authentication authentication) {
+		User user = (User) authentication.getPrincipal();
 		Map<String, Long> stats = new HashMap<>();
 		
 		if (user.isStaff()) {
@@ -267,7 +271,7 @@ public class OrdreController {
 			stats.put("livre", ordreService.getLivreOrdersCount());
 		} else {
 			List<String> codes = user.getOwnedClients().stream()
-				.map(com.example.demo.Entity.Client::getCodeclient)
+				.map(Client::getCodeclient)
 				.toList();
 			if (codes.isEmpty()) {
 				stats.put("total", 0L);
@@ -326,7 +330,7 @@ public class OrdreController {
 
 	@GetMapping("/search")
 	public List<Ordre> searchOrdres(
-			org.springframework.security.core.Authentication authentication,
+			Authentication authentication,
 			@RequestParam(required = false) String client,
 			@RequestParam(required = false) Statut statut,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
@@ -335,12 +339,12 @@ public class OrdreController {
 			@RequestParam(required = false) String site,
 			@RequestParam(required = false) String destination) {
 		
-		com.example.demo.Entity.User user = (com.example.demo.Entity.User) authentication.getPrincipal();
+		User user = (User) authentication.getPrincipal();
 		List<String> restrictedClientCodes = null;
 		
 		if (!user.isStaff()) {
 			restrictedClientCodes = user.getOwnedClients().stream()
-				.map(com.example.demo.Entity.Client::getCodeclient)
+				.map(Client::getCodeclient)
 				.toList();
 			if (restrictedClientCodes.isEmpty()) return new ArrayList<>();
 		}

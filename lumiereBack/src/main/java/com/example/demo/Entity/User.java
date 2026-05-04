@@ -72,6 +72,14 @@ public class User implements UserDetails {
     @JsonIgnore
     private List<Client> ownedClients = new ArrayList<>();
 
+    public List<Client> getOwnedClients() {
+        return ownedClients;
+    }
+
+    public void setOwnedClients(List<Client> ownedClients) {
+        this.ownedClients = ownedClients;
+    }
+
     public User() {
     }
 
