@@ -1,4 +1,4 @@
-﻿<div class="view-container">
+<div class="view-container">
   <!-- Header Section -->
   <div class="view-header">
     <div class="title-section">
@@ -121,8 +121,8 @@
           <tr *ngIf="ordre.statut !== 'NON_CONFIRME'" class="order-card-row" [ngClass]="ordre.statut.toLowerCase()">
             <!-- Column 1: Dates & Identité -->
             <td class="cell-identity">
-              <div class="client-name-bold">{{ ordre.nomclient || 'Client Inconnu' }}</div>
-              <div class="order-number-gray">{{ ordre.orderNumber }}</div>
+              <div class="client-name-bold">{{ ordre.orderNumber }}</div>
+              <div class="order-number-gray"><i class="fa fa-building" style="margin-right: 5px;"></i> {{ ordre.nomclient || 'Client Inconnu' }}</div>
               <div class="date-stacked">
                 <span class="date-item"><i class="fa fa-clock"></i> Saisie: {{ ordre.dateSaisie | date:'dd/MM/yyyy' }}</span>
                 <span class="date-item orange-text"><i class="fa fa-calendar-alt"></i> Prévu: {{ ordre.livraisonDate | date:'dd/MM/yyyy' }}</span>
