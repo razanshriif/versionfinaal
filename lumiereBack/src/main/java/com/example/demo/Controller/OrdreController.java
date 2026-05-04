@@ -41,10 +41,24 @@ public class OrdreController {
 	@Autowired
 	private PlaFileService plaFileService;
 
-	// ✅ GET tous les ordres
+	@Autowired
+	private com.example.demo.Repository.UserRepository userRepository;
+
+	// ✅ GET tous les ordres (Filtré par rôle)
 	@GetMapping
-	public List<Ordre> getAllOrdres() {
-		return ordreService.findAll();
+	public List<Ordre> getAllOrdres(org.springframework.security.core.Authentication authentication) {
+		com.example.demo.Entity.User user = (com.example.demo.Entity.User) authentication.getPrincipal();
+		
+		if (user.isStaff()) {
+			return ordreService.findAll();
+		} else {
+			// Client filtering
+			List<String> clientCodes = user.getOwnedClients().stream()
+				.map(com.example.demo.Entity.Client::getCodeclient)
+				.toList();
+			if (clientCodes.isEmpty()) return new ArrayList<>();
+			return ordreService.findByClientCodes(clientCodes);
+		}
 	}
 
 	// ✅ GET ordres par code client
@@ -237,17 +251,42 @@ public class OrdreController {
 		return ResponseEntity.ok(commentaires != null ? commentaires : new HashSet<>());
 	}
 
-	// ✅ GET statistiques — pour le mobile
+	// ✅ GET statistiques — Filtré par rôle
 	@GetMapping("/statistiques")
-	public ResponseEntity<Map<String, Long>> getStatistiques() {
+	public ResponseEntity<Map<String, Long>> getStatistiques(org.springframework.security.core.Authentication authentication) {
+		com.example.demo.Entity.User user = (com.example.demo.Entity.User) authentication.getPrincipal();
 		Map<String, Long> stats = new HashMap<>();
-		stats.put("total", ordreService.countAllOrders());
-		stats.put("nonPlanifie", ordreService.countNonPlanifieOrders());
-		stats.put("planifie", ordreService.countPlanifieOrders());
-		stats.put("enCoursDeChargement", ordreService.getEnCoursDeChargementOrdersCount());
-		stats.put("charge", ordreService.getChargeOrdersCount());
-		stats.put("enCoursDeLivraison", ordreService.getEnCoursDeLivraisonOrdersCount());
-		stats.put("livre", ordreService.getLivreOrdersCount());
+		
+		if (user.isStaff()) {
+			stats.put("total", ordreService.countAllOrders());
+			stats.put("nonPlanifie", ordreService.countNonPlanifieOrders());
+			stats.put("planifie", ordreService.countPlanifieOrders());
+			stats.put("enCoursDeChargement", ordreService.getEnCoursDeChargementOrdersCount());
+			stats.put("charge", ordreService.getChargeOrdersCount());
+			stats.put("enCoursDeLivraison", ordreService.getEnCoursDeLivraisonOrdersCount());
+			stats.put("livre", ordreService.getLivreOrdersCount());
+		} else {
+			List<String> codes = user.getOwnedClients().stream()
+				.map(com.example.demo.Entity.Client::getCodeclient)
+				.toList();
+			if (codes.isEmpty()) {
+				stats.put("total", 0L);
+				stats.put("nonPlanifie", 0L);
+				stats.put("planifie", 0L);
+				stats.put("enCoursDeChargement", 0L);
+				stats.put("charge", 0L);
+				stats.put("enCoursDeLivraison", 0L);
+				stats.put("livre", 0L);
+			} else {
+				stats.put("total", ordreService.countByClientCodes(codes));
+				stats.put("nonPlanifie", ordreService.countByClientCodesAndStatut(codes, Statut.NON_PLANIFIE));
+				stats.put("planifie", ordreService.countByClientCodesAndStatut(codes, Statut.PLANIFIE));
+				stats.put("enCoursDeChargement", ordreService.countByClientCodesAndStatut(codes, Statut.EN_COURS_DE_CHARGEMENT));
+				stats.put("charge", ordreService.countByClientCodesAndStatut(codes, Statut.CHARGE));
+				stats.put("enCoursDeLivraison", ordreService.countByClientCodesAndStatut(codes, Statut.EN_COURS_DE_LIVRAISON));
+				stats.put("livre", ordreService.countByClientCodesAndStatut(codes, Statut.LIVRE));
+			}
+		}
 		return ResponseEntity.ok(stats);
 	}
 
@@ -287,6 +326,7 @@ public class OrdreController {
 
 	@GetMapping("/search")
 	public List<Ordre> searchOrdres(
+			org.springframework.security.core.Authentication authentication,
 			@RequestParam(required = false) String client,
 			@RequestParam(required = false) Statut statut,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
@@ -294,7 +334,18 @@ public class OrdreController {
 			@RequestParam(required = false) String chauffeur,
 			@RequestParam(required = false) String site,
 			@RequestParam(required = false) String destination) {
-		return ordreService.search(client, statut, startDate, endDate, chauffeur, site, destination);
+		
+		com.example.demo.Entity.User user = (com.example.demo.Entity.User) authentication.getPrincipal();
+		List<String> restrictedClientCodes = null;
+		
+		if (!user.isStaff()) {
+			restrictedClientCodes = user.getOwnedClients().stream()
+				.map(com.example.demo.Entity.Client::getCodeclient)
+				.toList();
+			if (restrictedClientCodes.isEmpty()) return new ArrayList<>();
+		}
+		
+		return ordreService.searchExtended(client, statut, startDate, endDate, chauffeur, site, destination, restrictedClientCodes);
 	}
 
 	// --- Endpoints comptages individuels (compatibilité web) ---

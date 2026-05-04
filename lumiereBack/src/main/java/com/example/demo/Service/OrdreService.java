@@ -54,6 +54,13 @@ public class OrdreService {
 		return ordreRepository.findByClientOrderByIdDesc(clientCode);
 	}
 
+	public List<Ordre> findByClientCodes(List<String> clientCodes) {
+		return ordreRepository.findAll((root, query, cb) -> {
+			query.orderBy(cb.desc(root.get("id")));
+			return root.get("client").in(clientCodes);
+		});
+	}
+
 	public Optional<Ordre> findById(Long id) {
 		return ordreRepository.findById(id);
 	}
@@ -271,10 +278,27 @@ public class OrdreService {
 		return ordreRepository.countLivreOrders();
 	}
 
+	public long countByClientCodes(List<String> clientCodes) {
+		return ordreRepository.countByClientCodes(clientCodes);
+	}
+
+	public long countByClientCodesAndStatut(List<String> clientCodes, Statut statut) {
+		return ordreRepository.countByClientCodesAndStatut(clientCodes, statut);
+	}
+
 	public List<Ordre> search(String client, Statut statut, Date startSaisie, Date endSaisie, String chauffeur,
 			String site, String destination) {
+		return searchExtended(client, statut, startSaisie, endSaisie, chauffeur, site, destination, null);
+	}
+
+	public List<Ordre> searchExtended(String client, Statut statut, Date startSaisie, Date endSaisie, String chauffeur,
+			String site, String destination, List<String> restrictedClientCodes) {
 		return ordreRepository.findAll((root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
+
+			if (restrictedClientCodes != null && !restrictedClientCodes.isEmpty()) {
+				predicates.add(root.get("client").in(restrictedClientCodes));
+			}
 
 			if (client != null && !client.isEmpty()) {
 				predicates.add(cb.like(cb.lower(root.get("client")), "%" + client.toLowerCase() + "%"));

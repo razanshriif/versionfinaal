@@ -545,9 +545,15 @@ public class ChatbotService {
                 return "Référence '" + ref + "' introuvable.";
 
             case "list_my_clients":
-                List<Client> clients = clientRepository.findByOwner(user);
-                if (clients.isEmpty()) return "No clients found for you.";
-                StringBuilder res = new StringBuilder("Voici vos clients actifs :\n");
+                List<Client> clients;
+                if (user.isStaff()) {
+                    clients = clientRepository.findAll();
+                } else {
+                    clients = clientRepository.findByOwner(user);
+                }
+                
+                if (clients.isEmpty()) return "Aucun client trouvé.";
+                StringBuilder res = new StringBuilder("Voici la liste des clients :\n");
                 for (Client c : clients) res.append("• ").append(c.getNom()).append("\n");
                 return res.toString();
  
