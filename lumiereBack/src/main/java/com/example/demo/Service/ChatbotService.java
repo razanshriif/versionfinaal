@@ -70,12 +70,16 @@ public class ChatbotService {
 
     public String getChatResponseWithHistory(String userMessage, List<Map<String, String>> history, String userEmail, String platform) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        String systemPrompt = "Tu es 'Otflow Smart Assist', l'assistant IA officiel de Lumière Transport (expert logistique). " +
+        String systemPrompt = "Tu es 'Otflow Smart Assist', l'assistant IA expert de la plateforme OTFLOW (Lumière Transport). " +
                              "DATE ACTUELLE: " + currentTime + ". " +
-                             "INSTRUCTIONS: Réponds aux questions en utilisant exclusivement les outils (functions) mis à ta disposition. " +
-                             "Ne simule jamais d'appels d'outils en texte, utilise l'API de tools native. " +
-                             "Si l'utilisateur dit simplement 'Bonjour', réponds par un message d'accueil court et professionnel. " +
-                             "Sois précis, poli et concis.";
+                             "TONALITÉ: Professionnelle, serviable et précise. " +
+                             "CAPACITÉS: Tu peux gérer les ordres de transport, suivre les livraisons, lister les clients, vérifier les statistiques de la flotte et consulter les notifications système. " +
+                             "INSTRUCTIONS CRITIQUES: " +
+                             "1. Utilise TOUJOURS les outils (functions) pour obtenir des données réelles. Ne devine jamais une référence d'ordre. " +
+                             "2. Si l'information n'est pas disponible via les outils, explique poliment que tu n'as pas accès à cette donnée spécifique. " +
+                             "3. Réponds de manière structurée avec des puces (bullet points) quand tu listes plusieurs éléments. " +
+                             "4. Tu peux aussi répondre à des questions générales sur la logistique et le transport pour conseiller l'utilisateur. " +
+                             "5. Si l'utilisateur demande 'Que peux-tu faire ?', liste tes capacités principales de manière attractive.";
 
         if ("groq".equalsIgnoreCase(provider)) {
             return callGroq(userMessage, history, systemPrompt, userEmail, platform);
@@ -312,7 +316,14 @@ public class ChatbotService {
                 String finalResult = extractTextFromGroq(finalResponse);
                 
                 if (finalResult == null || finalResult.trim().isEmpty()) {
-                    return "J'ai récupéré les informations demandées mais je n'ai pas pu générer de résumé.";
+                    // Fallback: If AI fails to summarize, show raw tool results
+                    StringBuilder fallback = new StringBuilder("Voici les informations récupérées :\n\n");
+                    for (Map<String, Object> msg : followUpMessages) {
+                        if ("tool".equals(msg.get("role"))) {
+                            fallback.append(msg.get("content")).append("\n\n");
+                        }
+                    }
+                    return fallback.toString().trim();
                 }
                 return finalResult;
             }
@@ -477,6 +488,23 @@ public class ChatbotService {
             "required", List.of("role")
         ));
         tools.add(listUsers);
+
+        // Tool: get_my_notifications
+        Map<String, Object> getNotifs = new HashMap<>();
+        getNotifs.put("name", "get_my_notifications");
+        getNotifs.put("description", "Consulter mes notifications et alertes récentes (inscriptions, ordres, etc.).");
+        getNotifs.put("parameters", Map.of(
+            "type", "object",
+            "properties", Map.of("unread_only", Map.of("type", "boolean", "description", "Si vrai, ne lister que les non-lus"))
+        ));
+        tools.add(getNotifs);
+
+        // Tool: list_pending_registrations
+        Map<String, Object> listPending = new HashMap<>();
+        listPending.put("name", "list_pending_registrations");
+        listPending.put("description", "Lister les inscriptions en attente de validation (statut PENDING).");
+        listPending.put("parameters", Map.of("type", "object", "properties", new HashMap<>()));
+        tools.add(listPending);
 
         return tools;
     }
@@ -721,6 +749,38 @@ public class ChatbotService {
                 } catch (Exception e) {
                     return "Rôle invalide. Les rôles possibles sont: CLIENT, COMMERCIAL, ADMIN.";
                 }
+
+            case "get_my_notifications":
+                Boolean unreadOnly = (Boolean) args.getOrDefault("unread_only", false);
+                List<Notification> notifs;
+                if (unreadOnly) {
+                    notifs = notificationRepository.findForUser(user.getId(), user.getRole()).stream()
+                            .filter(n -> !n.isRead()).limit(10).toList();
+                } else {
+                    notifs = notificationRepository.findForUser(user.getId(), user.getRole()).stream()
+                            .limit(10).toList();
+                }
+                
+                if (notifs.isEmpty()) return "Vous n'avez pas de notifications récentes.";
+                StringBuilder notifSb = new StringBuilder("Vos notifications récentes :\n");
+                for (Notification n : notifs) {
+                    notifSb.append(n.isRead() ? "• " : "• [NOUVEAU] ")
+                           .append(n.getType()).append(": ").append(n.getMessage()).append("\n");
+                }
+                return notifSb.toString();
+
+            case "list_pending_registrations":
+                if (!user.isStaff()) return "Désolé, cette action est réservée au personnel administratif.";
+                List<User> pendingUsers = userRepository.findByRole(Role.CLIENT).stream()
+                        .filter(u -> u.getStatus() == Status.PENDING)
+                        .toList();
+                if (pendingUsers.isEmpty()) return "Aucune inscription en attente de validation actuellement.";
+                StringBuilder pendingSb = new StringBuilder("Inscriptions en attente (PENDING) :\n");
+                for (User u : pendingUsers) {
+                    pendingSb.append("• ").append(u.getFirstname()).append(" ").append(u.getLastname())
+                             .append(" (").append(u.getEmail()).append(")\n");
+                }
+                return pendingSb.toString();
 
             default: return "Unknown tool";
         }
