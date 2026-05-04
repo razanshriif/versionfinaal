@@ -37,10 +37,10 @@ public class ChatbotService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    @Value("${gemini.api.key}")
+    @Value("${gemini.api.key:}")
     private String geminiApiKey;
 
-    @Value("${gemini.model}")
+    @Value("${gemini.model:}")
     private String geminiModel;
 
     @Value("${groq.api.key:}")
@@ -49,6 +49,12 @@ public class ChatbotService {
     @Value("${groq.model:}")
     private String groqModel;
 
+    @Value("${openai.api.key:}")
+    private String openaiApiKey;
+
+    @Value("${openai.model:}")
+    private String openaiModel;
+
     @Value("${chatbot.provider:gemini}")
     private String provider;
 
@@ -56,6 +62,7 @@ public class ChatbotService {
 
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
     private static final String GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     public String getChatResponse(String userMessage, String userEmail, String platform) {
         return getChatResponseWithHistory(userMessage, null, userEmail, platform);
@@ -72,6 +79,8 @@ public class ChatbotService {
 
         if ("groq".equalsIgnoreCase(provider)) {
             return callGroq(userMessage, history, systemPrompt, userEmail, platform);
+        } else if ("openai".equalsIgnoreCase(provider)) {
+            return callOpenAI(userMessage, history, systemPrompt, userEmail, platform);
         } else {
             return callGemini(userMessage, history, systemPrompt, userEmail, platform);
         }
@@ -155,6 +164,79 @@ public class ChatbotService {
         } catch (Exception e) {
             log.error("General error in Gemini call: ", e);
             return "Désolé, erreur technique avec Gemini : " + e.getMessage();
+        }
+    }
+
+    private String callOpenAI(String userMessage, List<Map<String, String>> history, String systemPrompt, String userEmail, String platform) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openaiApiKey);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", openaiModel);
+        
+        List<Map<String, Object>> messages = new ArrayList<>();
+        messages.add(Map.of("role", "system", "content", systemPrompt));
+        
+        if (history != null) {
+            for (Map<String, String> msg : history) {
+                messages.add(Map.of("role", msg.get("role"), "content", msg.get("content")));
+            }
+        }
+
+        messages.add(Map.of("role", "user", "content", userMessage));
+        requestBody.put("messages", messages);
+        requestBody.put("tools", getGroqTools(platform)); // Same format as Groq
+        requestBody.put("tool_choice", "auto");
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+        try {
+            Map<String, Object> response = restTemplate.postForObject(OPENAI_API_URL, request, Map.class);
+            List choices = (List) response.get("choices");
+            Map firstChoice = (Map) choices.get(0);
+            Map message = (Map) firstChoice.get("message");
+
+            if (message.containsKey("tool_calls")) {
+                List<Map<String, Object>> toolCalls = (List<Map<String, Object>>) message.get("tool_calls");
+                List<Map<String, Object>> followUpMessages = new ArrayList<>(messages);
+                followUpMessages.add(message);
+
+                for (Map<String, Object> toolCall : toolCalls) {
+                    Map<String, Object> function = (Map<String, Object>) toolCall.get("function");
+                    String functionName = (String) function.get("name");
+                    String toolCallId = (String) toolCall.get("id");
+                    
+                    String argsJson = (String) function.get("arguments");
+                    Map<String, Object> args = new HashMap<>();
+                    if (argsJson != null && !argsJson.trim().isEmpty() && !argsJson.equals("{}")) {
+                        try {
+                            args = new com.fasterxml.jackson.databind.ObjectMapper().readValue(argsJson, Map.class);
+                        } catch (Exception e) {
+                            log.error("Error parsing arguments for tool {}: {}", functionName, argsJson);
+                        }
+                    }
+
+                    Object result = executeTool(functionName, args, userEmail, platform);
+                    
+                    Map<String, Object> toolResponse = new HashMap<>();
+                    toolResponse.put("role", "tool");
+                    toolResponse.put("tool_call_id", toolCallId);
+                    toolResponse.put("name", functionName);
+                    toolResponse.put("content", String.valueOf(result));
+                    followUpMessages.add(toolResponse);
+                }
+
+                requestBody.put("messages", followUpMessages);
+                HttpEntity<Map<String, Object>> followUpRequest = new HttpEntity<>(requestBody, headers);
+                Map<String, Object> finalResponse = restTemplate.postForObject(OPENAI_API_URL, followUpRequest, Map.class);
+                return extractTextFromGroq(finalResponse); // Same structure
+            }
+
+            return extractTextFromGroq(response);
+        } catch (Exception e) {
+            log.error("Error in OpenAI call: ", e);
+            return "Désolé, erreur avec OpenAI : " + e.getMessage();
         }
     }
 
