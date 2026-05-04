@@ -139,13 +139,23 @@ public class OrdreService {
 		// Envoyer l'email de confirmation au client
 		sendOrderConfirmationEmail(updatedOrdre);
 
-		// In-app notification for the user/client
+		// In-app notification for the client
 		try {
 			com.example.demo.Entity.Notification notification = new com.example.demo.Entity.Notification();
 			notification.setType("CONFIRMATION");
 			notification.setMessage("Votre ordre " + updatedOrdre.getOrderNumber() + " a été confirmé !");
 			notification.setRead(false);
-			// Ideally we'd set targetUserId here if the entity supports it
+			
+			// Find the user ID associated with this client to target them specifically
+			clientRepository.findByCodeclient(updatedOrdre.getClient()).ifPresent(client -> {
+				if (client.getOwner() != null) {
+					notification.setTargetUserId(client.getOwner().getId());
+				} else {
+					// Fallback to role-based if owner is not linked
+					notification.setTargetRole(com.example.demo.Entity.Role.CLIENT);
+				}
+			});
+			
 			notificationService.createNotification(notification);
 		} catch (Exception e) {
 			System.err.println("Failed to create confirmation notification: " + e.getMessage());
@@ -211,6 +221,25 @@ public class OrdreService {
 		ordre.setTrancking(ordreDetails.getTrancking());
 
 		final Ordre updatedOrdre = ordreRepository.save(ordre);
+		
+		// Notify client of the update
+		try {
+			com.example.demo.Entity.Notification notification = new com.example.demo.Entity.Notification();
+			notification.setType("ORDRE_UPDATE");
+			notification.setMessage("Votre ordre " + updatedOrdre.getOrderNumber() + " a été mis à jour.");
+			notification.setRead(false);
+			
+			clientRepository.findByCodeclient(updatedOrdre.getClient()).ifPresent(client -> {
+				if (client.getOwner() != null) {
+					notification.setTargetUserId(client.getOwner().getId());
+				}
+			});
+			
+			notificationService.createNotification(notification);
+		} catch (Exception e) {
+			// Silent error
+		}
+		
 		return updatedOrdre;
 	}
 

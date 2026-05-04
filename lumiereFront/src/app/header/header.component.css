@@ -36,11 +36,11 @@
 }
 
 .header-logo {
-    height: 100px;
+    height: 120px; /* Increased from 100px */
     width: auto;
     object-fit: contain;
     position: relative;
-    top: 15px; /* Centers the overflow */
+    top: 18px; /* Adjusted to center the larger logo */
     z-index: 10;
     transition: transform 0.3s ease;
 }
@@ -156,6 +156,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     backdrop-filter: blur(8px);
+    max-width: 250px; /* Prevent too much growth */
 }
 
 .user-profile:hover {
@@ -183,33 +184,39 @@
 .user-info {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0;
+    min-width: 0; /* Allow truncation if needed */
 }
 
 .user-name {
-    font-size: 0.88rem;
+    font-size: 1.05rem; /* Increased from 0.85rem */
     font-weight: 700;
     color: #fff;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .user-role {
-    font-size: 0.65rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 600;
+    font-size: 0.72rem; /* Increased from 0.6rem */
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     background: rgba(0, 0, 0, 0.1);
-    padding: 0 6px;
-    border-radius: 4px;
+    padding: 0 5px;
+    border-radius: 3px;
     width: fit-content;
+    line-height: 1.4;
 }
 
 .user-chevron {
     font-size: 0.7rem;
     color: #fff;
-    margin-left: 2px;
+    margin-left: auto; /* Push to the right */
     transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
 .user-profile:hover .user-chevron {

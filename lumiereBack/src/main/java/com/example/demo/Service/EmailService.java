@@ -158,14 +158,20 @@ public class EmailService {
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setTo(to);
-        helper.setFrom("commercial.lumiere@lumiere.tn");
+        helper.setFrom("tnlumiere@gmail.com"); // Match authenticated username
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
 
         // Add Logo
-        ClassPathResource res = new ClassPathResource("lum.jpg");
+        ClassPathResource res = new ClassPathResource("static/assets/lum.jpg");
         if (res.exists()) {
             helper.addInline("lumiereLogo", res);
+        } else {
+            // Try another common path just in case
+            ClassPathResource resAlt = new ClassPathResource("lum.jpg");
+            if (resAlt.exists()) {
+                helper.addInline("lumiereLogo", resAlt);
+            }
         }
 
         mailSender.send(message);
@@ -202,34 +208,43 @@ public class EmailService {
     }
 
     private String buildHtmlLayout(String title, String message, String customContent, String buttonText) {
+        String brandColor = "#f07020";
         return "<!DOCTYPE html>" +
-                "<html><head><style>" +
-                ".container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }"
-                +
-                ".header { background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 3px solid #0056b3; }"
-                +
-                ".content { padding: 30px; line-height: 1.6; color: #333; }" +
-                ".details { background-color: #f1f3f5; padding: 20px; border-radius: 5px; margin-top: 20px; }" +
+                "<html><head><meta charset='UTF-8'><style>" +
+                "body { margin: 0; padding: 0; background-color: #f4f7f9; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }" +
+                ".wrapper { background-color: #f4f7f9; padding: 40px 10px; }" +
+                ".container { max-width: 600px; margin: auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #eef2f6; }" +
+                ".header { background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); padding: 35px 20px; text-align: center; border-bottom: 1px solid #f0f0f0; }" +
+                ".content { padding: 40px 45px; color: #374151; }" +
+                "h2 { color: " + brandColor + "; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px; }" +
+                "p { font-size: 16px; line-height: 1.7; color: #4b5563; margin-bottom: 25px; }" +
+                ".details { background-color: #f9fafb; padding: 25px; border-radius: 12px; margin-top: 30px; border: 1px solid #f1f5f9; }" +
+                ".details h3 { margin-top: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }" +
                 ".details table { width: 100%; border-collapse: collapse; }" +
-                ".details td { padding: 8px 0; border-bottom: 1px solid #dee2e6; }" +
-                ".details td.label { font-weight: bold; color: #555; width: 40%; }" +
-                ".footer { background-color: #343a40; color: #ffffff; padding: 20px; text-align: center; font-size: 12px; }"
-                +
-                ".btn { display: inline-block; padding: 12px 25px; background-color: #0056b3; color: #ffffff; text-decoration: none; border-radius: 5px; margin-top: 25px; font-weight: bold; }"
-                +
+                ".details td { padding: 10px 0; font-size: 14px; border-bottom: 1px solid #f1f5f9; }" +
+                ".details td.label { font-weight: 600; color: #374151; width: 45%; }" +
+                ".footer { background-color: #1f2937; color: #9ca3af; padding: 35px 20px; text-align: center; font-size: 13px; }" +
+                ".footer b { color: #ffffff; font-size: 15px; display: block; margin-bottom: 10px; }" +
+                ".btn { display: inline-block; padding: 14px 35px; background-color: " + brandColor + "; color: #ffffff !important; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 5px 15px rgba(240, 112, 32, 0.3); transition: transform 0.2s; }" +
                 "</style></head><body>" +
+                "<div class='wrapper'>" +
                 "<div class='container'>" +
-                "<div class='header'><img src='cid:lumiereLogo' alt='Logo' style='max-height: 80px;' /></div>" +
+                "<div class='header'><img src='cid:lumiereLogo' alt='Lumiere Transport' style='max-height: 90px; width: auto;' /></div>" +
                 "<div class='content'>" +
-                "<h2 style='color: #0056b3;'>" + title + "</h2>" +
+                "<h2>" + title + "</h2>" +
                 "<p>" + message + "</p>" +
                 customContent +
-                "<center><a href='http://localhost:4200' class='btn'>" + buttonText + "</a></center>" +
+                "<div style='text-align: center; margin-top: 40px;'>" +
+                "<a href='https://lumiere.tn' class='btn'>" + buttonText + "</a>" +
+                "</div>" +
                 "</div>" +
                 "<div class='footer'>" +
-                "<b>Lumière Transport & Logistique</b><br>" +
+                "<b>Lumière Transport & Logistique</b>" +
+                "Expert en transport routier et solutions logistiques<br><br>" +
                 "Zone Industrielle, Tunis, Tunisie<br>" +
-                "Tél: +216 71 000 000 | Email: contact@lumiere.tn" +
+                "Tél: +216 71 000 000 | Email: contact@lumiere.tn<br><br>" +
+                "&copy; 2026 Lumière. Tous droits réservés." +
+                "</div>" +
                 "</div>" +
                 "</div>" +
                 "</body></html>";

@@ -14,12 +14,18 @@ public class NotificationService {
 
     @Autowired
     private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private PermissionService permissionService;
+    
+    @Autowired
+    private com.example.demo.Repository.UserRepository userRepository;
 
     public List<Notification> getAllNotifications(Integer userId, com.example.demo.Entity.Role role) {
         if (userId != null && role != null) {
             return notificationRepository.findForUser(userId, role);
         }
-        return notificationRepository.findAll();
+        return java.util.Collections.emptyList();
     }
 
     public Optional<Notification> getNotificationById(Long id) {
@@ -27,7 +33,39 @@ public class NotificationService {
     }
 
     public Notification createNotification(Notification notification) {
+        // Map notification type to permission key
+        String permissionKey = mapTypeToPermission(notification.getType());
+        
+        // If it's a specific user notification, check if they have permission
+        if (notification.getTargetUserId() != null) {
+            return userRepository.findById(notification.getTargetUserId())
+                .filter(user -> permissionService.hasPermission(user, permissionKey))
+                .map(user -> notificationRepository.save(notification))
+                .orElse(null); // Drop if no permission
+        }
+        
+        // If it's a role-based notification, we save it (the filtering happens on fetch usually, 
+        // but for role-based we can check if the role generally has it enabled)
+        if (notification.getTargetRole() != null) {
+            Map<String, Boolean> rolePerms = permissionService.getPermissionMapByRole(notification.getTargetRole());
+            if (rolePerms.getOrDefault(permissionKey, true)) {
+                return notificationRepository.save(notification);
+            }
+            return null;
+        }
+        
         return notificationRepository.save(notification);
+    }
+
+    private String mapTypeToPermission(String type) {
+        if (type == null) return "DASHBOARD";
+        switch (type.toUpperCase()) {
+            case "INSCRIPTION": return "NOTIF_INSCRIPTION";
+            case "ORDRE": return "NOTIF_ORDRE_NEW";
+            case "CONFIRMATION": return "NOTIF_ORDRE_CONFIRMED";
+            case "ORDRE_UPDATE": return "NOTIF_ORDRE_UPDATE";
+            default: return "DASHBOARD";
+        }
     }
 
     public Notification updateNotification(Long id, Notification updatedNotification) {
@@ -47,7 +85,7 @@ public class NotificationService {
             List<Notification> targeted = notificationRepository.findForUser(userId, role);
             return targeted.stream().filter(n -> !n.isRead()).toList();
         }
-        return notificationRepository.findByIsReadFalse();
+        return java.util.Collections.emptyList();
     }
 
     public long getUnreadCount(Integer userId, com.example.demo.Entity.Role role) {

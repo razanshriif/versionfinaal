@@ -16,17 +16,6 @@
       </button>
     </div>
 
-    <!-- ── USER PROFILE ── -->
-    <div class="user-chip" routerLink="/material/profil">
-      <div class="user-chip__avatar" *ngIf="!user.profileImageBase64">{{ getUserInitials() }}</div>
-      <img *ngIf="user.profileImageBase64" [src]="user.profileImageBase64" class="user-chip__img" alt="profil">
-      <div class="user-chip__info">
-        <span class="user-chip__name">{{ user.firstname }} {{ user.lastname }}</span>
-        <span class="user-chip__role">{{ user.role }}</span>
-        <i class="fas fa-chevron-down"></i>
-      </div>
-    </div>
-
     <!-- ── LOGOUT BUTTON ── -->
     <button class="logout-toolbar-btn" (click)="logout()">
       <i class="fas fa-sign-out-alt"></i>
@@ -144,10 +133,23 @@
       <!-- ── SECTION: ACTIONS ── -->
       <div class="nav-divider"></div>
       
-      <div class="quick-stats-card">
-        <div class="stats-label">Système OTFLOW</div>
-        <div class="stats-status">
-          <span class="status-dot"></span> Connecté
+      <!-- ── USER PROFILE (Moved to Sidebar Bottom) ── -->
+      <div class="sidebar-footer">
+        <div class="user-chip-sidebar" routerLink="/material/profil">
+          <div class="user-avatar-sidebar" *ngIf="!user.profileImageBase64">{{ getUserInitials() }}</div>
+          <img *ngIf="user.profileImageBase64" [src]="user.profileImageBase64" class="user-img-sidebar" alt="profil">
+          <div class="user-info-sidebar">
+            <span class="user-name-sidebar">{{ user.firstname }} {{ user.lastname }}</span>
+            <span class="user-role-sidebar">{{ user.role }}</span>
+          </div>
+          <i class="fas fa-cog settings-icon"></i>
+        </div>
+
+        <div class="quick-stats-card">
+          <div class="stats-label">Système OTFLOW</div>
+          <div class="stats-status">
+            <span class="status-dot"></span> Connecté
+          </div>
         </div>
       </div>
 

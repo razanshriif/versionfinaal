@@ -24,7 +24,7 @@ interface Module {
     styleUrls: ['./permission-management.component.css']
 })
 export class PermissionManagementComponent implements OnInit {
-    roles = ['ADMIN', 'COMMERCIAL', 'CLIENT', 'USER_Otflow'];
+    roles = ['ADMIN', 'COMMERCIAL', 'CLIENT', 'USER_LUMIERE'];
     users: any[] = [];
     configMode: 'ROLE' | 'USER' = 'ROLE';
     selectedRole: string = 'ADMIN';
@@ -91,6 +91,17 @@ export class PermissionManagementComponent implements OnInit {
                 { key: 'USERS_ADD', label: 'Ajouter un utilisateur' },
                 { key: 'USERS_EDIT', label: 'Modifier un utilisateur' },
                 { key: 'USERS_DELETE', label: 'Supprimer un utilisateur' }
+            ]
+        },
+        {
+            key: 'NOTIFICATIONS',
+            label: 'Gestion des Notifications',
+            icon: 'fas fa-bell',
+            actions: [
+                { key: 'NOTIF_INSCRIPTION', label: 'Notifications des Nouvelles Inscriptions' },
+                { key: 'NOTIF_ORDRE_NEW', label: 'Notifications de Création d\'Ordre' },
+                { key: 'NOTIF_ORDRE_CONFIRMED', label: 'Notifications de Confirmation d\'Ordre' },
+                { key: 'NOTIF_ORDRE_UPDATE', label: 'Notifications de Mise à jour d\'Ordre' }
             ]
         }
     ];
@@ -186,6 +197,21 @@ export class PermissionManagementComponent implements OnInit {
 
     toggleModule(key: string) {
         this.expandedModule = this.expandedModule === key ? null : key;
+    }
+
+    toggleAllInModule(mod: Module) {
+        const modPerm = this.getPermission(mod.key);
+        if (!modPerm) return;
+
+        const newState = !modPerm.enabled;
+        modPerm.enabled = newState;
+
+        mod.actions.forEach(action => {
+            const actionPerm = this.getPermission(action.key);
+            if (actionPerm) {
+                actionPerm.enabled = newState;
+            }
+        });
     }
 
     getPermission(key: string): any {
