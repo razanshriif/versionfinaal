@@ -368,18 +368,20 @@ export class OrdreComponent implements OnInit {
 
 
   getTimelineClass(index: number, events: any[], statut: string): string {
-    const eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
+    let eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
 
-    if (statut === 'NON_PLANIFIE') return 'inactive';
-
-    if (statut === 'PLANIFIE') {
-      return index === 0 ? 'pending' : 'inactive';
+    // Fallback if events are empty: use the status to estimate progress
+    if (eventCount === 0) {
+      if (statut === 'EN_COURS_DE_LIVRAISON') eventCount = 4;
+      else if (statut === 'CHARGE') eventCount = 3;
+      else if (statut === 'EN_COURS_DE_CHARGEMENT') eventCount = 2;
+      else if (statut === 'PLANIFIE') eventCount = 1;
+      else if (statut === 'LIVRE' || statut === 'Fin') eventCount = 6;
     }
-    
-    // index is 0..5
+
+    if (statut === 'NON_PLANIFIE' && eventCount === 0) return 'inactive';
+
     if (index < eventCount) {
-      // If it's the last recorded event, it might be the "current" one (pending)
-      // or if all 6 are done, it's completed.
       if (index === eventCount - 1 && eventCount < 6) return 'pending';
       return 'completed';
     }
@@ -388,8 +390,18 @@ export class OrdreComponent implements OnInit {
   }
 
   getTimelineClassLine(index: number, events: any[], statut: string): string {
-    const eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
-    if (index < eventCount) return 'active';
+    let eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
+    
+    // Fallback
+    if (eventCount === 0) {
+      if (statut === 'EN_COURS_DE_LIVRAISON') eventCount = 4;
+      else if (statut === 'CHARGE') eventCount = 3;
+      else if (statut === 'EN_COURS_DE_CHARGEMENT') eventCount = 2;
+      else if (statut === 'PLANIFIE') eventCount = 1;
+      else if (statut === 'LIVRE' || statut === 'Fin') eventCount = 6;
+    }
+
+    if (index < eventCount - 1) return 'active';
     return 'inactive';
   }
 
