@@ -1,4 +1,4 @@
-﻿import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgApexchartsModule, ChartComponent } from 'ng-apexcharts';
@@ -77,11 +77,13 @@ export class DashboardComponent implements OnInit {
 
   public donutChartOptions: DonutChartOptions;
   public barChartOptions: BarChartOptions;
+  private refreshInterval: any;
 
   constructor(
     private service: DashboardService,
     private authService: AuthService,
-    private ordreService: OrdreService
+    private ordreService: OrdreService,
+    private cdr: ChangeDetectorRef
   ) {
     this.donutChartOptions = this.buildDonutOptions();
     this.barChartOptions = this.buildBarOptions();
@@ -93,74 +95,51 @@ export class DashboardComponent implements OnInit {
       this.currentUser = user;
       this.userRole = user.role?.toUpperCase() ?? '';
       this.loadData();
+      
+      // Auto-refresh every 30 seconds
+      this.refreshInterval = setInterval(() => {
+        this.loadData();
+      }, 30000);
     });
   }
 
-  // ── Data loading per role ────────────────────────────────────────────────
-  private loadData(): void {
-    if (this.isClient) {
-      this.loadClientData();
-    } else {
-      this.loadStaffData();
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
     }
   }
 
-  /** CLIENT: only sees their own orders, counts them locally from list */
-  private loadClientData(): void {
-    this.ordreService.afficher().subscribe(orders => {
-      this.ordersCount = orders.length;
+  // ── Data loading ────────────────────────────────────────────────────────
+  private loadData(): void {
+    this.service.getDashboardStats().subscribe(data => {
+      // Common mapping
+      this.ordersCount = data.ordersCount || 0;
+      this.nonPlanifieOrdersCount = data.nonPlanifieOrdersCount || 0;
+      this.planifieOrdersCount = data.planifieOrdersCount || 0;
+      this.enCoursDeChargementCount = data.enCoursDeChargementCount || 0;
+      this.chargeCount = data.chargeCount || 0;
+      this.enCoursDeLivraisonCount = data.enCoursDeLivraisonCount || 0;
+      this.livreCount = data.livreCount || 0;
 
-      // Filter locally to be 100% sure we match the actor's view
-      this.nonPlanifieOrdersCount = orders.filter(o => o.statut === 'NON_PLANIFIE').length;
-      this.enCoursDeLivraisonCount = orders.filter(o => o.statut === 'EN_COURS_DE_LIVRAISON').length;
-      this.livreCount = orders.filter(o => o.statut === 'LIVRE').length;
-
-      // Completion rate for the strip
       this.completionRate = this.ordersCount > 0
         ? Math.round((this.livreCount / this.ordersCount) * 100) : 0;
 
-      this.refreshClientCharts();
-      this.buildClientAlerts();
+      // Staff specific (may be undefined for CLIENT)
+      this.clientsCount = data.clientsCount || 0;
+      this.articlesCount = data.articlesCount || 0;
+      this.usersCount = data.usersCount || 0;
+      this.pendingUsersCount = data.pendingUsersCount || 0;
+
+      // Refresh UI
+      if (this.isClient) {
+        this.refreshClientCharts();
+        this.buildClientAlerts();
+      } else {
+        this.refreshStaffCharts();
+        this.buildStaffAlerts();
+      }
+      this.cdr.detectChanges();
     });
-  }
-
-  /** ADMIN / COMMERCIAL: full dashboard */
-  private loadStaffData(): void {
-    forkJoin({
-      clients: this.service.countClients(),
-      articles: this.service.countArticles(),
-      orders: this.service.countOrders(),
-      nonPlanifie: this.service.countNonPlanifieOrders(),
-      planifie: this.service.countPlanifieOrders(),
-      enCoursChargement: this.service.countEnCoursDeChargementOrders(),
-      charge: this.service.countChargeOrders(),
-      enCoursLivraison: this.service.countEnCoursDeLivraisonOrders(),
-      livre: this.service.countLivreOrders(),
-      pendingUsers: this.service.countPendingUsers(),
-    }).subscribe(data => {
-      this.clientsCount = data.clients;
-      this.articlesCount = data.articles;
-      this.ordersCount = data.orders;
-      this.nonPlanifieOrdersCount = data.nonPlanifie;
-      this.planifieOrdersCount = data.planifie;
-      this.enCoursDeChargementCount = data.enCoursChargement;
-      this.chargeCount = data.charge;
-      this.enCoursDeLivraisonCount = data.enCoursLivraison;
-      this.livreCount = data.livre;
-      this.pendingUsersCount = data.pendingUsers;
-      this.completionRate = data.orders > 0
-        ? Math.round((data.livre / data.orders) * 100) : 0;
-
-      this.refreshStaffCharts();
-      this.buildStaffAlerts();
-    });
-
-    // Real users count — ADMIN only
-    if (this.isAdmin) {
-      this.authService.getAllUsers().subscribe(users => {
-        this.usersCount = users.length;
-      });
-    }
   }
 
   // ── Chart builders ───────────────────────────────────────────────────────
@@ -223,7 +202,7 @@ export class DashboardComponent implements OnInit {
         link: '/site/ajouter'
       });
     }
-    if (this.isAdmin && this.pendingUsersCount > 0) {
+    if ((this.isAdmin || this.isCommercial) && this.pendingUsersCount > 0) {
       this.alerts.push({
         type: 'warning', icon: 'fa-user-clock',
         message: `${this.pendingUsersCount} utilisateur(s) en attente d'approbation.`,

@@ -27,8 +27,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.example.demo.Entity.Ordre;
 import com.example.demo.Entity.Statut;
+import com.example.demo.Entity.User;
+import com.example.demo.Entity.Client;
 import com.example.demo.Service.OrdreService;
 import com.example.demo.Service.PlaFileService;
+import com.example.demo.Repository.UserRepository;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/v1/ordres")
@@ -41,10 +45,25 @@ public class OrdreController {
 	@Autowired
 	private PlaFileService plaFileService;
 
-	// ✅ GET tous les ordres
+	@Autowired
+	private UserRepository userRepository;
+
+	// ✅ GET tous les ordres (Filtré par rôle)
 	@GetMapping
-	public List<Ordre> getAllOrdres() {
-		return ordreService.findAll();
+	public List<Ordre> getAllOrdres(Authentication authentication) {
+		User principal = (User) authentication.getPrincipal();
+		User user = userRepository.findById(principal.getId()).orElse(principal);
+		
+		if (user.isStaff()) {
+			return ordreService.findAll();
+		} else {
+			// Client filtering
+			List<String> clientCodes = user.getOwnedClients().stream()
+				.map(Client::getCodeclient)
+				.toList();
+			if (clientCodes.isEmpty()) return new ArrayList<>();
+			return ordreService.findByClientCodes(clientCodes);
+		}
 	}
 
 	// ✅ GET ordres par code client
@@ -237,17 +256,43 @@ public class OrdreController {
 		return ResponseEntity.ok(commentaires != null ? commentaires : new HashSet<>());
 	}
 
-	// ✅ GET statistiques — pour le mobile
+	// ✅ GET statistiques — Filtré par rôle
 	@GetMapping("/statistiques")
-	public ResponseEntity<Map<String, Long>> getStatistiques() {
+	public ResponseEntity<Map<String, Long>> getStatistiques(Authentication authentication) {
+		User principal = (User) authentication.getPrincipal();
+		User user = userRepository.findById(principal.getId()).orElse(principal);
 		Map<String, Long> stats = new HashMap<>();
-		stats.put("total", ordreService.countAllOrders());
-		stats.put("nonPlanifie", ordreService.countNonPlanifieOrders());
-		stats.put("planifie", ordreService.countPlanifieOrders());
-		stats.put("enCoursDeChargement", ordreService.getEnCoursDeChargementOrdersCount());
-		stats.put("charge", ordreService.getChargeOrdersCount());
-		stats.put("enCoursDeLivraison", ordreService.getEnCoursDeLivraisonOrdersCount());
-		stats.put("livre", ordreService.getLivreOrdersCount());
+		
+		if (user.isStaff()) {
+			stats.put("total", ordreService.countAllOrders());
+			stats.put("nonPlanifie", ordreService.countNonPlanifieOrders());
+			stats.put("planifie", ordreService.countPlanifieOrders());
+			stats.put("enCoursDeChargement", ordreService.getEnCoursDeChargementOrdersCount());
+			stats.put("charge", ordreService.getChargeOrdersCount());
+			stats.put("enCoursDeLivraison", ordreService.getEnCoursDeLivraisonOrdersCount());
+			stats.put("livre", ordreService.getLivreOrdersCount());
+		} else {
+			List<String> codes = user.getOwnedClients().stream()
+				.map(Client::getCodeclient)
+				.toList();
+			if (codes.isEmpty()) {
+				stats.put("total", 0L);
+				stats.put("nonPlanifie", 0L);
+				stats.put("planifie", 0L);
+				stats.put("enCoursDeChargement", 0L);
+				stats.put("charge", 0L);
+				stats.put("enCoursDeLivraison", 0L);
+				stats.put("livre", 0L);
+			} else {
+				stats.put("total", ordreService.countByClientCodes(codes));
+				stats.put("nonPlanifie", ordreService.countByClientCodesAndStatut(codes, Statut.NON_PLANIFIE));
+				stats.put("planifie", ordreService.countByClientCodesAndStatut(codes, Statut.PLANIFIE));
+				stats.put("enCoursDeChargement", ordreService.countByClientCodesAndStatut(codes, Statut.EN_COURS_DE_CHARGEMENT));
+				stats.put("charge", ordreService.countByClientCodesAndStatut(codes, Statut.CHARGE));
+				stats.put("enCoursDeLivraison", ordreService.countByClientCodesAndStatut(codes, Statut.EN_COURS_DE_LIVRAISON));
+				stats.put("livre", ordreService.countByClientCodesAndStatut(codes, Statut.LIVRE));
+			}
+		}
 		return ResponseEntity.ok(stats);
 	}
 
@@ -287,6 +332,7 @@ public class OrdreController {
 
 	@GetMapping("/search")
 	public List<Ordre> searchOrdres(
+			Authentication authentication,
 			@RequestParam(required = false) String client,
 			@RequestParam(required = false) Statut statut,
 			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
@@ -294,7 +340,19 @@ public class OrdreController {
 			@RequestParam(required = false) String chauffeur,
 			@RequestParam(required = false) String site,
 			@RequestParam(required = false) String destination) {
-		return ordreService.search(client, statut, startDate, endDate, chauffeur, site, destination);
+		
+		User principal = (User) authentication.getPrincipal();
+		User user = userRepository.findById(principal.getId()).orElse(principal);
+		List<String> restrictedClientCodes = null;
+		
+		if (!user.isStaff()) {
+			restrictedClientCodes = user.getOwnedClients().stream()
+				.map(Client::getCodeclient)
+				.toList();
+			if (restrictedClientCodes.isEmpty()) return new ArrayList<>();
+		}
+		
+		return ordreService.searchExtended(client, statut, startDate, endDate, chauffeur, site, destination, restrictedClientCodes);
 	}
 
 	// --- Endpoints comptages individuels (compatibilité web) ---
@@ -331,5 +389,13 @@ public class OrdreController {
 	@GetMapping("/count/livre")
 	public long countLivreOrders() {
 		return ordreService.getLivreOrdersCount();
+	}
+	@Autowired
+	private com.example.demo.Service.GpsSyncService gpsSyncService;
+
+	@PostMapping("/sync-gps")
+	public ResponseEntity<String> forceGpsSync() {
+		gpsSyncService.forceSync();
+		return ResponseEntity.ok("Synchronisation GPS lancée.");
 	}
 }

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PermissionService } from '../permission.service';
@@ -24,7 +24,7 @@ interface Module {
     styleUrls: ['./permission-management.component.css']
 })
 export class PermissionManagementComponent implements OnInit {
-    roles = ['ADMIN', 'COMMERCIAL', 'CLIENT', 'USER_Otflow'];
+    roles = ['ADMIN', 'COMMERCIAL', 'CLIENT', 'USER_LUMIERE'];
     users: any[] = [];
     configMode: 'ROLE' | 'USER' = 'ROLE';
     selectedRole: string = 'ADMIN';
@@ -92,6 +92,17 @@ export class PermissionManagementComponent implements OnInit {
                 { key: 'USERS_EDIT', label: 'Modifier un utilisateur' },
                 { key: 'USERS_DELETE', label: 'Supprimer un utilisateur' }
             ]
+        },
+        {
+            key: 'NOTIFICATIONS',
+            label: 'Gestion des Notifications',
+            icon: 'fas fa-bell',
+            actions: [
+                { key: 'NOTIF_INSCRIPTION', label: 'Notifications des Nouvelles Inscriptions' },
+                { key: 'NOTIF_ORDRE_NEW', label: 'Notifications de Création d\'Ordre' },
+                { key: 'NOTIF_ORDRE_CONFIRMED', label: 'Notifications de Confirmation d\'Ordre' },
+                { key: 'NOTIF_ORDRE_UPDATE', label: 'Notifications de Mise à jour d\'Ordre' }
+            ]
         }
     ];
 
@@ -99,7 +110,8 @@ export class PermissionManagementComponent implements OnInit {
 
     constructor(
         private permissionService: PermissionService,
-        private userService: UsersService
+        private userService: UsersService,
+        private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
@@ -112,6 +124,7 @@ export class PermissionManagementComponent implements OnInit {
             next: (data) => {
                 this.permissions = data;
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Failed to load permissions', err);
@@ -122,6 +135,7 @@ export class PermissionManagementComponent implements OnInit {
         this.userService.getClients().subscribe({
             next: (data) => {
                 this.users = data;
+                this.cdr.detectChanges();
             },
             error: (err) => console.error('Failed to load users', err)
         });
@@ -142,6 +156,7 @@ export class PermissionManagementComponent implements OnInit {
             next: (data) => {
                 this.permissions = data;
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Failed to load permissions', err);
@@ -162,6 +177,7 @@ export class PermissionManagementComponent implements OnInit {
                     enabled: data[key] || false
                 }));
                 this.isLoading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 console.error('Failed to load user permissions', err);
@@ -181,6 +197,21 @@ export class PermissionManagementComponent implements OnInit {
 
     toggleModule(key: string) {
         this.expandedModule = this.expandedModule === key ? null : key;
+    }
+
+    toggleAllInModule(mod: Module) {
+        const modPerm = this.getPermission(mod.key);
+        if (!modPerm) return;
+
+        const newState = !modPerm.enabled;
+        modPerm.enabled = newState;
+
+        mod.actions.forEach(action => {
+            const actionPerm = this.getPermission(action.key);
+            if (actionPerm) {
+                actionPerm.enabled = newState;
+            }
+        });
     }
 
     getPermission(key: string): any {

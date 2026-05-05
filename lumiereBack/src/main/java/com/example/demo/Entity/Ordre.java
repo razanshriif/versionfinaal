@@ -104,6 +104,9 @@ public class Ordre {
 	@Column(name = "current_lon")
 	private Double currentLon;
 
+	@Column(name = "speed")
+	private Double speed;
+
 	@OneToOne
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
@@ -416,6 +419,14 @@ public class Ordre {
 
 	public void setCurrentLon(Double currentLon) {
 		this.currentLon = currentLon;
+	}
+
+	public Double getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(Double speed) {
+		this.speed = speed;
 	}
 
 }

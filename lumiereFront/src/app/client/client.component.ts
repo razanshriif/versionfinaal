@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -19,7 +19,7 @@ import { ExportService } from '../export.service';
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.css']
 })
-export class ClientComponent implements OnInit {
+export class ClientComponent implements OnInit, OnDestroy {
 
   client = {
     code: 0,
@@ -65,6 +65,7 @@ export class ClientComponent implements OnInit {
   Detail = true;
   activeTab: 'all' | 'pending' = 'all'; // Default to all clients
   isEditMode: boolean = false;
+  private refreshInterval: any;
 
   constructor(
     private modalService: NgbModal,
@@ -72,12 +73,23 @@ export class ClientComponent implements OnInit {
     private ser: NotificationService,
     private authService: AuthService,
     private exportService: ExportService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.afficher();
     this.profile();
+    
+    this.refreshInterval = setInterval(() => {
+      this.afficher();
+    }, 30000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   open(content: any) {
@@ -88,6 +100,7 @@ export class ClientComponent implements OnInit {
     this.service.afficher().subscribe(clients => {
       this.clients = clients;
       this.filterClients();
+      this.cdr.detectChanges();
     });
   }
 
@@ -205,6 +218,7 @@ export class ClientComponent implements OnInit {
     this.authService.profile().subscribe(
       (data) => {
         this.user = data;
+        this.cdr.detectChanges();
       },
       (error) => console.error('Erreur lors du chargement du profil', error)
     );

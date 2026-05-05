@@ -54,6 +54,13 @@ public class OrdreService {
 		return ordreRepository.findByClientOrderByIdDesc(clientCode);
 	}
 
+	public List<Ordre> findByClientCodes(List<String> clientCodes) {
+		return ordreRepository.findAll((root, query, cb) -> {
+			query.orderBy(cb.desc(root.get("id")));
+			return root.get("client").in(clientCodes);
+		});
+	}
+
 	public Optional<Ordre> findById(Long id) {
 		return ordreRepository.findById(id);
 	}
@@ -139,13 +146,23 @@ public class OrdreService {
 		// Envoyer l'email de confirmation au client
 		sendOrderConfirmationEmail(updatedOrdre);
 
-		// In-app notification for the user/client
+		// In-app notification for the client
 		try {
 			com.example.demo.Entity.Notification notification = new com.example.demo.Entity.Notification();
 			notification.setType("CONFIRMATION");
 			notification.setMessage("Votre ordre " + updatedOrdre.getOrderNumber() + " a été confirmé !");
 			notification.setRead(false);
-			// Ideally we'd set targetUserId here if the entity supports it
+			
+			// Find the user ID associated with this client to target them specifically
+			clientRepository.findByCodeclient(updatedOrdre.getClient()).ifPresent(client -> {
+				if (client.getOwner() != null) {
+					notification.setTargetUserId(client.getOwner().getId());
+				} else {
+					// Fallback to role-based if owner is not linked
+					notification.setTargetRole(com.example.demo.Entity.Role.CLIENT);
+				}
+			});
+			
 			notificationService.createNotification(notification);
 		} catch (Exception e) {
 			System.err.println("Failed to create confirmation notification: " + e.getMessage());
@@ -211,6 +228,25 @@ public class OrdreService {
 		ordre.setTrancking(ordreDetails.getTrancking());
 
 		final Ordre updatedOrdre = ordreRepository.save(ordre);
+		
+		// Notify client of the update
+		try {
+			com.example.demo.Entity.Notification notification = new com.example.demo.Entity.Notification();
+			notification.setType("ORDRE_UPDATE");
+			notification.setMessage("Votre ordre " + updatedOrdre.getOrderNumber() + " a été mis à jour.");
+			notification.setRead(false);
+			
+			clientRepository.findByCodeclient(updatedOrdre.getClient()).ifPresent(client -> {
+				if (client.getOwner() != null) {
+					notification.setTargetUserId(client.getOwner().getId());
+				}
+			});
+			
+			notificationService.createNotification(notification);
+		} catch (Exception e) {
+			// Silent error
+		}
+		
 		return updatedOrdre;
 	}
 
@@ -242,10 +278,27 @@ public class OrdreService {
 		return ordreRepository.countLivreOrders();
 	}
 
+	public long countByClientCodes(List<String> clientCodes) {
+		return ordreRepository.countByClientCodes(clientCodes);
+	}
+
+	public long countByClientCodesAndStatut(List<String> clientCodes, Statut statut) {
+		return ordreRepository.countByClientCodesAndStatut(clientCodes, statut);
+	}
+
 	public List<Ordre> search(String client, Statut statut, Date startSaisie, Date endSaisie, String chauffeur,
 			String site, String destination) {
+		return searchExtended(client, statut, startSaisie, endSaisie, chauffeur, site, destination, null);
+	}
+
+	public List<Ordre> searchExtended(String client, Statut statut, Date startSaisie, Date endSaisie, String chauffeur,
+			String site, String destination, List<String> restrictedClientCodes) {
 		return ordreRepository.findAll((root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
+
+			if (restrictedClientCodes != null && !restrictedClientCodes.isEmpty()) {
+				predicates.add(root.get("client").in(restrictedClientCodes));
+			}
 
 			if (client != null && !client.isEmpty()) {
 				predicates.add(cb.like(cb.lower(root.get("client")), "%" + client.toLowerCase() + "%"));

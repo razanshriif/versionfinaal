@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { OrdreService } from '../ordre.service';
 import { ClientService } from '../client.service';
 import { ArticleService } from '../services/article.service';
@@ -83,7 +83,8 @@ export class OrdrenonconformComponent implements OnInit {
     private clientService: ClientService,
     private articleservice: ArticleService,
     public dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) { }
 
   user = {
@@ -148,6 +149,7 @@ export class OrdrenonconformComponent implements OnInit {
       (data) => {
         this.articles = data;
         this.filteredArticles = data;
+        this.cdr.detectChanges();
       },
       (error) => console.error('Erreur de chargement des articles', error)
     );
@@ -158,6 +160,7 @@ export class OrdrenonconformComponent implements OnInit {
     this.articleservice.getArticles().subscribe(
       (data) => {
         this.articleOptions = data;  // Assigne la liste reçue depuis l'API
+        this.cdr.detectChanges();
       },
       (error) => {
         console.error('Erreur lors du chargement des articles', error);
@@ -216,6 +219,7 @@ export class OrdrenonconformComponent implements OnInit {
         this.livraisonDate = null;
         this.chargementTime = { hour: '00', minute: '00' };
         this.livraisonTime = { hour: '00', minute: '00' };
+        this.cdr.detectChanges();
       },
       error: () => {
         this.snackBar.open('❌ Erreur lors de la création !', '', {
@@ -255,6 +259,7 @@ export class OrdrenonconformComponent implements OnInit {
           this.ordre.livraisonVille = result.ville;
           this.ordre.codepostalliv = result.codepostal;
         }
+        this.cdr.detectChanges();
       }
     });
   }
@@ -266,6 +271,7 @@ export class OrdrenonconformComponent implements OnInit {
       this.articleservice.searchByCodeArticle(clientCode).subscribe(
         (article) => {
           this.ordre.designation = article.label;
+          this.cdr.detectChanges();
         },
         (error) => {
           console.error('Error fetching client details', error);

@@ -1,4 +1,4 @@
-﻿import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -44,7 +44,8 @@ export class UsersComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -70,6 +71,7 @@ export class UsersComponent {
       users => {
         this.clients = users;
         this.searchUsers();
+        this.cdr.detectChanges();
       },
       error => {
         console.error('Failed to fetch users', error);
@@ -90,12 +92,12 @@ export class UsersComponent {
     this.selectedUser = user;
     this.approvalData = { codeClient: '', idEdi: '' };
     const modal = document.getElementById('approveClientModal');
-    if (modal) modal.style.display = 'block';
+    if (modal) modal.classList.add('show');
   }
 
   closeApprovalModal() {
     const modal = document.getElementById('approveClientModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) modal.classList.remove('show');
     this.selectedUser = null;
   }
 
@@ -155,14 +157,14 @@ export class UsersComponent {
   openModal() {
     const modal = document.getElementById('addUserModal');
     if (modal) {
-      modal.style.display = 'block';
+      modal.classList.add('show');
     }
   }
 
   closeModal() {
     const modal = document.getElementById('addUserModal');
     if (modal) {
-      modal.style.display = 'none';
+      modal.classList.remove('show');
     }
   }
 

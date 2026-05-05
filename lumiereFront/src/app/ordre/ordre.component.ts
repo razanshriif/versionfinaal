@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -25,6 +25,10 @@ export class OrdreComponent implements OnInit {
   isMapModalOpen = false;
   selectedOrdreForMap: any = null;
   map: any = null;
+  truckMarker: any = null;
+  // reference points to avoid disappearing during refresh
+  refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 }; 
+  private refreshInterval: any;
 
 
   dateDebut: string = this.getTodayDate();
@@ -66,11 +70,27 @@ export class OrdreComponent implements OnInit {
   };
   eventCount: number = 0;
 
-  constructor(private modalService: NgbModal, private service: OrdreService, private http: HttpClient) { }
+  constructor(
+    private modalService: NgbModal, 
+    private service: OrdreService, 
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit(): void {
+    // Initial fetch
     this.filtrerParDate();
-    this.autoRefreshPage();
+    
+    // Set up periodic refresh (every 30 seconds)
+    this.refreshInterval = setInterval(() => {
+      this.filtrerParDate();
+    }, 30000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   private getTodayDate(): string {
@@ -145,6 +165,7 @@ export class OrdreComponent implements OnInit {
       this.ordres = ordres;
       this.ordresFiltres = this.ordres;
       this.sortEvents();
+      this.cdr.detectChanges();
     });
   }
 
@@ -158,6 +179,12 @@ export class OrdreComponent implements OnInit {
   closeMapModal() {
     this.isMapModalOpen = false;
     this.selectedOrdreForMap = null;
+    this.truckMarker = null;
+    if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        // Restart the general refresh
+        this.refreshInterval = setInterval(() => this.filtrerParDate(), 30000);
+    }
     if (this.map) {
       this.map.remove();
       this.map = null;
@@ -170,18 +197,40 @@ export class OrdreComponent implements OnInit {
          this.map.remove();
       }
 
-      // Initialize map on the osm-map div
-      this.map = L.map('osm-map').setView([33.8869, 9.5375], 6); // Center of Tunisia
+      this.map = L.map('osm-map').setView([33.8869, 9.5375], 6);
 
-      // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(this.map);
 
       if (this.selectedOrdreForMap) {
+         // Initialize ref coords to 0
+         this.refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 };
+
+         // Show truck immediately if GPS is available
+         if (this.selectedOrdreForMap.currentLat && this.selectedOrdreForMap.currentLon) {
+             this.plotTruck(0, 0, 0, 0); 
+             this.map.setView([this.selectedOrdreForMap.currentLat, this.selectedOrdreForMap.currentLon], 13);
+         }
+         
          this.geocodeAndPlot(this.selectedOrdreForMap.chargementVille, this.selectedOrdreForMap.livraisonVille);
+
+         // LIVE TRACKING: Secure refresh
+         const currentOrderNumber = this.selectedOrdreForMap.orderNumber;
+         if (this.refreshInterval) clearInterval(this.refreshInterval);
+         this.refreshInterval = setInterval(() => {
+             this.service.search({orderNumber: currentOrderNumber}).subscribe(res => {
+                 // Only update if it's EXACTLY the same order
+                 const updatedOrder = res.find((o: any) => o.orderNumber === currentOrderNumber);
+                 if (updatedOrder && this.selectedOrdreForMap) {
+                     this.selectedOrdreForMap.currentLat = updatedOrder.currentLat;
+                     this.selectedOrdreForMap.currentLon = updatedOrder.currentLon;
+                     this.plotTruck(this.refCoords.lat1, this.refCoords.lon1, this.refCoords.lat2, this.refCoords.lon2);
+                 }
+             });
+         }, 10000);
       }
-    }, 300); // Wait for modal animation
+    }, 300);
   }
 
   geocodeAndPlot(sourceCity: string, destCity: string) {
@@ -229,6 +278,9 @@ export class OrdreComponent implements OnInit {
             // Adjust bounds to fit both points
             this.map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
 
+            // Store ref coords for refresh
+            this.refCoords = { lat1, lon1, lat2, lon2 };
+
             // Place dynamic truck marker
             this.plotTruck(lat1, lon1, lat2, lon2);
         });
@@ -260,18 +312,45 @@ export class OrdreComponent implements OnInit {
           truckLon = lon1 + (lon2 - lon1) * ratio;
       }
 
-      // Couleur Verte si GPS Réel, Orange si Simulation (pour différencier à l'écran)
+      // Couleur Verte si GPS Réel, Orange si Simulation
       const color = gpsActif ? '#10b981' : '#f5921e';
-      const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Actuelle ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
+      const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Live ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
+      
+      const speed = this.selectedOrdreForMap.speed || 0;
+      const truckInfo = this.selectedOrdreForMap.camion ? `<br><b>Camion:</b> ${this.selectedOrdreForMap.camion}` : '';
 
-      L.marker([truckLat, truckLon], {
-          icon: L.divIcon({
-             className: 'custom-div-icon',
-             html: `<div style='background-color:${color}; color:white; border-radius:5px; padding:5px; font-size:16px; border:2px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-truck'></i></div>`,
-             iconSize: [36, 36],
-             iconAnchor: [18, 18]
-          })
-      }).bindPopup('<b>Camion en cours</b><br>Conducteur: ' + (this.selectedOrdreForMap.chauffeur || 'Non assigné') + gpsLabel).addTo(this.map);
+      // Update or create truck marker
+      if (this.truckMarker) {
+          this.truckMarker.setLatLng([truckLat, truckLon]);
+          this.truckMarker.getPopup().setContent(`
+              <div style="font-family: Arial, sans-serif; min-width: 150px;">
+                  <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+                  ${truckInfo}
+                  <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
+                  <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
+                  <hr style="margin: 5px 0;">
+                  ${gpsLabel}
+              </div>
+          `);
+      } else {
+          this.truckMarker = L.marker([truckLat, truckLon], {
+              icon: L.divIcon({
+                 className: 'custom-div-icon',
+                 html: `<div style='background-color:${color}; color:white; border-radius:5px; padding:5px; font-size:16px; border:2px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-truck'></i></div>`,
+                 iconSize: [36, 36],
+                 iconAnchor: [18, 18]
+              })
+          }).bindPopup(`
+              <div style="font-family: Arial, sans-serif; min-width: 150px;">
+                  <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+                  ${truckInfo}
+                  <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
+                  <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
+                  <hr style="margin: 5px 0;">
+                  ${gpsLabel}
+              </div>
+          `).addTo(this.map);
+      }
   }
 
   detail(ordre: any) {
@@ -289,18 +368,20 @@ export class OrdreComponent implements OnInit {
 
 
   getTimelineClass(index: number, events: any[], statut: string): string {
-    const eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
+    let eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
 
-    if (statut === 'NON_PLANIFIE') return 'inactive';
-
-    if (statut === 'PLANIFIE') {
-      return index === 0 ? 'pending' : 'inactive';
+    // Fallback if events are empty: use the status to estimate progress
+    if (eventCount === 0) {
+      if (statut === 'EN_COURS_DE_LIVRAISON') eventCount = 4;
+      else if (statut === 'CHARGE') eventCount = 3;
+      else if (statut === 'EN_COURS_DE_CHARGEMENT') eventCount = 2;
+      else if (statut === 'PLANIFIE') eventCount = 1;
+      else if (statut === 'LIVRE' || statut === 'Fin') eventCount = 6;
     }
-    
-    // index is 0..5
+
+    if (statut === 'NON_PLANIFIE' && eventCount === 0) return 'inactive';
+
     if (index < eventCount) {
-      // If it's the last recorded event, it might be the "current" one (pending)
-      // or if all 6 are done, it's completed.
       if (index === eventCount - 1 && eventCount < 6) return 'pending';
       return 'completed';
     }
@@ -309,20 +390,24 @@ export class OrdreComponent implements OnInit {
   }
 
   getTimelineClassLine(index: number, events: any[], statut: string): string {
-    const eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
-    if (index < eventCount) return 'active';
+    let eventCount = events ? events.filter(event => event !== null && event !== undefined).length : 0;
+    
+    // Fallback
+    if (eventCount === 0) {
+      if (statut === 'EN_COURS_DE_LIVRAISON') eventCount = 4;
+      else if (statut === 'CHARGE') eventCount = 3;
+      else if (statut === 'EN_COURS_DE_CHARGEMENT') eventCount = 2;
+      else if (statut === 'PLANIFIE') eventCount = 1;
+      else if (statut === 'LIVRE' || statut === 'Fin') eventCount = 6;
+    }
+
+    if (index < eventCount - 1) return 'active';
     return 'inactive';
   }
 
 
   autoRefreshPage(): void {
-    setInterval(() => {
-      this.ordres.forEach(ordre => {
-        if (ordre.statut === 'Fin' && !ordre.events[5]) {
-          ordre.events[5] = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        }
-      });
-    }, 3 * 60 * 1000); // 3 minutes
+    // Legacy method, kept for compatibility if needed, but periodic fetch is better
   }
 
 
@@ -343,6 +428,7 @@ export class OrdreComponent implements OnInit {
           (o.chargementVille && o.chargementVille.toLowerCase().includes(this.filtreSource.toLowerCase()));
         return o.statut !== 'NON_CONFIRME' && matchesSource;
       });
+      this.cdr.detectChanges();
     });
   }
 

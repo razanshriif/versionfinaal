@@ -1,4 +1,4 @@
-﻿import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -15,6 +15,8 @@ import { FormsModule } from '@angular/forms';
 export class EmailsComponent {
   isModalOpen = false;
 
+  constructor(private cdr: ChangeDetectorRef) { }
+  
   email = {
     to: '',
     subject: '',
@@ -23,6 +25,7 @@ export class EmailsComponent {
 
   openModal() {
     this.isModalOpen = true;
+    this.cdr.detectChanges();
   }
 
   closeModal(event?: MouseEvent) {

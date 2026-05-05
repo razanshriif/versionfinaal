@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, OnInit, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, OnDestroy, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NotificationService } from '../notification.service';
@@ -78,15 +78,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   markAllRead(): void {
     this.notifService.markAllAsRead().subscribe(() => {
-      this.notifications.forEach(n => n.isRead = true);
+      this.notifications = [];
     });
   }
 
   markOneRead(notif: any): void {
-    if (!notif.isRead) {
-      notif.isRead = true;
-      this.notifService.markAsRead(notif.id).subscribe();
-    }
+    // Instant deletion on click as requested
+    this.notifService.markAsRead(notif.id).subscribe(() => {
+      this.notifications = this.notifications.filter(n => n.id !== notif.id);
+    });
   }
 
   deleteNotif(notif: any, event: MouseEvent): void {

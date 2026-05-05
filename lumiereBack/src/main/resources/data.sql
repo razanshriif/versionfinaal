@@ -1,5 +1,7 @@
 -- Delete previously inserted articles to ensure we only keep the desired list
+SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM `article`;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- Insert new list of articles
 INSERT INTO `article` (`id`, `code_article`, `label`, `achat`, `prix_unitaire`, `quantite_minimum`, `type`, `type_de_marchandise`, `type_de_remorque`, `unite`, `vente`) VALUES

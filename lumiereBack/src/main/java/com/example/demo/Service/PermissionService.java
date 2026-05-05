@@ -103,7 +103,8 @@ public class PermissionService {
                 "CLIENTS", "CLIENTS_ADD", "CLIENTS_EDIT", "CLIENTS_DELETE",
                 "ARTICLES", "ARTICLES_ADD", "ARTICLES_EDIT", "ARTICLES_DELETE",
                 "USERS", "USERS_ADD", "USERS_EDIT", "USERS_DELETE",
-                "EMAILS"
+                "EMAILS",
+                "NOTIF_INSCRIPTION", "NOTIF_ORDRE_NEW", "NOTIF_ORDRE_CONFIRMED", "NOTIF_ORDRE_UPDATE"
         };
 
         for (Role role : Role.values()) {

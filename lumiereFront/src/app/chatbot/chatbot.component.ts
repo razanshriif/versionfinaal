@@ -1,4 +1,4 @@
-﻿import { Component, ElementRef, ViewChild, AfterViewChecked, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewChecked, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatbotService } from '../services/chatbot.service';
@@ -37,7 +37,10 @@ export class ChatbotComponent implements AfterViewChecked, OnInit {
     '❓ Aide'
   ];
 
-  constructor(private chatbotService: ChatbotService) {
+  constructor(
+    private chatbotService: ChatbotService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.clearChat();
   }
 
@@ -45,6 +48,7 @@ export class ChatbotComponent implements AfterViewChecked, OnInit {
     this.chatbotService.clearHistory().then(() => {
       this.messages = [];
       this.showQuickReplies = true;
+      this.cdr.detectChanges();
     });
   }
 
@@ -56,10 +60,12 @@ export class ChatbotComponent implements AfterViewChecked, OnInit {
         isUser: m.sender === 'user',
         time: this.formatTime(m.timestamp)
       }));
+      this.cdr.detectChanges();
     });
 
     this.chatbotService.isTyping$.subscribe(typing => {
       this.isTyping = typing;
+      this.cdr.detectChanges();
     });
   }
 

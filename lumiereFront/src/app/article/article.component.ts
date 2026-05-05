@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -41,6 +41,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
   article: Article = {};
   mode: 'list' | 'create' | 'edit' | 'detail' = 'list';
   private subscription: Subscription = new Subscription();
+  private refreshInterval: any;
 
   constructor(
     private articleService: ArticleService,
@@ -48,7 +49,8 @@ export class ArticleComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private authService: AuthService,
     private ser: NotificationService,
-    private exportService: ExportService
+    private exportService: ExportService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   user = {
@@ -62,7 +64,10 @@ export class ArticleComponent implements OnInit, OnDestroy {
 
   profile() {
     this.authService.profile().subscribe(
-      (data) => this.user = data,
+      (data) => {
+        this.user = data;
+        this.cdr.detectChanges();
+      },
       (error) => console.error('Erreur lors du chargement du profil', error)
     );
   }
@@ -79,10 +84,20 @@ export class ArticleComponent implements OnInit, OnDestroy {
     });
 
     this.profile();
+    
+    // Auto-refresh every 30 seconds
+    this.refreshInterval = setInterval(() => {
+      if (this.mode === 'list') {
+        this.loadArticles();
+      }
+    }, 30000);
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   loadArticles(): void {
@@ -90,6 +105,7 @@ export class ArticleComponent implements OnInit, OnDestroy {
       this.articles = data;
       this.searchArticles();
       this.mode = 'list';
+      this.cdr.detectChanges();
     }));
   }
 
