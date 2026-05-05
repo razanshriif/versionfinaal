@@ -312,14 +312,26 @@ export class OrdreComponent implements OnInit {
           truckLon = lon1 + (lon2 - lon1) * ratio;
       }
 
-      // Couleur Verte si GPS Réel, Orange si Simulation (pour différencier à l'écran)
+      // Couleur Verte si GPS Réel, Orange si Simulation
       const color = gpsActif ? '#10b981' : '#f5921e';
-      const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Actuelle ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
+      const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Live ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
+      
+      const speed = this.selectedOrdreForMap.speed || 0;
+      const truckInfo = this.selectedOrdreForMap.camion ? `<br><b>Camion:</b> ${this.selectedOrdreForMap.camion}` : '';
 
       // Update or create truck marker
       if (this.truckMarker) {
           this.truckMarker.setLatLng([truckLat, truckLon]);
-          this.truckMarker.getPopup().setContent('<b>Camion en cours</b><br>Conducteur: ' + (this.selectedOrdreForMap.chauffeur || 'Non assigné') + gpsLabel);
+          this.truckMarker.getPopup().setContent(`
+              <div style="font-family: Arial, sans-serif; min-width: 150px;">
+                  <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+                  ${truckInfo}
+                  <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
+                  <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
+                  <hr style="margin: 5px 0;">
+                  ${gpsLabel}
+              </div>
+          `);
       } else {
           this.truckMarker = L.marker([truckLat, truckLon], {
               icon: L.divIcon({
@@ -328,7 +340,16 @@ export class OrdreComponent implements OnInit {
                  iconSize: [36, 36],
                  iconAnchor: [18, 18]
               })
-          }).bindPopup('<b>Camion en cours</b><br>Conducteur: ' + (this.selectedOrdreForMap.chauffeur || 'Non assigné') + gpsLabel).addTo(this.map);
+          }).bindPopup(`
+              <div style="font-family: Arial, sans-serif; min-width: 150px;">
+                  <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+                  ${truckInfo}
+                  <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
+                  <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
+                  <hr style="margin: 5px 0;">
+                  ${gpsLabel}
+              </div>
+          `).addTo(this.map);
       }
   }
 

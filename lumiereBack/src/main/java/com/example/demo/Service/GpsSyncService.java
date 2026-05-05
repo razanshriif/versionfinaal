@@ -96,7 +96,7 @@ public class GpsSyncService {
             
             // Step 2: Récupérer la dernière position dans la table archive spécifique au boîtier (ex: arch_303)
             String dynamicTable = "rimtrack_archive.arch_" + idDevice;
-            String posQuery = "SELECT latitude, longitude FROM " + dynamicTable + " ORDER BY `date` DESC LIMIT 1";
+            String posQuery = "SELECT latitude, longitude, speed, date FROM " + dynamicTable + " ORDER BY `date` DESC LIMIT 1";
             
             log.debug("Fetching coordinates from dynamic table: {}", dynamicTable);
             List<Map<String, Object>> posData = rimtrackJdbcTemplate.queryForList(posQuery);
@@ -105,12 +105,14 @@ public class GpsSyncService {
                 Map<String, Object> row = posData.get(0);
                 Double lat = ((Number)row.get("latitude")).doubleValue();
                 Double lon = ((Number)row.get("longitude")).doubleValue();
+                Double speed = row.get("speed") != null ? ((Number)row.get("speed")).doubleValue() : 0.0;
                 
                 if (lat != null && lon != null && lat != 0 && lon != 0) {
                     ordre.setCurrentLat(lat);
                     ordre.setCurrentLon(lon);
                     ordreRepository.save(ordre);
-                    log.info("Updated GPS for Order {}: {}/{}", ordre.getOrderNumber(), lat, lon);
+                    log.info("Updated GPS for Order {}: {}/{} (Speed: {} km/h)", 
+                        ordre.getOrderNumber(), lat, lon, speed);
                 }
             }
         } catch (Exception e) {
