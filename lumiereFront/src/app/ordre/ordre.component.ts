@@ -25,6 +25,7 @@ export class OrdreComponent implements OnInit {
   isMapModalOpen = false;
   selectedOrdreForMap: any = null;
   map: any = null;
+  truckMarker: any = null;
   private refreshInterval: any;
 
 
@@ -176,6 +177,12 @@ export class OrdreComponent implements OnInit {
   closeMapModal() {
     this.isMapModalOpen = false;
     this.selectedOrdreForMap = null;
+    this.truckMarker = null;
+    if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        // Restart the general refresh
+        this.refreshInterval = setInterval(() => this.filtrerParDate(), 30000);
+    }
     if (this.map) {
       this.map.remove();
       this.map = null;
@@ -188,18 +195,33 @@ export class OrdreComponent implements OnInit {
          this.map.remove();
       }
 
-      // Initialize map on the osm-map div
-      this.map = L.map('osm-map').setView([33.8869, 9.5375], 6); // Center of Tunisia
+      this.map = L.map('osm-map').setView([33.8869, 9.5375], 6);
 
-      // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(this.map);
 
       if (this.selectedOrdreForMap) {
+         // Show truck immediately if GPS is available
+         if (this.selectedOrdreForMap.currentLat && this.selectedOrdreForMap.currentLon) {
+             this.plotTruck(0, 0, 0, 0); 
+             this.map.setView([this.selectedOrdreForMap.currentLat, this.selectedOrdreForMap.currentLon], 13);
+         }
+         
          this.geocodeAndPlot(this.selectedOrdreForMap.chargementVille, this.selectedOrdreForMap.livraisonVille);
+
+         // LIVE TRACKING: Refresh position every 10s while map is open
+         if (this.refreshInterval) clearInterval(this.refreshInterval);
+         this.refreshInterval = setInterval(() => {
+             this.service.search({orderNumber: this.selectedOrdreForMap.orderNumber}).subscribe(res => {
+                 if (res && res.length > 0) {
+                     this.selectedOrdreForMap = res[0];
+                     this.plotTruck(0,0,0,0);
+                 }
+             });
+         }, 10000);
       }
-    }, 300); // Wait for modal animation
+    }, 300);
   }
 
   geocodeAndPlot(sourceCity: string, destCity: string) {
@@ -282,14 +304,20 @@ export class OrdreComponent implements OnInit {
       const color = gpsActif ? '#10b981' : '#f5921e';
       const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Actuelle ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
 
-      L.marker([truckLat, truckLon], {
-          icon: L.divIcon({
-             className: 'custom-div-icon',
-             html: `<div style='background-color:${color}; color:white; border-radius:5px; padding:5px; font-size:16px; border:2px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-truck'></i></div>`,
-             iconSize: [36, 36],
-             iconAnchor: [18, 18]
-          })
-      }).bindPopup('<b>Camion en cours</b><br>Conducteur: ' + (this.selectedOrdreForMap.chauffeur || 'Non assigné') + gpsLabel).addTo(this.map);
+      // Update or create truck marker
+      if (this.truckMarker) {
+          this.truckMarker.setLatLng([truckLat, truckLon]);
+          this.truckMarker.getPopup().setContent('<b>Camion en cours</b><br>Conducteur: ' + (this.selectedOrdreForMap.chauffeur || 'Non assigné') + gpsLabel);
+      } else {
+          this.truckMarker = L.marker([truckLat, truckLon], {
+              icon: L.divIcon({
+                 className: 'custom-div-icon',
+                 html: `<div style='background-color:${color}; color:white; border-radius:5px; padding:5px; font-size:16px; border:2px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-truck'></i></div>`,
+                 iconSize: [36, 36],
+                 iconAnchor: [18, 18]
+              })
+          }).bindPopup('<b>Camion en cours</b><br>Conducteur: ' + (this.selectedOrdreForMap.chauffeur || 'Non assigné') + gpsLabel).addTo(this.map);
+      }
   }
 
   detail(ordre: any) {

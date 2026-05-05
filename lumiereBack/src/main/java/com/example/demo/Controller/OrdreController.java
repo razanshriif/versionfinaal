@@ -390,4 +390,12 @@ public class OrdreController {
 	public long countLivreOrders() {
 		return ordreService.getLivreOrdersCount();
 	}
+	@Autowired
+	private com.example.demo.Service.GpsSyncService gpsSyncService;
+
+	@PostMapping("/sync-gps")
+	public ResponseEntity<String> forceGpsSync() {
+		gpsSyncService.forceSync();
+		return ResponseEntity.ok("Synchronisation GPS lancée.");
+	}
 }

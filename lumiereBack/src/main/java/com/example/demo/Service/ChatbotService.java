@@ -78,7 +78,7 @@ public class ChatbotService {
                              "1. Utilise TOUJOURS les outils (functions) pour obtenir des données réelles. Ne devine jamais une référence d'ordre. " +
                              "2. Si l'information n'est pas disponible via les outils, explique poliment que tu n'as pas accès à cette donnée spécifique. " +
                              "3. Réponds de manière structurée avec des puces (bullet points) quand tu listes plusieurs éléments. " +
-                             "4. Tu peux aussi répondre à des questions générales sur la logistique et le transport pour conseiller l'utilisateur. " +
+                             "4. Tu peux aussi répondre à des questions générales sur la logistique et le transport pour conseiller l'utilisateur. Par exemple, si on te pose une question sur le transport de l'eau, explique que l'eau minérale nécessite un transfert à température ambiante. Même si tu ne trouves pas le code article exact via tes outils, donne toujours des conseils pertinents sur les conditions de transport associées au produit demandé. " +
                              "5. Si l'utilisateur demande 'Que peux-tu faire ?', liste tes capacités principales de manière attractive.";
 
         if ("groq".equalsIgnoreCase(provider)) {
