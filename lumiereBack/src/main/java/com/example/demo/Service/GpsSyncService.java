@@ -110,6 +110,7 @@ public class GpsSyncService {
                 if (lat != null && lon != null && lat != 0 && lon != 0) {
                     ordre.setCurrentLat(lat);
                     ordre.setCurrentLon(lon);
+                    ordre.setSpeed(speed); // Sauvegarde de la vitesse
                     ordreRepository.save(ordre);
                     log.info("Updated GPS for Order {}: {}/{} (Speed: {} km/h)", 
                         ordre.getOrderNumber(), lat, lon, speed);
