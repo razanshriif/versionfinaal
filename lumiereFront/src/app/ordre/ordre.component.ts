@@ -26,6 +26,8 @@ export class OrdreComponent implements OnInit {
   selectedOrdreForMap: any = null;
   map: any = null;
   truckMarker: any = null;
+  // reference points to avoid disappearing during refresh
+  refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 }; 
   private refreshInterval: any;
 
 
@@ -202,6 +204,9 @@ export class OrdreComponent implements OnInit {
       }).addTo(this.map);
 
       if (this.selectedOrdreForMap) {
+         // Initialize ref coords to 0
+         this.refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 };
+
          // Show truck immediately if GPS is available
          if (this.selectedOrdreForMap.currentLat && this.selectedOrdreForMap.currentLon) {
              this.plotTruck(0, 0, 0, 0); 
@@ -210,13 +215,17 @@ export class OrdreComponent implements OnInit {
          
          this.geocodeAndPlot(this.selectedOrdreForMap.chargementVille, this.selectedOrdreForMap.livraisonVille);
 
-         // LIVE TRACKING: Refresh position every 10s while map is open
+         // LIVE TRACKING: Secure refresh
+         const currentOrderNumber = this.selectedOrdreForMap.orderNumber;
          if (this.refreshInterval) clearInterval(this.refreshInterval);
          this.refreshInterval = setInterval(() => {
-             this.service.search({orderNumber: this.selectedOrdreForMap.orderNumber}).subscribe(res => {
-                 if (res && res.length > 0) {
-                     this.selectedOrdreForMap = res[0];
-                     this.plotTruck(0,0,0,0);
+             this.service.search({orderNumber: currentOrderNumber}).subscribe(res => {
+                 // Only update if it's EXACTLY the same order
+                 const updatedOrder = res.find((o: any) => o.orderNumber === currentOrderNumber);
+                 if (updatedOrder && this.selectedOrdreForMap) {
+                     this.selectedOrdreForMap.currentLat = updatedOrder.currentLat;
+                     this.selectedOrdreForMap.currentLon = updatedOrder.currentLon;
+                     this.plotTruck(this.refCoords.lat1, this.refCoords.lon1, this.refCoords.lat2, this.refCoords.lon2);
                  }
              });
          }, 10000);
@@ -268,6 +277,9 @@ export class OrdreComponent implements OnInit {
             
             // Adjust bounds to fit both points
             this.map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+
+            // Store ref coords for refresh
+            this.refCoords = { lat1, lon1, lat2, lon2 };
 
             // Place dynamic truck marker
             this.plotTruck(lat1, lon1, lat2, lon2);
