@@ -1,0 +1,157 @@
+﻿<div class="profile-page">
+
+  <!-- Loading Spinner -->
+  <div class="profile-loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement du profil…</p>
+  </div>
+
+  <div class="profile-layout" *ngIf="!isLoading">
+
+    <!-- LEFT: Profile Card -->
+    <div class="profile-sidebar">
+      <div class="profile-avatar-section">
+        <!-- Avatar -->
+        <div class="avatar-wrapper" (click)="fileInput.click()">
+          <img *ngIf="imagePreview" [src]="imagePreview" alt="Photo profil" class="avatar-img">
+          <div *ngIf="!imagePreview" class="avatar-initials">{{ getUserInitials() }}</div>
+          <div class="avatar-overlay">
+            <i class="fas fa-camera"></i>
+            <span>Modifier</span>
+          </div>
+        </div>
+        <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)">
+        <p class="avatar-hint"><i class="fas fa-info-circle"></i> Cliquez sur l'avatar pour changer la photo</p>
+      </div>
+
+      <div class="profile-identity">
+        <h2 class="profile-fullname">{{ user.firstname }} {{ user.lastname }}</h2>
+        <div class="profile-role-badge">
+          <i [class]="getRoleIcon(user.role)"></i>
+          <span>{{ getRoleLabel(user.role) }}</span>
+        </div>
+        <p class="profile-email"><i class="fas fa-envelope"></i> {{ user.email }}</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Edit Forms -->
+    <div class="profile-content">
+
+      <!-- Toast Messages -->
+      <div class="toast toast--success" *ngIf="successMessage">
+        <i class="fas fa-check-circle"></i> {{ successMessage }}
+      </div>
+      <div class="toast toast--error" *ngIf="errorMessage">
+        <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+      </div>
+
+      <!-- Tabs -->
+      <div class="profile-tabs">
+        <button class="tab-btn" [class.tab-btn--active]="activeTab === 'info'" (click)="activeTab = 'info'">
+          <i class="fas fa-user-edit"></i> Informations
+        </button>
+        <button class="tab-btn" [class.tab-btn--active]="activeTab === 'password'" (click)="activeTab = 'password'">
+          <i class="fas fa-lock"></i> Mot de passe
+        </button>
+      </div>
+
+      <!-- TAB: Info -->
+      <div class="profile-form-card" *ngIf="activeTab === 'info'">
+        <h3 class="form-title"><i class="fas fa-user-edit"></i> Modifier mes informations</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prénom</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              <input type="text" [(ngModel)]="user.firstname" placeholder="Prénom">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nom</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              <input type="text" [(ngModel)]="user.lastname" placeholder="Nom">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-wrapper input-disabled">
+            <i class="fas fa-envelope"></i>
+            <input type="email" [value]="user.email" disabled>
+          </div>
+          <small class="form-hint"><i class="fas fa-info-circle"></i> L'email ne peut pas être modifié</small>
+        </div>
+
+        <!-- Photo Upload Zone -->
+        <div class="photo-upload-zone" (click)="fileInput.click()" (dragover)="$event.preventDefault()">
+          <i class="fas fa-cloud-upload-alt upload-icon"></i>
+          <p>Glissez une image ici ou <strong>cliquez pour parcourir</strong></p>
+          <small>JPG, PNG · Max 5 MB · Redimensionné automatiquement</small>
+        </div>
+
+        <button class="btn-save" (click)="saveProfileInfo()" [disabled]="isSavingInfo">
+          <i class="fas fa-save" *ngIf="!isSavingInfo"></i>
+          <span class="btn-spinner" *ngIf="isSavingInfo"></span>
+          {{ isSavingInfo ? 'Enregistrement…' : 'Enregistrer les modifications' }}
+        </button>
+      </div>
+
+      <!-- TAB: Password -->
+      <div class="profile-form-card" *ngIf="activeTab === 'password'">
+        <h3 class="form-title"><i class="fas fa-lock"></i> Changer le mot de passe</h3>
+        <p class="form-subtitle">Pour votre sécurité, entrez votre mot de passe actuel avant d'en définir un nouveau.</p>
+
+        <div class="form-group">
+          <label>Mot de passe actuel</label>
+          <div class="input-wrapper">
+            <i class="fas fa-key"></i>
+            <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="••••••••">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nouveau mot de passe</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Minimum 6 caractères">
+          </div>
+          <!-- Password strength -->
+          <div class="password-strength" *ngIf="passwordForm.newPassword.length > 0">
+            <div class="strength-bar" [class.weak]="passwordForm.newPassword.length < 6"
+                                      [class.medium]="passwordForm.newPassword.length >= 6 && passwordForm.newPassword.length < 10"
+                                      [class.strong]="passwordForm.newPassword.length >= 10"></div>
+            <small [class.text-weak]="passwordForm.newPassword.length < 6"
+                   [class.text-medium]="passwordForm.newPassword.length >= 6 && passwordForm.newPassword.length < 10"
+                   [class.text-strong]="passwordForm.newPassword.length >= 10">
+              {{ passwordForm.newPassword.length < 6 ? 'Trop court' : passwordForm.newPassword.length < 10 ? 'Moyen' : 'Fort ✓' }}
+            </small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Confirmer le nouveau mot de passe</label>
+          <div class="input-wrapper" [class.input-error]="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword">
+            <i class="fas fa-lock"></i>
+            <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Répétez le mot de passe">
+          </div>
+          <small class="form-error-hint" *ngIf="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword">
+            <i class="fas fa-times-circle"></i> Les mots de passe ne correspondent pas
+          </small>
+        </div>
+
+        <button class="btn-save btn-save--danger" (click)="savePassword()" [disabled]="isSavingPassword">
+          <i class="fas fa-shield-alt" *ngIf="!isSavingPassword"></i>
+          <span class="btn-spinner" *ngIf="isSavingPassword"></span>
+          {{ isSavingPassword ? 'Modification…' : 'Modifier le mot de passe' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+

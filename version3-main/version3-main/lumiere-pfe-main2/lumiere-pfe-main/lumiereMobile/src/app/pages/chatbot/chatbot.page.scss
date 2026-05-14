@@ -1,0 +1,263 @@
+// Premium Chatbot Mobile Redesign
+:host {
+    --cb-primary: var(--orange);
+    --cb-primary-gradient: linear-gradient(135deg, var(--orange) 0%, var(--orange-deep) 100%);
+    --bg-app: #F2EEE9;
+}
+
+.premium-content {
+    --background: var(--bg-app);
+}
+
+.glass-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-app);
+    z-index: -1;
+}
+
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 135, 50, 0.05);
+    filter: blur(60px);
+}
+
+.bubble:nth-child(1) {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    right: -100px;
+}
+
+.bubble:nth-child(2) {
+    width: 300px;
+    height: 300px;
+    bottom: -50px;
+    left: -50px;
+    background: rgba(255, 135, 50, 0.03);
+}
+
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    gap: 8px;
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+
+    &.user-message {
+        justify-content: flex-end;
+
+        .message-bubble {
+            background: var(--cb-primary-gradient);
+            color: white;
+            border-radius: 20px 20px 4px 20px;
+            box-shadow: 0 8px 20px rgba(255, 135, 50, 0.2);
+        }
+    }
+
+    &.bot-message {
+        justify-content: flex-start;
+
+        .bot-avatar-wrap {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border: 1px solid rgba(255, 135, 50, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-bottom: 2px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+            ion-icon {
+                font-size: 16px;
+                color: var(--orange);
+            }
+        }
+
+        .message-bubble {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #1e293b;
+            border-radius: 20px 20px 20px 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 20px 16px;
+}
+
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 24px;
+    gap: 12px;
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+
+    &.user-message {
+        justify-content: flex-end;
+
+        .message-bubble {
+            background: var(--cb-primary-gradient);
+            color: white;
+            border-radius: 24px 24px 4px 24px;
+            box-shadow: 0 10px 25px rgba(255, 135, 50, 0.25);
+        }
+    }
+
+    &.bot-message {
+        justify-content: flex-start;
+
+        .bot-avatar-wrap {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border: 1px solid rgba(255, 135, 50, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+            ion-icon {
+                font-size: 20px;
+                color: var(--orange);
+            }
+        }
+
+        .message-bubble {
+            background: white;
+            color: #1e293b;
+            border-radius: 24px 24px 24px 4px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+    }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.message-bubble {
+    max-width: 85%;
+    padding: 16px 20px;
+    transition: all 0.3s ease;
+
+    .message-text {
+        font-size: 14.5px;
+        font-weight: 600;
+        line-height: 1.6;
+    }
+
+    .message-time {
+        font-size: 9px;
+        font-weight: 800;
+        opacity: 0.5;
+        margin-top: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+.typing-indicator {
+    padding: 0;
+    
+    .typing-dots {
+        display: flex;
+        gap: 6px;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 24px;
+        width: fit-content;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+        span {
+            width: 7px;
+            height: 7px;
+            background: var(--cb-primary);
+            border-radius: 50%;
+            animation: typingBounce 0.8s infinite alternate;
+
+            &:nth-child(2) { animation-delay: 0.2s; }
+            &:nth-child(3) { animation-delay: 0.4s; }
+        }
+    }
+}
+
+@keyframes typingBounce {
+    from { transform: translateY(0); opacity: 0.3; }
+    to { transform: translateY(-8px); opacity: 1; }
+}
+
+ion-footer {
+    --background: transparent;
+    padding: 10px 16px calc(20px + env(safe-area-inset-bottom));
+    background: transparent;
+}
+
+.input-container {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 8px 8px 8px 22px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 135, 50, 0.1);
+
+    ion-textarea {
+        --padding-top: 14px;
+        --padding-bottom: 14px;
+        --color: #1e293b;
+        --placeholder-color: #94a3b8;
+        font-weight: 700;
+        font-size: 15px;
+        --highlight-color-focused: transparent !important;
+        --highlight-height: 0 !important;
+    }
+
+    .send-btn {
+        --background: var(--cb-primary-gradient);
+        --border-radius: 22px;
+        --box-shadow: 0 6px 15px rgba(255, 135, 50, 0.3);
+        width: 52px;
+        height: 52px;
+        margin: 0;
+        transition: all 0.2s;
+
+        &:active {
+            transform: scale(0.85);
+        }
+
+        ion-icon {
+            font-size: 22px;
+        }
+    }
+}

@@ -1,0 +1,141 @@
+<!-- ══ HEADER — Level 1: Orange logo bar ══ -->
+<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="goToNotifications()">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <span class="lum-badge" *ngIf="unreadNotifsCount > 0">{{ unreadNotifsCount }}</span>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+
+</ion-header>
+
+<!-- ══ CONTENT ══ -->
+<ion-content class="home-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refreshData($event)">
+    <ion-refresher-content refreshingSpinner="dots"></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Level 2: Greeting bar -->
+  <div class="greeting-bar fade-up">
+    <!-- User Avatar with status dot -->
+    <div class="user-avatar-small" (click)="goToProfile()">
+      <img *ngIf="user?.profileImageBase64" [src]="user.profileImageBase64" class="avatar-img" />
+      <span *ngIf="!user?.profileImageBase64" class="avatar-initials">{{ getUserInitials() }}</span>
+      <div class="status-dot active"></div>
+    </div>
+
+    <div class="greeting__info">
+      <div class="greeting__date">{{ getCurrentDate() }}</div>
+      <h1 class="greeting__name">{{ getUsername() }}</h1>
+    </div>
+    <div class="rappel-btn" (click)="goToRappels()">
+      <ion-icon name="time-outline"></ion-icon>
+    </div>
+  </div>
+
+  <div class="home-body">
+    <!-- Actions Rapides -->
+    <section>
+      <div class="sec-label fade-up">Actions Rapides</div>
+
+      <div class="action-grid" *ngIf="!isLoading">
+        <!-- Mes Ordres -->
+        <div class="acard fade-up" (click)="navigateTo('/demandes/list')">
+          <div class="acard__top">
+            <div class="ds-icon-pill"><ion-icon name="cube-outline"></ion-icon></div>
+            <div class="acard__title">Mes Ordres</div>
+            <div class="acard__desc">Gérer vos expéditions</div>
+          </div>
+          <div class="acard__more">Voir <ion-icon name="arrow-forward-outline"></ion-icon></div>
+        </div>
+
+        <!-- Répertoire -->
+        <div class="acard fade-up" (click)="navigateTo('/clients')">
+          <div class="acard__top">
+            <div class="ds-icon-pill"><ion-icon name="people-outline"></ion-icon></div>
+            <div class="acard__title">Clients</div>
+            <div class="acard__desc">Carnet d'adresses</div>
+          </div>
+          <div class="acard__more">Voir <ion-icon name="arrow-forward-outline"></ion-icon></div>
+        </div>
+
+        <!-- Livraisons -->
+        <div class="acard fade-up" (click)="navigateTo('/livraisons/list')">
+          <div class="acard__top">
+            <div class="ds-icon-pill"><ion-icon name="car-outline"></ion-icon></div>
+            <div class="acard__title">Livraisons</div>
+            <div class="acard__desc">Suivi journalier</div>
+          </div>
+          <div class="acard__more">Voir <ion-icon name="arrow-forward-outline"></ion-icon></div>
+        </div>
+
+        <!-- Nouvelle Commande -->
+        <div class="acard fade-up" (click)="navigateTo('/demandes/create')">
+          <div class="acard__top">
+            <div class="ds-icon-pill"><ion-icon name="add-circle-outline"></ion-icon></div>
+            <div class="acard__title">Saisie</div>
+            <div class="acard__desc">Nouvel ordre</div>
+          </div>
+          <div class="acard__more">Créer <ion-icon name="arrow-forward-outline"></ion-icon></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Brouillons -->
+    <section *ngIf="mesDrafts && mesDrafts.length > 0">
+      <div class="sec-label fade-up">Brouillons</div>
+      <div class="draft-list">
+        <div class="draft-card fade-up" *ngFor="let d of mesDrafts.slice(0, 2)" (click)="viewDemandeDetails(d)">
+          <div class="draft__info">
+            <span class="draft__name">{{ d.chargementNom || 'Nom non défini' }}</span>
+            <span class="draft__date">{{ formatDate(d.dateSaisie) }}</span>
+          </div>
+          <div class="draft__badge">Brouillon</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PREMIUM CHATBOT PILL CARD ── -->
+    <section class="chatbot-section fade-up">
+      <div class="chatbot-pill-card" (click)="navigateTo('/chatbot')">
+        <div class="chatbot-left">
+          <div class="chatbot-avatar-wrap">
+            <div class="pulsing-ring"></div>
+            <div class="pulsing-ring ring-2"></div>
+            <div class="chatbot-icon-box">
+              <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chatbot-middle">
+          <div class="chatbot-title">Assistant Otflow</div>
+          <div class="chatbot-status">
+            <span class="status-dot-green"></span>
+            En ligne · Répondre maintenant
+          </div>
+        </div>
+
+        <div class="chatbot-right">
+          <div class="chatbot-arrow-btn">
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="spacer"></div>
+  </div>
+</ion-content>
+
+
+

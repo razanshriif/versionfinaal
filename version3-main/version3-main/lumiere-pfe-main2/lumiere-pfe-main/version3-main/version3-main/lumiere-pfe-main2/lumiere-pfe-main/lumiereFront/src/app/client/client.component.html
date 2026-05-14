@@ -1,0 +1,273 @@
+﻿<!-- Button to trigger modal -->
+
+
+<div class="container">
+  <!-- Header section -->
+  <div class="view-header">
+    <div class="title-section">
+      <div class="icon-box">
+        <i class="fa fa-user-friends"></i>
+      </div>
+      <div>
+        <h2>Gestion des Clients</h2>
+        <p class="subtitle">Gérez votre base de données clients et leurs accès</p>
+      </div>
+    </div>
+    <button type="button" class="btn-create" (click)="creer(); open(content)">
+      <i class="fa fa-plus-circle"></i> <span>Créer un client</span>
+    </button>
+  </div>
+
+  <!-- Tabs system -->
+  <div class="client-tabs" *ngIf="user.role==='ADMIN' || user.role==='COMMERCIAL'">
+    <button class="tab-btn" [class.active]="activeTab === 'all'" (click)="setTab('all')">
+      <i class="fa fa-users"></i>
+      <span>Tous les clients</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'pending'" (click)="setTab('pending')">
+      <i class="fa fa-user-clock"></i>
+      <span>Inscriptions en attente</span>
+      <span class="tab-count" *ngIf="getPendingCount() > 0">{{ getPendingCount() }}</span>
+    </button>
+  </div>
+
+  <!-- Search section -->
+  <div class="search-section lum-card">
+    <div class="search-header">
+      <i class="fa fa-search"></i>
+      <span>Recherche rapide</span>
+    </div>
+    <form class="search-form">
+      <div class="search-grid">
+        <div class="form-group">
+          <label for="searchName">Nom du client</label>
+          <div class="input-with-icon">
+            <i class="fa fa-id-card"></i>
+            <input type="text" id="searchName" [(ngModel)]="searchName" name="searchName" placeholder="Ex: AZIZA..."
+              (input)="filterClients()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="searchCode">Code Client</label>
+          <div class="input-with-icon">
+            <i class="fa fa-hashtag"></i>
+            <input type="text" id="searchCode" [(ngModel)]="searchCode" name="searchCode" placeholder="Ex: 05..."
+              (input)="filterClients()">
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table section -->
+  <div class="content-card lum-card">
+    <div class="table-header">
+      <div class="header-left">
+        <i class="fa fa-list-ul"></i>
+        <h5>{{ activeTab === 'pending' ? 'Demandes d\'inscription' : 'Liste des Clients' }}</h5>
+      </div>
+      <div class="header-right">
+        <button class="btn-export" (click)="exportToExcel()" title="Exporter vers Excel">
+          <i class="fa fa-file-excel"></i> <span>Exporter</span>
+        </button>
+        <span class="count-badge">{{ filteredClients.length }} clients</span>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>CODE CLIENT</th>
+            <th>Lien User</th>
+            <th>Nom & Infos</th>
+            <th>Localisation</th>
+            <th>Contact</th>
+            <th>Status Profile</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let i of filteredClients" class="fade-in-row">
+            <td class="id-cell">
+              <span class="code-tag">{{ i.codeclient }}</span>
+            </td>
+            <td>
+              <div class="user-link-chip" *ngIf="i.ownerId">
+                <i class="fa fa-user-circle"></i>
+                <span>#{{ i.ownerId }}</span>
+              </div>
+              <span class="unlinked-tag" *ngIf="!i.ownerId">Non lié</span>
+            </td>
+            <td>
+              <div class="client-info">
+                <span class="client-name">{{ i.nom }}</span>
+                <span class="client-ref">{{ i.client }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="location-info">
+                <span class="city">{{ i.ville }}</span>
+                <span class="address">{{ i.adresse }}, {{ i.codepostal }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="contact-info">
+                <a [href]="'mailto:' + i.email" class="email-link" *ngIf="i.email">
+                  <i class="fa fa-envelope"></i> {{ i.email }}
+                </a>
+                <span class="phone" *ngIf="i.telephone">
+                  <i class="fa fa-phone"></i> {{ i.telephone }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <span class="profile-badge" [ngClass]="i.profileCompleted ? 'completed' : 'pending'">
+                <i class="fa" [ngClass]="i.profileCompleted ? 'fa-check-circle' : 'fa-clock'"></i>
+                {{ i.profileCompleted ? 'COMPLET' : 'INCOMPLET' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn edit" title="Modifier" (click)="editer(i); open(content)"
+                  *ngIf="user.role==='ADMIN' || user.role==='COMMERCIAL'">
+                  <i class="fa fa-edit"></i>
+                </button>
+                <button class="action-btn delete" title="Supprimer" (click)="supprimer(i.code)"
+                  *ngIf="user.role==='ADMIN' || user.role==='COMMERCIAL'">
+                  <i class="fa fa-trash-alt"></i>
+                </button>
+                <button class="action-btn detail" title="Détails" (click)="detail(i); open(content)">
+                  <i class="fa fa-eye"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal HTML -->
+<ng-template #content let-modal>
+  <div class="premium-modal" [class.approval-mode]="activeTab === 'pending'">
+    <div class="modal-header-gradient">
+      <div class="header-content">
+        <i class="fa"
+          [ngClass]="activeTab === 'pending' ? 'fa-user-check' : (isEditMode ? 'fa-user-edit' : 'fa-user-plus')"></i>
+        <h5 class="modal-title">
+          {{ activeTab === 'pending' ? 'Approuver l\'Inscription' : (isEditMode ? 'Modifier le Client' : 'Nouveau Client')
+          }}
+        </h5>
+      </div>
+      <button type="button" class="btn-close-white" (click)="modal.dismiss('Cross click')">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body-premium">
+      <div class="mandatory-notice" *ngIf="activeTab === 'pending'">
+        <i class="fa fa-exclamation-triangle"></i>
+        <span>Veuillez remplir tous les champs obligatoires pour finaliser l'inscription et activer l'accès
+          utilisateur.</span>
+      </div>
+
+      <form #clientForm="ngForm" (ngSubmit)="saveClient()" class="modern-form">
+        <!-- Section: Identité -->
+        <div class="form-section">
+          <h6><i class="fa fa-id-card"></i> Informations d'identité</h6>
+          <div class="form-row">
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="code">Code ID *</label>
+              <input type="number" id="code" [(ngModel)]="client.code" name="code" required placeholder="Ex: 5040" />
+            </div>
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="codeclient">Code Client</label>
+              <input type="text" id="codeclient" [(ngModel)]="client.codeclient" name="codeclient"
+                [required]="activeTab === 'pending'" placeholder="Ex: CL-001" />
+            </div>
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="civilite">Civilité</label>
+              <select id="civilite" [(ngModel)]="client.civilite" name="civilite" class="form-select-modern"
+                [required]="activeTab === 'pending'">
+                <option value="">Sélectionner...</option>
+                <option value="M.">Monsieur</option>
+                <option value="Mme.">Madame</option>
+                <option value="Sté.">Société</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row mt-3">
+            <div class="form-group-modern fluid" [class.mandatory]="activeTab === 'pending'">
+              <label for="nom">Nom Complet *</label>
+              <input type="text" id="nom" [(ngModel)]="client.nom" name="nom" required
+                placeholder="Ex: TRANSPORT LOGISTIQUE SA" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Localisation -->
+        <div class="form-section">
+          <h6><i class="fa fa-map-marker-alt"></i> Localisation</h6>
+          <div class="form-row">
+            <div class="form-group-modern fluid" [class.mandatory]="activeTab === 'pending'">
+              <label for="adresse">Adresse</label>
+              <input type="text" id="adresse" [(ngModel)]="client.adresse" name="adresse"
+                [required]="activeTab === 'pending'" placeholder="Ex: 123 Rue de l'Industrie" />
+            </div>
+          </div>
+          <div class="form-row mt-3">
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="codepostal">Code Postal</label>
+              <input type="number" id="codepostal" [(ngModel)]="client.codepostal" name="codepostal"
+                [required]="activeTab === 'pending'" />
+            </div>
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="ville">Ville</label>
+              <input type="text" id="ville" [(ngModel)]="client.ville" name="ville" [required]="activeTab === 'pending'" />
+            </div>
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="pays">Pays</label>
+              <input type="text" id="pays" [(ngModel)]="client.pays" name="pays" [required]="activeTab === 'pending'" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Contact -->
+        <div class="form-section">
+          <h6><i class="fa fa-envelope-open-text"></i> Contact & Communication</h6>
+          <div class="form-row">
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="email">Email Professionnel</label>
+              <input type="email" id="email" [(ngModel)]="client.email" name="email" [required]="activeTab === 'pending'"
+                placeholder="contact@client.com" />
+            </div>
+            <div class="form-group-modern" [class.mandatory]="activeTab === 'pending'">
+              <label for="telephone">Téléphone</label>
+              <input type="text" id="telephone" [(ngModel)]="client.telephone" name="telephone"
+                [required]="activeTab === 'pending'" />
+            </div>
+            <div class="form-group-modern">
+              <label for="idEdi">ID EDI</label>
+              <input type="text" id="idEdi" [(ngModel)]="client.idEdi" name="idEdi" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer-premium">
+          <button type="button" class="btn-cancel" (click)="modal.dismiss()">Annuler</button>
+          <button type="submit" class="btn-save" [disabled]="!clientForm.valid">
+            <i class="fa fa-check-circle"></i>
+            {{ activeTab === 'pending' ? 'Approuver & Activer' : (isEditMode ? 'Mettre à jour' : 'Enregistrer le client')
+            }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</ng-template>
+
+

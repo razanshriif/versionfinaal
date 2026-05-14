@@ -1,0 +1,50 @@
+﻿<ion-content class="pending-content">
+    <div class="pending-wrapper">
+        <div class="glass-container">
+            <!-- Animated Visual Header -->
+            <div class="status-visual">
+                <div class="pulse-ring"></div>
+                <div class="icon-box">
+                    <ion-icon name="shield-checkmark-outline" class="main-icon"></ion-icon>
+                </div>
+            </div>
+
+            <div class="content-text">
+                <h1 class="premium-title">Validation en cours</h1>
+                <p class="premium-subtitle">
+                    Bienvenue dans l'univers <strong>OTFLOW</strong>
+                </p>
+                
+                <div class="info-card" *ngIf="!isValidated">
+                    <p>Votre demande est en cours de traitement. Un email contenant votre <strong>OneLink</strong> d'activation vous sera envoyé sous peu.</p>
+                </div>
+                <div class="info-card validated" *ngIf="isValidated">
+                    <p><strong>Compte Validé !</strong> 🎉 Un email d'activation a été envoyé. Veuillez cliquer sur le <strong>OneLink</strong> pour finaliser l'inscription.</p>
+                </div>
+
+                <div class="status-pill" [class.checking]="isChecking" [class.validated]="isValidated">
+                    <span class="dot"></span>
+                    <span class="text">{{ isChecking ? 'Vérification...' : (isValidated ? 'Email envoyé' : 'En attente d\'activation') }}</span>
+                </div>
+                
+                <p class="instruction" *ngIf="!isValidated">
+                   Cliquez sur le <strong>OneLink</strong> reçu par mail pour accéder à votre espace.
+                </p>
+                <p class="instruction" *ngIf="isValidated">
+                    Le lien expire bientôt. Si vous ne voyez rien, vérifiez vos <strong>courriers indésirables</strong>.
+                 </p>
+            </div>
+
+            <!-- Action Section -->
+            <div class="action-footer">
+                <ion-button fill="clear" (click)="goToLogin()" class="login-redirect">
+                    <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+                    Retour à la connexion
+                </ion-button>
+            </div>
+        </div>
+    </div>
+</ion-content>
+
+
+

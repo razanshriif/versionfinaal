@@ -1,0 +1,197 @@
+﻿<ion-header class="ion-no-border">
+  <div class="lum-logo-bar">
+    <div class="lum-logo-wrap">
+      <img src="assets/otflow-horizontal.png" alt="Otflow" />
+    </div>
+    <div class="lum-logo-actions">
+      <button class="lum-icon-btn" (click)="navCtrl.navigateForward('/notifications')">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </button>
+      <button class="lum-icon-btn" (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="lum-sub-bar">
+    <button class="lum-back-btn" (click)="navCtrl.back()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <h1 class="lum-page-title">{{ isEditMode ? 'Modifier le Client' : 'Nouveau Client' }}</h1>
+    <button class="lum-filter-btn" (click)="saveClient()">
+      <ion-icon name="save-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="premium-content">
+    <div class="glass-background">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <div class="form-container">
+        <!-- Section 1: Informations Générales -->
+        <div class="premium-card section-card">
+            <div class="section-header">
+                <div class="header-icon-box orange-box">
+                    <ion-icon name="person-outline"></ion-icon>
+                </div>
+                <h2 class="section-label">Informations Générales</h2>
+            </div>
+
+            <div class="card-body">
+                <div class="input-grid">
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Matricule *</ion-label>
+                        <ion-input type="number" [(ngModel)]="client.code" placeholder="Ex: 1001"></ion-input>
+                    </div>
+
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Cli *</ion-label>
+                        <ion-input type="text" [(ngModel)]="client.codeclient" placeholder="Ex: CLI001"></ion-input>
+                    </div>
+                </div>
+
+                <div class="input-grid mt-3">
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Civilité</ion-label>
+                        <ion-select [(ngModel)]="client.civilite" interface="popover" placeholder="Sélectionner">
+                            <ion-select-option value="M.">M.</ion-select-option>
+                            <ion-select-option value="Mme.">Mme.</ion-select-option>
+                        </ion-select>
+                    </div>
+
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Type</ion-label>
+                        <ion-input type="text" [(ngModel)]="client.type" placeholder="Ex: Grossiste"></ion-input>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Organisation -->
+        <div class="premium-card section-card">
+            <div class="section-header">
+                <div class="header-icon-box orange-box">
+                    <ion-icon name="business-outline"></ion-icon>
+                </div>
+                <h2 class="section-label">Organisation</h2>
+            </div>
+
+            <div class="card-body">
+                <div class="premium-input-item">
+                    <ion-label position="stacked">S-Type</ion-label>
+                    <ion-input type="text" [(ngModel)]="client.sType" placeholder="Ex: Division A"></ion-input>
+                </div>
+
+                <div class="checkbox-item mt-3">
+                    <ion-checkbox [(ngModel)]="client.confiere"></ion-checkbox>
+                    <ion-label>Confieré</ion-label>
+                </div>
+
+                <div class="premium-input-item mt-3">
+                    <ion-label position="stacked">Société de Facturation</ion-label>
+                    <ion-input type="text" [(ngModel)]="client.societeFacturation"
+                        placeholder="Nom de la société"></ion-input>
+                </div>
+
+                <div class="premium-input-item mt-3">
+                    <ion-label position="stacked">Site d'Exploitation</ion-label>
+                    <ion-input type="text" [(ngModel)]="client.siteExploitation" placeholder="Nom du site"></ion-input>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Adresse & Contact -->
+        <div class="premium-card section-card">
+            <div class="section-header">
+                <div class="header-icon-box green-box">
+                    <ion-icon name="location-outline"></ion-icon>
+                </div>
+                <h2 class="section-label">Adresse & Contact</h2>
+            </div>
+
+            <div class="card-body">
+                <div class="premium-input-item">
+                    <ion-label position="stacked">Nom *</ion-label>
+                    <ion-input type="text" [(ngModel)]="client.nom" placeholder="Nom complet"></ion-input>
+                </div>
+
+                <div class="premium-input-item mt-3">
+                    <ion-label position="stacked">Adresse *</ion-label>
+                    <ion-textarea [(ngModel)]="client.adresse" placeholder="Adresse complète"
+                        [autoGrow]="true"></ion-textarea>
+                </div>
+
+                <div class="input-grid mt-3">
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Ville *</ion-label>
+                        <ion-input type="text" [(ngModel)]="client.ville" placeholder="Ville"></ion-input>
+                    </div>
+
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Code Postal</ion-label>
+                        <ion-input type="number" [(ngModel)]="client.codepostal" placeholder="8000"></ion-input>
+                    </div>
+                </div>
+
+                <div class="premium-input-item mt-3">
+                    <ion-label position="stacked">Pays</ion-label>
+                    <ion-input type="text" [(ngModel)]="client.pays" value="TUN"></ion-input>
+                </div>
+
+                <div class="premium-input-item mt-3">
+                    <ion-label position="stacked">Email</ion-label>
+                    <ion-input type="email" [(ngModel)]="client.email" placeholder="email@exemple.com"></ion-input>
+                </div>
+
+                <div class="input-grid mt-3">
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Téléphone</ion-label>
+                        <ion-input type="tel" [(ngModel)]="client.telephone" placeholder="+216 ..."></ion-input>
+                    </div>
+
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">Portable</ion-label>
+                        <ion-input type="tel" [(ngModel)]="client.numeroPortable" placeholder="+216 ..."></ion-input>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Fiscalité -->
+        <div class="premium-card section-card">
+            <div class="section-header">
+                <div class="header-icon-box dark-box">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <h2 class="section-label">Fiscalité</h2>
+            </div>
+
+            <div class="card-body">
+                <div class="input-grid">
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">ID TVA</ion-label>
+                        <ion-input type="text" [(ngModel)]="client.idTva" placeholder="000..."></ion-input>
+                    </div>
+
+                    <div class="premium-input-item">
+                        <ion-label position="stacked">ID EDI</ion-label>
+                        <ion-input type="text" [(ngModel)]="client.idEdi" placeholder="EDI..."></ion-input>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container mt-4">
+            <ion-button expand="block" class="premium-button shadow-primary" (click)="saveClient()">
+                <ion-icon name="save-outline" slot="start"></ion-icon>
+                {{ isEditMode ? 'Enregistrer les modifications' : 'Créer le client' }}
+            </ion-button>
+        </div>
+    </div>
+</ion-content>
+
+
+

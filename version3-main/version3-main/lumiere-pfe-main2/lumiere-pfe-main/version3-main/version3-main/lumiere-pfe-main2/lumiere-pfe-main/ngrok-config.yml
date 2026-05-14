@@ -1,0 +1,13 @@
+version: "3"
+agent:
+  authtoken: 39bo2xZqCLVIicVoD8uiSzoRp6j_4T9PfBfJnsbPa2asQjEcq
+
+tunnels:
+  frontend:
+    addr: 4200
+    proto: http
+    host_header: rewrite
+  backend:
+    addr: 8090
+    proto: http
+    host_header: rewrite

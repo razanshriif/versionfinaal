@@ -1,0 +1,91 @@
+﻿<ion-content class="auth-content">
+  <!-- Dynamic Background Bubbles -->
+  <div class="bg-bubble b1"></div>
+  <div class="bg-bubble b2"></div>
+  <div class="bg-bubble b3"></div>
+
+  <div class="auth-container">
+    <!-- Header Section -->
+    <div class="header-section">
+      <div class="logo-wrapper">
+        <img src="assets/otflow-logo.png" alt="OTFLOW Logo" class="main-logo" />
+        <div class="logo-glow"></div>
+      </div>
+      <h1 class="brand-title">OTFLOW</h1>
+      <p class="brand-subtitle">CRÉER VOTRE COMPTE</p>
+    </div>
+
+    <!-- Register Glass Card -->
+    <div class="glass-card">
+      <form class="auth-form">
+
+        <!-- Prénom -->
+        <div class="input-group">
+          <ion-icon name="person-outline" class="input-icon"></ion-icon>
+          <ion-input [(ngModel)]="formData.firstname" name="firstname" placeholder="Prénom"
+            class="custom-input"></ion-input>
+        </div>
+
+        <!-- Nom -->
+        <div class="input-group">
+          <ion-icon name="person-outline" class="input-icon"></ion-icon>
+          <ion-input [(ngModel)]="formData.lastname" name="lastname" placeholder="Nom" class="custom-input"></ion-input>
+        </div>
+
+        <!-- Email -->
+        <div class="input-group">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <ion-input type="email" [(ngModel)]="formData.email" name="email" placeholder="Adresse Email"
+            class="custom-input"></ion-input>
+        </div>
+
+        <!-- Password -->
+        <div class="input-group">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="formData.password" name="password"
+            placeholder="Mot de passe" class="custom-input"></ion-input>
+          <ion-button fill="clear" class="eye-btn" (click)="togglePassword()">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="input-group">
+          <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
+          <ion-input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="formData.confirmPassword"
+            name="confirmPassword" placeholder="Confirmer le mot de passe" class="custom-input"></ion-input>
+          <ion-button fill="clear" class="eye-btn" (click)="toggleConfirmPassword()">
+            <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Terms -->
+        <div class="terms-container">
+          <ion-checkbox [(ngModel)]="formData.acceptTerms" name="acceptTerms" color="primary"></ion-checkbox>
+          <ion-label>J'accepte les <a>Conditions</a></ion-label>
+        </div>
+
+        <!-- Register Button -->
+        <ion-button expand="block" class="auth-btn" (click)="onRegister()">
+          S'inscrire
+        </ion-button>
+
+        <div class="divider">
+          <span>OU</span>
+        </div>
+
+        <!-- Login Link -->
+        <div class="footer-link">
+          <p>Déjà un compte ? <a (click)="goToLogin()">Se connecter</a></p>
+        </div>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      <p>© 2026 OTFLOW Logistique. Tous droits réservés.</p>
+    </div>
+  </div>
+</ion-content>
+
+
+

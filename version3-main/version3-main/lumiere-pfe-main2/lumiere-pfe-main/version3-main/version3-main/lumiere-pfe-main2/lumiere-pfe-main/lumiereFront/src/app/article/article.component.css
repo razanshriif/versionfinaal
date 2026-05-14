@@ -1,0 +1,258 @@
+﻿/* ═══════════════════════════════════════════════════════════
+   ARTICLES — OTFLOW Transport
+   ═══════════════════════════════════════════════════════════ */
+
+.article-container {
+  padding: 28px;
+  background-color: var(--bg);
+  min-height: calc(100vh - 68px);
+  animation: fadeUp 0.4s ease-out;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+}
+
+.search-bar input {
+  padding: 8px 12px 8px 35px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  width: 200px;
+  transition: all 0.3s;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(245, 146, 30, 0.1);
+  width: 250px;
+}
+
+.export-button {
+  background-color: #10b981 !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.export-button:hover {
+  background-color: #059669 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.page-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--charcoal);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-title i {
+  font-size: 1.4rem;
+  color: var(--orange);
+}
+
+.create-button {
+  color: white;
+  background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.create-button:hover {
+  background: linear-gradient(135deg, var(--orange-deep), var(--orange));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.article-card,
+.form-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+mat-card-header {
+  background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+  color: white;
+  padding: 16px 24px;
+}
+
+mat-card-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+mat-card-title i {
+  color: var(--orange);
+  font-size: 1.1rem;
+}
+
+mat-table {
+  width: 100%;
+}
+
+th.mat-header-cell {
+  font-weight: 600;
+  color: var(--charcoal);
+  background-color: var(--bg);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td.mat-cell {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+tr.mat-row:hover {
+  background-color: var(--orange-light);
+  transition: var(--transition);
+}
+
+button[mat-icon-button] {
+  margin: 0 4px;
+  transition: var(--transition);
+}
+
+button[mat-icon-button]:hover {
+  transform: scale(1.1);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.form-actions button {
+  background: linear-gradient(135deg, var(--orange), var(--orange-deep));
+  color: white;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-xs);
+  transition: var(--transition);
+}
+
+.form-actions button[color="warn"] {
+  background: #6b7280;
+}
+
+.form-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.detail-grid p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.detail-grid p strong {
+  color: var(--orange);
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-error {
+  font-size: 0.85rem;
+  color: var(--red);
+}
+
+/* ── Responsive ── */
+@media (max-width: 800px) {
+  .article-container {
+    padding: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .create-button {
+    width: 100%;
+  }
+
+  .form-grid,
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .article-container {
+    padding: 16px;
+  }
+
+  .page-title {
+    font-size: 1.3rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+

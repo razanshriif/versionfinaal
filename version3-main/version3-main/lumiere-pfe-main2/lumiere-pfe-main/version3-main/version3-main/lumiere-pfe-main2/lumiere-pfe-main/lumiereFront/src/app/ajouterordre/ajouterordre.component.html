@@ -1,0 +1,304 @@
+﻿<div class="view-container">
+  <!-- Header -->
+  <div class="view-header">
+    <div class="title-section">
+      <div class="icon-box warning">
+        <i class="fa fa-clipboard-list"></i>
+      </div>
+      <div>
+        <h2>Ordres Non Confirmés</h2>
+        <p class="subtitle">Validation et gestion des nouvelles demandes de transport</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selection & Bulk Actions Bar -->
+  <div *ngIf="selectedCount > 0" class="bulk-actions-panel fade-in">
+    <div class="selection-info">
+      <div class="counter-badge">{{ selectedCount }}</div>
+      <span>ordres sélectionnés</span>
+    </div>
+    <div class="actions-group">
+      <button class="btn-bulk confirm" (click)="confirmerSelected()">
+        <i class="fa fa-check-circle"></i> Valider
+      </button>
+      <button class="btn-bulk export" (click)="exporterSelectedCsv()">
+        <i class="fa fa-file-csv"></i> CSV
+      </button>
+      <button class="btn-bulk delete" (click)="deleteSelected()">
+        <i class="fa fa-trash-alt"></i> Supprimer
+      </button>
+      <div class="divider"></div>
+      <button class="btn-bulk-text" (click)="deselectAll()">
+        <i class="fa fa-times"></i> Tout désélectionner
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="content-card lum-card mt-4">
+    <div class="table-container">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th class="col-checkbox">
+              <div class="custom-checkbox">
+                <input type="checkbox" [(ngModel)]="allSelected" (change)="toggleSelectAll()" />
+              </div>
+            </th>
+            <th>ID & Numéro</th>
+            <th>Client & Itinéraire</th>
+            <th>Article & Détails</th>
+            <th>Commentaires</th>
+            <th>Statut</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ordre of ordrenconf" [ngClass]="{'row-selected': ordre.selected}">
+            <td class="col-checkbox">
+              <div class="custom-checkbox">
+                <input type="checkbox" [(ngModel)]="ordre.selected" (change)="updateSelectionCount()" />
+              </div>
+            </td>
+            <td>
+              <div class="id-cell">
+                <span class="main-id">#{{ ordre.id }}</span>
+                <span class="sub-number">{{ ordre.orderNumber }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="itinerary-mini">
+                <span class="client-label"><i class="fa fa-user-circle"></i> {{ ordre.nomclient || ordre.client }}</span>
+                <div class="route-line">
+                  <span title="Chargement: {{ ordre.chargementVille }}"><i class="fa fa-circle text-success"></i> {{
+                    ordre.chargementVille }}</span>
+                  <i class="fa fa-arrow-right arrow"></i>
+                  <span title="Livraison: {{ ordre.livraisonVille }}"><i class="fa fa-map-marker-alt text-danger"></i>
+                    {{ ordre.livraisonVille }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="details-mini">
+                <span class="article-code">{{ ordre.codeArticle }}</span>
+                <small class="designation">{{ ordre.designation }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="comments-stack" *ngIf="ordre.commentaires?.length">
+                <span *ngFor="let com of ordre.commentaires" class="com-chip">{{ com }}</span>
+              </div>
+              <span class="no-data" *ngIf="!ordre.commentaires?.length">---</span>
+            </td>
+            <td>
+              <span class="status-pill warning">{{ ordre.statut }}</span>
+            </td>
+            <td>
+              <div class="action-flex">
+                <button class="btn-icon confirm" (click)="confirmer(ordre.id)" title="Confirmer">
+                  <i class="fa fa-check"></i>
+                </button>
+                <button class="btn-icon edit" (click)="consulter(ordre)" title="Modifier">
+                  <i class="fa fa-edit"></i>
+                </button>
+                <button class="btn-icon duplicate" (click)="dupliquerOrdre(ordre)" title="Dupliquer">
+                  <i class="fa fa-copy"></i>
+                </button>
+                <button class="btn-icon delete" (click)="supprimer(ordre.id)" title="Supprimer">
+                  <i class="fa fa-trash-alt"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Premium Edit Modal (Sectioned) -->
+<div class="modal-overlay" [ngClass]="{'show': isModalOpen}" (click)="closeModal($event)">
+  <div class="premium-modal x-large" (click)="$event.stopPropagation()">
+    <div class="modal-header-gradient warning">
+      <div class="header-content">
+        <i class="fa fa-edit"></i>
+        <h5>Détails de l'Ordre</h5>
+      </div>
+      <button class="btn-close-white" (click)="closeModal()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="premium-form">
+      <div class="modal-body-scrollable">
+        <!-- Section: Général -->
+        <div class="form-section">
+          <h6><i class="fa fa-info-circle"></i> Informations Générales</h6>
+          <div class="form-row">
+            <div class="form-group-modern">
+              <label>N° Ordre</label>
+              <input [(ngModel)]="ordre.orderNumber" name="orderNumber" disabled />
+            </div>
+            <div class="form-group-modern">
+              <label>Client (Code)</label>
+              <input [(ngModel)]="ordre.client" name="client" />
+            </div>
+            <div class="form-group-modern">
+              <label>Nom Client</label>
+              <input [(ngModel)]="ordre.nomclient" name="nomclient" />
+            </div>
+          </div>
+          <div class="form-row mt-3">
+            <div class="form-group-modern">
+              <label>Site Client</label>
+              <input [(ngModel)]="ordre.siteclient" name="siteclient" />
+            </div>
+            <div class="form-group-modern">
+              <label>ID EDI</label>
+              <input [(ngModel)]="ordre.idedi" name="idedi" />
+            </div>
+            <div class="form-group-modern">
+              <label>Statut</label>
+              <select [(ngModel)]="ordre.statut" name="statut">
+                <option value="NON_CONFIRME">NON_CONFIRME</option>
+                <option value="CONFIRME">CONFIRME</option>
+                <option value="EN_COURS">EN_COURS</option>
+                <option value="LIVRE">LIVRE</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Chargement vs Livraison -->
+        <div class="form-columns">
+          <div class="form-column">
+            <div class="form-section highlight-success">
+              <h6><i class="fa fa-arrow-up"></i> Chargement</h6>
+              <div class="form-group-modern">
+                <label>Nom</label>
+                <input [(ngModel)]="ordre.chargementNom" name="chargementNom" />
+              </div>
+              <div class="form-group-modern mt-2">
+                <label>Adresse</label>
+                <input [(ngModel)]="ordre.chargementAdr1" name="chargementAdr1" placeholder="Ligne 1" />
+                <input [(ngModel)]="ordre.chargementAdr2" name="chargementAdr2" class="mt-1" placeholder="Ligne 2" />
+              </div>
+              <div class="form-row mt-2">
+                <div class="form-group-modern">
+                  <label>Ville</label>
+                  <input [(ngModel)]="ordre.chargementVille" name="chargementVille" />
+                </div>
+                <div class="form-group-modern">
+                  <label>Date</label>
+                  <input type="date" [(ngModel)]="ordre.chargementDate" name="chargementDate" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-column">
+            <div class="form-section highlight-danger">
+              <h6><i class="fa fa-arrow-down"></i> Livraison</h6>
+              <div class="form-group-modern">
+                <label>Nom</label>
+                <input [(ngModel)]="ordre.livraisonNom" name="livraisonNom" />
+              </div>
+              <div class="form-group-modern mt-2">
+                <label>Adresse</label>
+                <input [(ngModel)]="ordre.livraisonAdr1" name="livraisonAdr1" placeholder="Ligne 1" />
+                <input [(ngModel)]="ordre.livraisonAdr2" name="livraisonAdr2" class="mt-1" placeholder="Ligne 2" />
+              </div>
+              <div class="form-row mt-2">
+                <div class="form-group-modern">
+                  <label>Ville</label>
+                  <input [(ngModel)]="ordre.livraisonVille" name="livraisonVille" />
+                </div>
+                <div class="form-group-modern">
+                  <label>Date</label>
+                  <input type="date" [(ngModel)]="ordre.livraisonDate" name="livraisonDate" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Détails Article -->
+        <div class="form-section">
+          <h6><i class="fa fa-box"></i> Contenu & Logistique</h6>
+          <div class="form-row">
+            <div class="form-group-modern">
+              <label>Code Article</label>
+              <input [(ngModel)]="ordre.codeArticle" name="codeArticle" />
+            </div>
+            <div class="form-group-modern flex-grow-2">
+              <label>Désignation</label>
+              <input [(ngModel)]="ordre.designation" name="designation" />
+            </div>
+          </div>
+          <div class="form-row mt-3">
+            <div class="form-group-modern">
+              <label>Poids (kg)</label>
+              <input type="number" [(ngModel)]="ordre.poids" name="poids" />
+            </div>
+            <div class="form-group-modern">
+              <label>Volume (m³)</label>
+              <input type="number" [(ngModel)]="ordre.volume" name="volume" />
+            </div>
+            <div class="form-group-modern">
+              <label>Palettes</label>
+              <input type="number" [(ngModel)]="ordre.nombrePalettes" name="nombrePalettes" />
+            </div>
+            <div class="form-group-modern">
+              <label>Colis</label>
+              <input type="number" [(ngModel)]="ordre.nombreColis" name="nombreColis" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-premium">
+        <button type="button" class="btn-cancel" (click)="closeModal()">Fermer</button>
+        <button type="submit" class="btn-save warning">
+          <i class="fa fa-save"></i> Enregistrer les modifications
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Duplication Modal -->
+<div class="modal-overlay" [ngClass]="{'show': isDuplicateModalOpen}" (click)="closeDuplicateModal($event)">
+  <div class="premium-modal micro" (click)="$event.stopPropagation()">
+    <div class="modal-header-gradient highlight-info">
+      <div class="header-content">
+        <i class="fa fa-copy"></i>
+        <h5>Dupliquer l'ordre</h5>
+      </div>
+      <button class="btn-bulk-text" (click)="closeDuplicateModal()">
+        <i class="fa fa-times" style="color: white;"></i>
+      </button>
+    </div>
+    <div class="modal-body-premium">
+      <div class="modal-info-text" *ngIf="ordreToDuplicate">
+        Vous êtes sur le point de copier l'ordre <span class="tag">#{{ordreToDuplicate.orderNumber}}</span>
+      </div>
+      <div class="form-group-modern">
+        <label>NOMBRE DE COPIES À GÉNÉRER</label>
+        <div class="counter-input">
+          <i class="fa fa-layer-group"></i>
+          <input type="number" [(ngModel)]="duplicateCount" name="duplicateCount" min="1" max="50" />
+          <span class="unit">copies</span>
+        </div>
+      </div>
+      <div class="modal-footer-premium">
+        <button type="button" class="btn-cancel" (click)="closeDuplicateModal()">Annuler</button>
+        <button type="button" class="btn-save info" (click)="submitDuplicate()">
+          <i class="fa fa-check-circle"></i> Confirmer la copie
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+

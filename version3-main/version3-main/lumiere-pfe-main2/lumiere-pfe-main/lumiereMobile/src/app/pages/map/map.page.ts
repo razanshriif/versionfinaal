@@ -1,0 +1,380 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonContent, IonHeader, IonIcon, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { NavController, ViewDidEnter } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { arrowBackOutline, notificationsOutline, logOutOutline, busOutline, analyticsOutline, locationOutline, businessOutline } from 'ionicons/icons';
+import { ActivatedRoute } from '@angular/router';
+import { LivraisonService, LivraisonSimple } from '../../services/livraison.service';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import * as L from 'leaflet';
+
+@Component({
+  selector: 'app-map',
+  templateUrl: './map.page.html',
+  styleUrls: ['./map.page.scss'],
+  standalone: true,
+  imports: [IonContent, IonHeader, IonIcon, IonSpinner, CommonModule, FormsModule, HttpClientModule]
+})
+export class MapPage implements OnInit, OnDestroy, ViewDidEnter {
+  selectedLivraison: LivraisonSimple | null = null;
+  map: L.Map | null = null;
+  isLoading = false;
+  isExpanded = false; 
+  totalDistance: string = '0';
+  private timeouts: any[] = [];
+  private truckMarker: L.Marker | null = null;
+  private markerSource: L.Marker | null = null;
+  private markerDest: L.Marker | null = null;
+  private routeLayer: L.Polyline | null = null;
+  private routeGlow: L.Polyline | null = null;
+  private refreshInterval: any = null;
+  private refCoords: any = null;
+  private coordsCache: Map<string, {lat: number, lon: number}> = new Map();
+
+  constructor(
+    public navCtrl: NavController,
+    private route: ActivatedRoute,
+    private livraisonService: LivraisonService,
+    private http: HttpClient,
+    private toastCtrl: ToastController
+  ) {
+    addIcons({ arrowBackOutline, notificationsOutline, logOutOutline, busOutline, analyticsOutline, locationOutline, businessOutline });
+  }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      const id = params['livraisonId'];
+      if (id) {
+        this.loadLivraison(+id);
+        this.startLiveTracking(+id);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.cleanup();
+  }
+
+  private cleanup() {
+    this.timeouts.forEach(t => clearTimeout(t));
+    this.timeouts = [];
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
+    }
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
+    this.truckMarker = null;
+    this.markerSource = null;
+    this.markerDest = null;
+    this.routeLayer = null;
+    this.routeGlow = null;
+  }
+
+  ionViewDidEnter() {
+    // Force immediate size calculation
+    if (this.map) {
+      setTimeout(() => {
+        this.map?.invalidateSize();
+        console.log('🔄 Map size invalidated');
+      }, 100);
+      
+      // Secondary check for slow mobile renders
+      setTimeout(() => this.map?.invalidateSize(), 500);
+      setTimeout(() => this.map?.invalidateSize(), 1500);
+    } else if (this.selectedLivraison) {
+      this.initMap(this.selectedLivraison);
+    }
+  }
+
+  loadLivraison(id: number) {
+    this.isLoading = true;
+    this.livraisonService.getLivraisonById(id).subscribe({
+      next: (livraison: LivraisonSimple) => {
+        this.selectedLivraison = livraison;
+        if (!this.map) {
+          this.initMap(livraison);
+        } else {
+          this.geocodeAndPlot(livraison);
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Erreur chargement livraison:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  startLiveTracking(id: number) {
+    if (this.refreshInterval) clearInterval(this.refreshInterval);
+    this.refreshInterval = setInterval(() => {
+      this.livraisonService.getLivraisonById(id).subscribe(updated => {
+        if (this.selectedLivraison) {
+          this.selectedLivraison.currentLat = updated.currentLat;
+          this.selectedLivraison.currentLon = updated.currentLon;
+          this.selectedLivraison.speed = updated.speed;
+          this.selectedLivraison.statut = updated.statut;
+          this.selectedLivraison.camion = updated.camion;
+          
+          if (this.map && this.refCoords) {
+             // Efficient update without re-calculating geocoding
+             this.plotTruck(this.selectedLivraison, this.refCoords.lat1, this.refCoords.lon1, this.refCoords.lat2, this.refCoords.lon2);
+          }
+        }
+      });
+    }, 15000); // 15s to reduce mobile load
+  }
+
+  initMap(livraison: LivraisonSimple) {
+    if (this.map) {
+      this.map.remove();
+      this.map = null;
+    }
+
+    // Exact view from frontend
+    this.map = L.map('osm-map', {
+      zoomControl: false,
+      attributionControl: false
+    }).setView([33.8869, 9.5375], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(this.map);
+
+    // Initial resize to fix tiling
+    setTimeout(() => {
+      if (this.map) this.map.invalidateSize();
+    }, 100);
+
+    this.geocodeAndPlot(livraison);
+  }
+
+  async geocodeAndPlot(livraison: LivraisonSimple) {
+    const sourceCity = livraison.chargementVille || '';
+    const destCity = livraison.livraisonVille || '';
+    if (!this.map || !sourceCity || !destCity) return;
+
+    const getCoords = async (city: string) => {
+      if (!city) return null;
+      const cacheKey = `${city}, Tunisia`;
+      if (this.coordsCache.has(cacheKey)) return this.coordsCache.get(cacheKey)!;
+      
+      const searchQueries = [
+        `${city}, Tunisia`,
+        city,
+        city.split(' ').pop() + ', Tunisia' // Try just the last word (e.g. Grombalia)
+      ];
+
+      for (const query of searchQueries) {
+        try {
+          const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+          const res = await this.http.get<any[]>(url).toPromise();
+          if (res && res.length > 0) {
+            const coords = { lat: parseFloat(res[0].lat), lon: parseFloat(res[0].lon) };
+            this.coordsCache.set(cacheKey, coords);
+            console.log(`✅ Geocoded [${query}] ->`, coords);
+            return coords;
+          }
+        } catch (e) { console.error(`Geocoding error for [${query}]`, e); }
+      }
+      return null;
+    };
+
+    const c1 = await getCoords(sourceCity) || { lat: 36.8065, lon: 10.1815 };
+    const c2 = await getCoords(destCity) || { lat: 34.7398, lon: 10.7600 };
+
+    console.log('📍 Map Plotting:', { source: sourceCity, c1, dest: destCity, c2 });
+
+    if (!this.map) return;
+
+    // Marker Source (Exact Frontend Style)
+    if (this.markerSource) this.markerSource.remove();
+    this.markerSource = L.marker([c1.lat, c1.lon], {
+        icon: L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div class="map-marker-pro start"><i class="fa fa-warehouse"></i></div>`,
+          iconSize: [34, 34],
+          iconAnchor: [17, 17]
+        })
+    }).addTo(this.map).bindPopup('Départ: ' + sourceCity);
+
+    // Marker Destination (Exact Frontend Style)
+    if (this.markerDest) this.markerDest.remove();
+    this.markerDest = L.marker([c2.lat, c2.lon], {
+        icon: L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div class="map-marker-pro end"><i class="fa fa-flag-checkered"></i></div>`,
+          iconSize: [34, 34],
+          iconAnchor: [17, 17]
+        })
+    }).addTo(this.map).bindPopup('Destination: ' + destCity);
+
+    this.refCoords = { lat1: c1.lat, lon1: c1.lon, lat2: c2.lat, lon2: c2.lon };
+    
+    // Polyline (Royal Blue with Glow)
+    if (this.routeLayer) this.routeLayer.remove();
+    if (this.routeGlow) this.routeGlow.remove();
+
+    this.routeGlow = L.polyline([[c1.lat, c1.lon], [c2.lat, c2.lon]], {
+      color: '#3b82f6', weight: 8, opacity: 0.2
+    }).addTo(this.map);
+
+    this.routeLayer = L.polyline([[c1.lat, c1.lon], [c2.lat, c2.lon]], {
+      color: '#2563eb', weight: 4, opacity: 0.9, dashArray: '10, 10'
+    }).addTo(this.map);
+
+    // Calculate Distance
+    const p1 = L.latLng(c1.lat, c1.lon);
+    const p2 = L.latLng(c2.lat, c2.lon);
+    this.totalDistance = (p1.distanceTo(p2) / 1000).toFixed(1);
+
+    this.map.fitBounds(this.routeLayer.getBounds(), { padding: [50, 50], animate: false });
+    this.plotTruck(livraison, c1.lat, c1.lon, c2.lat, c2.lon);
+  }
+
+  plotTruck(livraison: any, lat1: number, lon1: number, lat2: number, lon2: number) {
+    if (!this.map) return;
+    const statut = livraison.statut;
+    let truckLat = 0, truckLon = 0, gpsActif = false;
+
+    console.log('🚛 Plotting Truck for:', livraison.orderNumber || livraison.id, { currentLat: livraison.currentLat, currentLon: livraison.currentLon, statut });
+
+    if (livraison.currentLat && livraison.currentLon && livraison.currentLat !== 0) {
+        truckLat = livraison.currentLat;
+        truckLon = livraison.currentLon;
+        gpsActif = true;
+    } else {
+        // Mode Dégradé from Frontend
+        let ratio = 0.5;
+        if (['NON_PLANIFIE', 'PLANIFIE'].includes(statut)) ratio = 0.05; // Start
+        else if (['EN_COURS_DE_CHARGEMENT', 'CHARGE'].includes(statut)) ratio = 0.15;
+        else if (['EN_COURS_DE_LIVRAISON', 'EN_LIVRAISON'].includes(statut)) ratio = 0.6;
+        else if (['LIVRE', 'Fin', 'FIN'].includes(statut)) ratio = 1.0;
+        
+        truckLat = lat1 + (lat2 - lat1) * ratio;
+        truckLon = lon1 + (lon2 - lon1) * ratio;
+    }
+
+    // Sanity check
+    if (!truckLat || !truckLon || isNaN(truckLat) || isNaN(truckLon)) {
+      console.warn('❌ Invalid truck coordinates, using center of route');
+      truckLat = (lat1 + lat2) / 2;
+      truckLon = (lon1 + lon2) / 2;
+    }
+
+    const color = gpsActif ? '#10b981' : '#f5921e';
+    const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Live ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
+    const speed = livraison.speed || 0;
+    const truckInfo = (livraison.matricule || livraison.camion) ? `<br><b>Camion:</b> ${livraison.matricule || livraison.camion}` : '';
+
+    const popupContent = `
+        <div style="font-family: Arial, sans-serif; min-width: 150px;">
+            <b style="color:#2563eb; font-size:14px;">Ordre: ${livraison.orderNumber || livraison.id}</b>
+            ${truckInfo}
+            <br><b>Chauffeur:</b> ${livraison.chauffeur || 'Non assigné'}
+            <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
+            <hr style="margin: 5px 0;">
+            ${gpsLabel}
+        </div>
+    `;
+
+    if (this.truckMarker) {
+        this.truckMarker.setLatLng([truckLat, truckLon]);
+        this.truckMarker.setPopupContent(popupContent);
+    } else {
+        this.truckMarker = L.marker([truckLat, truckLon], {
+            icon: L.divIcon({
+               className: 'custom-div-icon',
+               html: `
+                <div class="truck-marker">
+                  <div class="truck-body-3d">
+                    <img src="assets/icon/truck-3d.avif" style="width: 50px; height: auto; transform: rotateX(25deg) rotateY(-10deg);">
+                  </div>
+                </div>`,
+               iconSize: [60, 60],
+               iconAnchor: [30, 30]
+            })
+        }).bindPopup(popupContent).addTo(this.map!);
+    }
+    
+    // Auto-center on truck for better UX with safety check
+    if (this.map) {
+      try {
+        // Small timeout ensures Leaflet internal state is stable
+        setTimeout(() => {
+          if (this.map) {
+            this.map.setView([truckLat, truckLon], 11, { animate: true });
+            console.log('🎯 Map centered on truck at:', truckLat, truckLon);
+          }
+        }, 100);
+      } catch (e) {
+        console.warn('⚠️ Map center failed but continuing:', e);
+      }
+    }
+  }
+
+  getStatusKey(statut: string): string {
+    const mapStatuses: Record<string, string> = {
+      NON_CONFIRME: 'pending',
+      NON_PLANIFIE: 'pending',
+      EN_ATTENTE: 'pending',
+      PLANIFIE: 'ready',
+      CHARGE: 'ready',
+      EN_COURS_DE_LIVRAISON: 'transit',
+      EN_LIVRAISON: 'transit',
+      LIVRE: 'done',
+      FIN: 'done'
+    };
+    return mapStatuses[statut] || 'pending';
+  }
+
+  getStatusLabel(statut: string): string {
+    const labels: any = {
+      'NON_PLANIFIE': 'En attente',
+      'PLANIFIE': 'Planifié',
+      'EN_COURS_DE_LIVRAISON': 'En livraison',
+      'LIVRE': 'Livré',
+      'FIN': 'Terminé'
+    };
+    return labels[statut] || statut;
+  }
+
+  goToNotifications() {
+    this.navCtrl.navigateForward('/notifications');
+  }
+
+  toggleExpand() {
+    this.isExpanded = !this.isExpanded;
+    setTimeout(() => {
+      if (this.map) this.map.invalidateSize();
+    }, 300);
+  }
+
+  async replotRoute() {
+    if (this.selectedLivraison && this.map) {
+      console.log('🔄 Replotting route (exact frontend style)...');
+      this.geocodeAndPlot(this.selectedLivraison);
+      
+      const toast = await this.toastCtrl.create({
+        message: 'Mise à jour du tracé...',
+        duration: 1500,
+        position: 'top',
+        color: 'primary',
+        cssClass: 'custom-toast'
+      });
+      toast.present();
+    }
+  }
+
+  logout() {
+    this.navCtrl.navigateRoot('/login');
+  }
+}
+
+

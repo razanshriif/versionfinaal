@@ -1,0 +1,83 @@
+<div class="chatbot-container">
+    <!-- Bouton flottant du chatbot -->
+    <div class="chatbot-button" (click)="toggleChat()" [class.active]="isChatOpen">
+        <i class="fas" [ngClass]="isChatOpen ? 'fa-times' : 'fa-comments'"></i>
+        <span class="notification-badge" *ngIf="!isChatOpen && hasNewMessages">{{unreadCount}}</span>
+    </div>
+
+    <!-- Fenêtre de chat -->
+    <div class="chat-window" [class.open]="isChatOpen">
+        <!-- Background Premium -->
+        <div class="glass-background">
+            <div class="bubble"></div>
+            <div class="bubble"></div>
+        </div>
+
+        <!-- En-tête du chat -->
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="bot-avatar">
+                    <img src="assets/fig.png" alt="Otflow" />
+                </div>
+                <div class="header-info">
+                    <h3>Assistant OTFLOW</h3>
+                    <p class="status">
+                        <span class="status-dot"></span>
+                        En ligne
+                    </p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="action-btn" (click)="clearChat()" title="Effacer la discussion">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="close-btn" (click)="toggleChat()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Zone de messages -->
+        <div class="chat-messages" #messagesContainer>
+            <div class="message-wrapper" *ngFor="let message of messages" [class.user-message]="message.isUser"
+                [class.bot-message]="!message.isUser">
+                <div class="message">
+                    <div class="message-content">
+                        <div class="message-text" [innerHTML]="formatMessage(message.text)"></div>
+                        <span class="message-time">{{message.time}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicateur de frappe -->
+            <div class="typing-indicator" *ngIf="isTyping">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggestions rapides -->
+        <div class="quick-replies" *ngIf="showQuickReplies && messages.length <= 1">
+            <button class="quick-reply-btn" *ngFor="let reply of quickReplies" (click)="sendQuickReply(reply)">
+                {{reply}}
+            </button>
+        </div>
+
+        <!-- Zone de saisie -->
+        <div class="chat-input-wrapper">
+            <div class="chat-input">
+                <input type="text" [(ngModel)]="userInput" (keyup.enter)="sendMessage()"
+                    placeholder="Écrivez votre message..." [disabled]="isTyping">
+                <button class="send-btn" (click)="sendMessage()" [disabled]="!userInput.trim() || isTyping">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

@@ -1,0 +1,88 @@
+﻿<!-- Layout: Header + Sidebar + Content -->
+<app-header (menuClicked)="isSidebarOpen = !isSidebarOpen"></app-header>
+
+<div class="page-container">
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <nav *ngIf="isSidebarOpen" class="sidenav">
+      <!-- Section Label -->
+      <div class="sidenav__section-label">NAVIGATION</div>
+
+      <!-- Navigation -->
+      <ul class="nav flex-column sidenav__nav">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/site/dashboard" routerLinkActive="active">
+            <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+            <span class="nav-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/site/articles" routerLinkActive="active">
+            <span class="nav-icon"><i class="fas fa-box"></i></span>
+            <span class="nav-text">Articles</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/site/clients" routerLinkActive="active">
+            <span class="nav-icon"><i class="fas fa-users"></i></span>
+            <span class="nav-text">Clients</span>
+          </a>
+        </li>
+        <li class="nav-item has-submenu" [ngClass]="{ 'submenu-open': subMenuVisible }">
+          <a class="nav-link" (click)="toggleSubMenu()" role="button">
+            <span class="nav-icon"><i class="fas fa-truck"></i></span>
+            <span class="nav-text">Ordres</span>
+            <i class="fas fa-chevron-down submenu-arrow" [class.rotated]="subMenuVisible"></i>
+          </a>
+          <ul *ngIf="subMenuVisible" class="submenu">
+            <li>
+              <a class="nav-link" routerLink="/site/ordres" routerLinkActive="active">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Liste des Ordres</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-link" routerLink="/site/ajouter" routerLinkActive="active">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Ordres Non Planifiés</span>
+              </a>
+            </li>
+            <li>
+              <a class="nav-link" routerLink="/site/nonplannifies" routerLinkActive="active">
+                <span class="sub-dot"></span>
+                <span class="nav-text">Ajouter un Ordre</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/site/utilisateurs" routerLinkActive="active">
+            <span class="nav-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="nav-text">Utilisateurs</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Logout -->
+      <div class="sidenav__footer">
+        <div class="sidenav__divider"></div>
+        <a class="nav-link logout-link" routerLink="/login">
+          <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+          <span class="nav-text">Déconnexion</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content-container flex-fill" [class.sidebar-open]="isSidebarOpen">
+      <div class="router-outlet-container">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Chatbot Component -->
+<app-chatbot></app-chatbot>
+
+

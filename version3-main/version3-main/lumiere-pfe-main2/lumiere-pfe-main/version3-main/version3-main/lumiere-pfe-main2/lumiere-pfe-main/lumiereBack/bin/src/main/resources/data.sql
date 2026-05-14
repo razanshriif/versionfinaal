@@ -1,0 +1,37 @@
+-- Delete previously inserted articles to ensure we only keep the desired list
+DELETE FROM `article`;
+
+-- Insert new list of articles
+INSERT INTO `article` (`id`, `code_article`, `label`, `achat`, `prix_unitaire`, `quantite_minimum`, `type`, `type_de_marchandise`, `type_de_remorque`, `unite`, `vente`) VALUES
+(1,  'T001', 'TRANSPORT TRANSIT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(2,  'T002', 'TRANSPORT FRAIS GRP // 4°C', 0, 0, 1, 'Logistique', 1, 'Frigo', 'Palette', 0),
+(3,  'T003', 'TRANSPORT CONTRÔLÉ // 12°C', 0, 0, 1, 'Logistique', 1, 'Frigo', 'Palette', 0),
+(4,  'T004', 'TRANSPORT AMBIANT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(5,  'T005', 'TRANSPORT CATALOGUE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(6,  'T006', 'TRANSPORT SUR ACHAT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(7,  'T007', 'TRANSPORT DU FRAIS // 4°C', 0, 0, 1, 'Logistique', 1, 'Frigo', 'Palette', 0),
+(8,  'T008', 'TRANSPORT SURGELE // -22°C', 0, 0, 1, 'Logistique', 1, 'Frigo', 'Palette', 0),
+(9,  'T009', 'STATIONNEMENT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Unité', 0),
+(10, 'T010', 'TRNSPORT OCT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(11, 'T011', 'TRANSPORT FRUIT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(12, 'T012', 'TRANSPORT LILAS', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(13, 'T013', 'TRANSPORT RETOUR', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(14, 'T014', 'TRANSPORT TECHNIQUE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(15, 'T015', 'TRANSFERT INTER DEPOT FACTURE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(16, 'T016', 'TRANSFER INTER MAGASIN', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(17, 'T017', 'TRANSPORT SPOT', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(18, 'T019', 'TRANSPORT RETOUR EMBALLAGE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(19, 'T020', 'TRANSPORT TOURNE SPECIAL', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(20, 'T022', 'LAVAGE-GRAISSAGE-VIDANGE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Unité', 0),
+(21, 'T023', 'TRANSPORT-TRACTAGE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(22, 'T024', 'REPARATION-MECA-ELECT-PNEUM', 0, 0, 1, 'Logistique', 1, 'Standard', 'Unité', 0),
+(23, 'T025', 'DISPATCHING', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(24, 'T026', 'TRANSFERT EMBALLAGE INTER-SITE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(25, 'T027', 'TRANSPORT PERSONNEL', 0, 0, 1, 'Logistique', 1, 'Standard', 'Unité', 0),
+(26, 'T028', 'TRANFERT INTER DEPOT NON FACTU', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(27, 'T029', 'TRANSPORT SAV', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(28, 'T030', 'VISITE TECHNIQUE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Unité', 0),
+(29, 'T031', 'REPARATION-FRIGORIFIQUE', 0, 0, 1, 'Logistique', 1, 'Frigo', 'Unité', 0),
+(30, 'T032', 'TRANSPORT MISSION PARC', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(31, 'T033', 'TRANSPORT INTER DEPOT ANNEXE', 0, 0, 1, 'Logistique', 1, 'Standard', 'Palette', 0),
+(32, 'T034', 'Missions de déchargement.', 0, 0, 1, 'Logistique', 1, 'Standard', 'Unité', 0);
