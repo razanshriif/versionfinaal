@@ -1,7 +1,0 @@
-{
-  "name": "lumiere-new",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular-standalone"
-}
