@@ -4,13 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import {
-  IonHeader, IonIcon,
-  IonContent, IonRefresher, IonRefresherContent,
-  IonInfiniteScroll, IonInfiniteScrollContent,
-  IonInput, IonList, IonItemSliding, IonItem, IonItemOptions, IonItemOption
-} from '@ionic/angular/standalone';
-import { IonicModule, NavController } from '@ionic/angular';
+
+import { IonicModule, NavController, IonSelect, IonSelectOption, IonButton } from '@ionic/angular';
 import { DemandeService, DemandeFilter } from '../../../services/demande.service';
 import { Demande } from '../../../models/demande.model';
 import { AlertController, ToastController } from '@ionic/angular';
@@ -46,6 +41,8 @@ import {
   funnelOutline
 } from 'ionicons/icons';
 
+import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-list',
   templateUrl: './list.page.html',
@@ -54,11 +51,9 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    IonHeader, IonIcon,
-    IonContent, IonRefresher, IonRefresherContent,
-    IonInfiniteScroll, IonInfiniteScrollContent,
-    IonInput, IonList, IonItemSliding, IonItem, IonItemOptions, IonItemOption
-  ]
+    IonicModule,
+    LumLogoBarComponent
+  ],
 })
 export class ListPage implements OnInit {
   demandes: Demande[] = [];
@@ -449,8 +444,9 @@ export class ListPage implements OnInit {
     this.navCtrl.navigateRoot('/login');
   }
 
+  showFilters = false;
   toggleFilter() {
-    // Placeholder: expand filter panel or show filter popover
+    this.showFilters = !this.showFilters;
   }
 
   private async showToast(message: string, color: string) {

@@ -1,21 +1,6 @@
 <!-- ══ HEADER — Level 1: Orange logo bar ══ -->
 <ion-header class="ion-no-border">
-  <div class="lum-logo-bar">
-    <div class="lum-logo-wrap">
-      <img src="assets/otflow-horizontal.png" alt="Otflow" />
-    </div>
-    <div class="lum-logo-actions">
-      <button class="lum-icon-btn" (click)="goToNotifications()">
-        <ion-icon name="notifications-outline"></ion-icon>
-        <span class="lum-badge" *ngIf="unreadNotifsCount > 0">{{ unreadNotifsCount }}</span>
-      </button>
-      <button class="lum-icon-btn" (click)="logout()">
-        <ion-icon name="log-out-outline"></ion-icon>
-      </button>
-    </div>
-  </div>
-
-
+  <app-lum-logo-bar></app-lum-logo-bar>
 </ion-header>
 
 <!-- ══ CONTENT ══ -->
@@ -43,6 +28,31 @@
   </div>
 
   <div class="home-body">
+
+    <!-- ══ ACTIVITY CHIPS ══ -->
+    <div class="activity-chips fade-up">
+      <div class="chip chip-orange">
+        <span class="chip-dot"></span>
+        <span class="chip-num">{{ (stats.mesDemandesEnCours || 0) + (stats.mesDemandesEnAttente || 0) }}</span>
+        <span class="chip-lbl">En cours</span>
+      </div>
+      <div class="chip chip-sky">
+        <span class="chip-dot"></span>
+        <span class="chip-num">{{ stats.mesLivraisonsEnCours || 0 }}</span>
+        <span class="chip-lbl">En transit</span>
+      </div>
+      <div class="chip chip-green">
+        <span class="chip-dot"></span>
+        <span class="chip-num">{{ stats.mesDemandesTerminees || 0 }}</span>
+        <span class="chip-lbl">Terminées</span>
+      </div>
+      <div class="chip chip-violet">
+        <span class="chip-dot"></span>
+        <span class="chip-num">{{ clientCount || 0 }}</span>
+        <span class="chip-lbl">Clients</span>
+      </div>
+    </div>
+
     <!-- Actions Rapides -->
     <section>
       <div class="sec-label fade-up">Actions Rapides</div>
@@ -116,7 +126,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="chatbot-middle">
           <div class="chatbot-title">Assistant Otflow</div>
           <div class="chatbot-status">
@@ -136,6 +146,3 @@
     <div class="spacer"></div>
   </div>
 </ion-content>
-
-
-

@@ -40,7 +40,8 @@ import {
   refreshOutline,
   alarmOutline,
   chatbubbleOutline,
-  personAddOutline, timeOutline, appsOutline
+  personAddOutline, timeOutline, appsOutline,
+  checkmarkCircleOutline
 } from 'ionicons/icons';
 import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
@@ -51,6 +52,8 @@ import { NotificationService } from '../../services/notification.service';
 import { addIcons } from 'ionicons';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
+
+import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
 
 @Component({
   selector: 'app-home',
@@ -63,7 +66,8 @@ import { Observable } from 'rxjs';
     IonIcon,
     IonContent,
     IonRefresher,
-    IonRefresherContent
+    IonRefresherContent,
+    LumLogoBarComponent
   ]
 })
 export class HomePage implements OnInit {
@@ -93,6 +97,7 @@ export class HomePage implements OnInit {
   darkMode$: Observable<boolean>;
   pendingRappelsCount = 0;
   clientCount = 0;
+  lastApiUnreadCount = 0;
   unreadNotifsCount = 0;
 
   // Dashboard sections
@@ -184,7 +189,8 @@ export class HomePage implements OnInit {
       refreshOutline, 
       alarmOutline, 
       chatbubbleOutline,
-      appsOutline
+      appsOutline,
+      checkmarkCircleOutline
     });
   }
 
@@ -205,7 +211,8 @@ export class HomePage implements OnInit {
 
     // Subscribe to notification count
     this.notificationService.unreadCount$.subscribe(count => {
-      this.unreadNotifsCount = count;
+      this.lastApiUnreadCount = count;
+      this.updateTotalUnreadCount();
     });
   }
 
@@ -223,6 +230,11 @@ export class HomePage implements OnInit {
     } else {
       this.pendingRappelsCount = 0;
     }
+    this.updateTotalUnreadCount();
+  }
+
+  updateTotalUnreadCount() {
+    this.unreadNotifsCount = this.lastApiUnreadCount + this.pendingRappelsCount;
   }
 
   toggleTheme() {

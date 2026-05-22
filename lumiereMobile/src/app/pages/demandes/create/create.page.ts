@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -34,6 +34,8 @@ import { Client } from '../../../models/client.model';
 import { Article } from '../../../models/article.model';
 import { Ordre } from '../../../models/ordre.model';
 
+import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-create',
   templateUrl: './create.page.html',
@@ -42,7 +44,7 @@ import { Ordre } from '../../../models/ordre.model';
   imports: [
     CommonModule, FormsModule, IonIcon, IonContent, IonHeader, IonModal,
     IonButton, IonSearchbar, IonInput, IonTextarea, IonRadioGroup, IonRadio,
-    IonDatetimeButton, IonDatetime
+    IonDatetimeButton, IonDatetime, LumLogoBarComponent
   ]
 })
 export class CreatePage implements OnInit {

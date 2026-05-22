@@ -125,6 +125,78 @@
   }
 }
 
+// ── Activity Chips ──
+.activity-chips {
+  display: flex;
+  gap: 8px;
+  padding: 16px 0 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar { display: none; }
+  scrollbar-width: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  .chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chip-num {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+
+  .chip-lbl {
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.chip-orange {
+  background: #fff7f0;
+  border-color: #fed7aa;
+  .chip-dot { background: #f97316; }
+  .chip-num { color: #f97316; }
+  .chip-lbl { color: #9a3412; opacity: 0.75; }
+}
+
+.chip-sky {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  .chip-dot { background: #0ea5e9; }
+  .chip-num { color: #0ea5e9; }
+  .chip-lbl { color: #0c4a6e; opacity: 0.75; }
+}
+
+.chip-green {
+  background: #f0fdf4;
+  border-color: #a7f3d0;
+  .chip-dot { background: #10b981; }
+  .chip-num { color: #10b981; }
+  .chip-lbl { color: #14532d; opacity: 0.75; }
+}
+
+.chip-violet {
+  background: #faf5ff;
+  border-color: #ddd6fe;
+  .chip-dot { background: #8b5cf6; }
+  .chip-num { color: #8b5cf6; }
+  .chip-lbl { color: #4c1d95; opacity: 0.75; }
+}
+
 // ── Section Styles ──
 section {
   margin-top: 24px;

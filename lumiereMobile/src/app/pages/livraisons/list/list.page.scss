@@ -1,4 +1,4 @@
-﻿:host {
+:host {
     display: block;
     height: 100%;
 }
@@ -171,43 +171,104 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
     border: 1px solid var(--border-card);
-    transition: all 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 
     &:active {
-        transform: scale(0.98);
+        transform: scale(0.97);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+
+    &.premium-card {
+        padding: 18px 16px;
+        border-left: 4px solid var(--orange);
+    }
+
+    /* 3D Styled Location Pin Badge */
+    .premium-truck-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--orange) 0%, #ff8c42 100%);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 4px 10px rgba(240, 112, 32, 0.2);
+        flex-shrink: 0;
+        animation: subtlePulse 3s infinite ease-in-out;
+
+        .badge-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.1));
+        }
+
+        .truck-glow-ring {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 14px;
+            border: 2px solid rgba(240, 112, 32, 0.15);
+            opacity: 0.8;
+            animation: ringExpand 2s infinite ease-out;
+        }
     }
 
     .card-main {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
 
         .card-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
 
-            .id-pill {
-                background: #18170F;
-                color: #fff;
-                font-family: 'DM Mono', monospace;
-                font-size: 11px;
-                font-weight: 800;
-                padding: 4px 10px;
-                border-radius: 8px;
+            .client-info-group {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+
+                .id-pill {
+                    background: #18170F;
+                    color: #fff;
+                    font-family: 'DM Mono', monospace;
+                    font-size: 10px;
+                    font-weight: 800;
+                    padding: 3px 8px;
+                    border-radius: 6px;
+                    letter-spacing: 0.5px;
+                }
+
+                .client-name {
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: var(--text-main);
+                    max-width: 120px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
             }
 
             .status-pill {
-                padding: 4px 12px;
+                padding: 4px 10px;
                 border-radius: 100px;
-                font-size: 10px;
+                font-size: 9px;
                 font-weight: 800;
                 text-transform: uppercase;
                 background: #eee;
                 color: #999;
+                white-space: nowrap;
 
                 &.pending { background: #fff7ed; color: #f97316; }
                 &.ready { background: #eff6ff; color: #2563eb; }
@@ -218,28 +279,162 @@
             }
         }
 
-        .route-info {
+        /* Animated Route Timeline */
+        .route-timeline {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: var(--text-main);
+            gap: 12px;
+            width: 100%;
+            margin: 2px 0;
 
-            .town {
-                font-size: 15px;
+            .town-start, .town-end {
+                font-size: 14px;
                 font-weight: 800;
+                color: var(--text-main);
+                white-space: nowrap;
             }
 
-            .arrow {
-                color: var(--orange);
-                font-weight: 400;
-                font-size: 16px;
+            .trajet-line-container {
+                position: relative;
+                flex: 1;
+                display: flex;
+                align-items: center;
+                height: 24px;
+                min-width: 60px;
+
+                .trajet-line {
+                    width: 100%;
+                    height: 2px;
+                    background: repeating-linear-gradient(90deg, #cbd5e1, #cbd5e1 5px, transparent 5px, transparent 9px);
+                    opacity: 0.8;
+                }
+
+                .trajet-truck {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: #fff;
+                    border: 1.5px solid var(--orange);
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 8px rgba(240, 112, 32, 0.2);
+                    z-index: 2;
+
+                    .truck-mini-svg {
+                        width: 13px;
+                        height: 13px;
+                        color: var(--orange);
+                    }
+                }
+
+                .animate-moving {
+                    animation: driveAlong 12s infinite linear;
+                }
+            }
+        }
+
+        /* Logistical Information Grid */
+        .logistics-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            margin-top: 4px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.05);
+
+            .grid-item {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text-sub);
+
+                ion-icon {
+                    font-size: 13px;
+                    color: var(--orange);
+                    
+                    &.palettes-icon {
+                        color: #6366f1; /* custom color for palettes */
+                    }
+                }
+
+                .truck-plate {
+                    background: #f1f5f9;
+                    padding: 1px 6px;
+                    border-radius: 4px;
+                    font-family: 'DM Mono', monospace;
+                    font-size: 10px;
+                    color: #334155;
+                }
             }
         }
     }
 
-    .chevron-icon {
-        font-size: 18px;
-        color: #ccc;
+    .chevron-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-left: 4px;
+
+        .chevron-icon {
+            font-size: 20px;
+            color: #cbd5e1;
+            transition: transform 0.2s;
+        }
+    }
+
+    &:hover .chevron-icon {
+        transform: translateX(2px);
+        color: var(--orange);
+    }
+}
+
+/* Animations for premium look */
+@keyframes ringExpand {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1.15);
+        opacity: 0;
+    }
+}
+
+@keyframes subtlePulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+@keyframes driveAlong {
+    0% {
+        left: 5%;
+        transform: translateY(-50%) scaleX(1);
+    }
+    48% {
+        left: 85%;
+        transform: translateY(-50%) scaleX(1);
+    }
+    50% {
+        left: 85%;
+        transform: translateY(-50%) scaleX(-1);
+    }
+    98% {
+        left: 5%;
+        transform: translateY(-50%) scaleX(-1);
+    }
+    100% {
+        left: 5%;
+        transform: translateY(-50%) scaleX(1);
     }
 }
 

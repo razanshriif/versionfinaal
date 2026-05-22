@@ -21,6 +21,8 @@ interface Message {
   timestamp: Date;
 }
 
+import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-chatbot',
   templateUrl: './chatbot.page.html',
@@ -35,7 +37,8 @@ interface Message {
     IonFooter,
     IonTextarea,
     CommonModule,
-    FormsModule
+    FormsModule,
+    LumLogoBarComponent
   ]
 })
 export class ChatbotPage implements OnInit {

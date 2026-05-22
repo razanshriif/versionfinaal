@@ -1,18 +1,5 @@
-﻿<ion-header class="ion-no-border">
-  <div class="lum-logo-bar">
-    <div class="lum-logo-wrap">
-      <img src="assets/otflow-horizontal.png" alt="Otflow" />
-    </div>
-    <div class="lum-logo-actions">
-      <button class="lum-icon-btn" (click)="goToNotifications()">
-        <ion-icon name="notifications-outline"></ion-icon>
-        <span class="lum-pip" *ngIf="stats.notifications > 0"></span>
-      </button>
-      <button class="lum-icon-btn" (click)="logout()">
-        <ion-icon name="log-out-outline"></ion-icon>
-      </button>
-    </div>
-  </div>
+<ion-header class="ion-no-border">
+  <app-lum-logo-bar></app-lum-logo-bar>
 
   <div class="lum-sub-bar">
     <button class="lum-back-btn" (click)="navCtrl.back()">
@@ -88,20 +75,61 @@
   <!-- Reusable List Template -->
   <ng-template #listView let-items="items">
     <div class="delivery-list" *ngIf="!isLoading">
-      <div class="delivery-card fade-up" *ngFor="let liv of items" (click)="viewDetails(liv)">
+      <div class="delivery-card premium-card fade-up" *ngFor="let liv of items" (click)="viewDetails(liv)">
+        
+        <!-- Sleek Location Pin Badge -->
+        <div class="premium-truck-badge location-badge">
+          <div class="truck-glow-ring"></div>
+          <ion-icon name="location-outline" class="badge-icon"></ion-icon>
+        </div>
+
         <div class="card-main">
           <div class="card-top">
-            <span class="id-pill">{{ '#' + liv.id }}</span>
+            <div class="client-info-group">
+              <span class="id-pill">{{ '#' + liv.id }}</span>
+              <span class="client-name">{{ liv.nomclient || 'Client Anonyme' }}</span>
+            </div>
             <span class="status-pill" [class]="getStatusKey(liv.statut)">{{ getStatusLabel(liv.statut) }}</span>
           </div>
 
-          <div class="route-info">
-            <span class="town">{{ liv.chargementVille || '---' }}</span>
-            <span class="arrow">→</span>
-            <span class="town">{{ liv.livraisonVille || '---' }}</span>
+          <!-- Animated Trajet Timeline -->
+          <div class="route-timeline">
+            <span class="town-start">{{ liv.chargementVille || '---' }}</span>
+            <div class="trajet-line-container">
+              <div class="trajet-line"></div>
+              <div class="trajet-truck animate-moving">
+                <svg viewBox="0 0 24 24" class="truck-mini-svg">
+                  <path fill="currentColor" d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm12 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6.5H17V9h2.5l2 3H19.5z"/>
+                </svg>
+              </div>
+            </div>
+            <span class="town-end">{{ liv.livraisonVille || '---' }}</span>
+          </div>
+
+          <!-- Logistics Info Grid -->
+          <div class="logistics-grid">
+            <div class="grid-item" *ngIf="liv.poids">
+              <ion-icon name="cube-outline"></ion-icon>
+              <span>{{ liv.poids }} T</span>
+            </div>
+            <div class="grid-item" *ngIf="liv.nombrePalettes">
+              <ion-icon name="cube-outline" class="palettes-icon"></ion-icon>
+              <span>{{ liv.nombrePalettes }} Pal.</span>
+            </div>
+            <div class="grid-item" *ngIf="liv.camion">
+              <ion-icon name="car-outline"></ion-icon>
+              <span class="truck-plate">{{ liv.camion }}</span>
+            </div>
+            <div class="grid-item" *ngIf="liv.chauffeur">
+              <ion-icon name="person-outline"></ion-icon>
+              <span>{{ liv.chauffeur }}</span>
+            </div>
           </div>
         </div>
-        <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+
+        <div class="chevron-wrapper">
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
       </div>
 
       <!-- Empty State -->

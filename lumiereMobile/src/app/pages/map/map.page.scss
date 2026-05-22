@@ -255,40 +255,83 @@
         margin: -10px auto 20px;
     }
 
-    .info-header {
+    .truck-hero-row {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 0;
+        gap: 12px;
+        margin-bottom: 12px;
 
-        .truck-pill {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(245, 146, 30, 0.1);
-            padding: 8px 16px;
-            border-radius: 100px;
-            color: #f5921e;
-            font-weight: 800;
-            font-size: 14px;
-
-            ion-icon { font-size: 18px; }
+        .truck-hero-img {
+            width: 90px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 10px;
+            flex-shrink: 0;
         }
 
-        .status-badge {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            padding: 6px 14px;
-            border-radius: 100px;
-            letter-spacing: 0.5px;
+        .truck-hero-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
 
-            &.transit { background: #e0f2fe; color: #0369a1; }
-            &.ready { background: #fef3c7; color: #92400e; }
-            &.done { background: #dcfce7; color: #166534; }
-            &.pending { background: #f1f5f9; color: #475569; }
+            .truck-pill {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(245, 146, 30, 0.1);
+                padding: 6px 12px;
+                border-radius: 100px;
+                color: #f5921e;
+                font-weight: 800;
+                font-size: 13px;
+                ion-icon { font-size: 16px; }
+            }
+
+            .status-badge {
+                font-size: 10px;
+                font-weight: 800;
+                text-transform: uppercase;
+                padding: 5px 12px;
+                border-radius: 100px;
+                letter-spacing: 0.5px;
+                align-self: flex-start;
+                &.transit { background: #e0f2fe; color: #0369a1; }
+                &.ready { background: #fef3c7; color: #92400e; }
+                &.done { background: #dcfce7; color: #166534; }
+                &.pending { background: #f1f5f9; color: #475569; }
+            }
         }
     }
+
+    .route-stats-strip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+
+        .stat-chip {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            ion-icon { font-size: 14px; color: #94a3b8; }
+            &.orange { color: #f5921e; ion-icon { color: #f5921e; } }
+        }
+
+        .stat-divider {
+            color: #cbd5e1;
+            font-weight: 700;
+            font-size: 12px;
+        }
+    }
+
 
     .location-details {
         margin-top: 24px;
@@ -312,17 +355,20 @@
             gap: 16px;
             padding: 10px 0;
 
-            .dot {
-                width: 12px;
-                height: 12px;
+            .loc-icon {
+                width: 24px;
+                height: 24px;
                 border-radius: 50%;
-                margin-top: 4px;
-                border: 2px solid #fff;
-                box-shadow: 0 0 0 2px currentColor;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 flex-shrink: 0;
+                font-size: 14px;
+                margin-top: 2px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 
-                &.start { color: #10b981; background: #10b981; }
-                &.end { color: #ef4444; background: #ef4444; }
+                &.start { color: #fff; background: linear-gradient(135deg, #10b981, #059669); }
+                &.end { color: #fff; background: linear-gradient(135deg, #ef4444, #dc2626); }
             }
 
             .loc-text {
@@ -400,6 +446,101 @@
                 color: #475569;
                 ion-icon { color: #94a3b8; font-size: 18px; }
             }
+        }
+    }
+}
+
+/* --- Floating Timeline --- */
+.timeline-wrapper {
+    position: absolute;
+    top: 100px; /* Below header */
+    left: 16px;
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.collapsed {
+        transform: translateX(calc(-100% - 16px));
+    }
+
+    .timeline-toggle {
+        position: absolute;
+        right: -30px;
+        top: 20px;
+        width: 30px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 0 12px 12px 0;
+        border: none;
+        box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 18px;
+    }
+}
+
+.floating-timeline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 12px 10px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0.4;
+        transition: all 0.3s ease;
+        gap: 2px;
+
+        &.active {
+            opacity: 1;
+            .t-icon {
+                background: #f5921e;
+                color: white;
+                box-shadow: 0 4px 10px rgba(245, 146, 30, 0.3);
+            }
+            .t-label { color: #f5921e; font-weight: 800; }
+        }
+
+        .t-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .t-label {
+            font-size: 8px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+    }
+
+    .timeline-line {
+        width: 3px;
+        height: 24px;
+        background: #e2e8f0;
+        margin: 2px 0;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+
+        &.active {
+            background: #f5921e;
         }
     }
 }

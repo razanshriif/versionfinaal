@@ -32,6 +32,8 @@ export interface RappelGroup {
     items: Rappel[];
 }
 
+import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
     selector: 'app-rappel',
     templateUrl: './rappel.page.html',
@@ -42,7 +44,7 @@ export interface RappelGroup {
         IonContent, IonHeader, IonButtons, IonTitle,
         IonIcon, IonFab, IonFabButton, IonModal, IonDatetime, IonButton,
         IonToolbar, IonCheckbox, IonSegment, IonSegmentButton, IonLabel,
-        IonFooter, IonSpinner
+        IonFooter, IonSpinner, LumLogoBarComponent
     ]
 })
 export class RappelPage implements OnInit {

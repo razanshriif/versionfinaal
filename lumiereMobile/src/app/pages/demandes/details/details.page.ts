@@ -11,12 +11,14 @@ import { arrowBackOutline, downloadOutline, printOutline, timeOutline, locationO
 // import jsPDF from 'jspdf';
 // import html2canvas from 'html2canvas';
 
+import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-details',
   templateUrl: './details.page.html',
   styleUrls: ['./details.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, RouterModule]
+  imports: [IonicModule, CommonModule, FormsModule, RouterModule, LumLogoBarComponent]
 })
 export class DetailsPage implements OnInit {
   ordre: Demande | null = null;

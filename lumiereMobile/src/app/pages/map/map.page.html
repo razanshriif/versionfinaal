@@ -23,33 +23,86 @@
   <!-- The Leaflet map container -->
   <div id="osm-map" class="map-container"></div>
 
+  <!-- Floating Vertical Timeline Overlay -->
+  <div class="timeline-wrapper" *ngIf="selectedLivraison" [class.collapsed]="isTimelineCollapsed">
+    <button class="timeline-toggle" (click)="toggleTimeline(); $event.stopPropagation()">
+      <ion-icon [name]="isTimelineCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'"></ion-icon>
+    </button>
+    <div class="floating-timeline">
+      <div class="timeline-step" [class.active]="hasEvent('PLANIFIE')">
+        <div class="t-icon"><ion-icon name="home-outline"></ion-icon></div>
+      </div>
+      <div class="timeline-line" [class.active]="hasEvent('EN_COURS_DE_CHARGEMENT')"></div>
+      <div class="timeline-step" [class.active]="hasEvent('EN_COURS_DE_CHARGEMENT')">
+        <div class="t-icon"><ion-icon name="cube-outline"></ion-icon></div>
+      </div>
+      <div class="timeline-line" [class.active]="hasEvent('CHARGE')"></div>
+      <div class="timeline-step" [class.active]="hasEvent('CHARGE')">
+        <div class="t-icon"><ion-icon name="bus-outline"></ion-icon></div>
+      </div>
+      <div class="timeline-line" [class.active]="hasEvent('EN_COURS_DE_LIVRAISON')"></div>
+      <div class="timeline-step" [class.active]="hasEvent('EN_COURS_DE_LIVRAISON')">
+        <div class="t-icon"><ion-icon name="navigate-outline"></ion-icon></div>
+      </div>
+      <div class="timeline-line" [class.active]="hasEvent('LIVRE')"></div>
+      <div class="timeline-step" [class.active]="hasEvent('LIVRE')">
+        <div class="t-icon"><ion-icon name="checkmark-done-outline"></ion-icon></div>
+      </div>
+      <div class="timeline-line" [class.active]="hasEvent('FIN')"></div>
+      <div class="timeline-step" [class.active]="hasEvent('FIN')">
+        <div class="t-icon"><ion-icon name="flag-outline"></ion-icon></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Panel Info -->
   <div class="map-bottom-info fade-up" *ngIf="selectedLivraison" [class.expanded]="isExpanded" (click)="toggleExpand()">
     <div class="drag-handle"></div>
     <div class="info-content">
-      <div class="info-header">
-        <div class="truck-pill">
-          <ion-icon name="bus-outline"></ion-icon>
-          <span>{{ selectedLivraison.orderNumber || '#' + selectedLivraison.id }}</span>
+
+      <!-- Truck Hero Image + Header -->
+      <div class="truck-hero-row">
+        <img src="assets/camion.png" class="truck-hero-img" alt="Camion Lumière" />
+        <div class="truck-hero-info">
+          <div class="truck-pill">
+            <ion-icon name="bus-outline"></ion-icon>
+            <span>{{ selectedLivraison.orderNumber || '#' + selectedLivraison.id }}</span>
+          </div>
+          <div class="status-badge" [ngClass]="getStatusKey(selectedLivraison.statut)">
+            {{ getStatusLabel(selectedLivraison.statut) }}
+          </div>
         </div>
-        <div class="status-badge" [ngClass]="getStatusKey(selectedLivraison.statut)">
-          {{ getStatusLabel(selectedLivraison.statut) }}
+      </div>
+
+      <!-- Distance + ETA Strip -->
+      <div class="route-stats-strip">
+        <div class="stat-chip">
+          <ion-icon name="navigate-outline"></ion-icon>
+          <span>{{ selectedLivraison.chargementVille || 'Départ' }}</span>
+        </div>
+        <div class="stat-divider">→</div>
+        <div class="stat-chip">
+          <ion-icon name="location-outline"></ion-icon>
+          <span>{{ selectedLivraison.livraisonVille || 'Arrivée' }}</span>
+        </div>
+        <div class="stat-divider">|</div>
+        <div class="stat-chip orange">
+          <ion-icon name="speedometer-outline"></ion-icon>
+          <span>{{ totalDistance }} km</span>
         </div>
       </div>
 
       <div class="location-details" *ngIf="isExpanded">
         <div class="loc-row">
-          <div class="dot start"></div>
+          <div class="loc-icon start"><ion-icon name="location"></ion-icon></div>
           <div class="loc-text">
-            <span class="label">Départ</span>
             <span class="value">{{ selectedLivraison.chargementVille || 'N/A' }}</span>
           </div>
         </div>
         <div class="route-line"></div>
         <div class="loc-row">
-          <div class="dot end"></div>
+          <div class="loc-icon end"><ion-icon name="flag"></ion-icon></div>
           <div class="loc-text">
-            <span class="label">Destination</span>
             <span class="value">{{ selectedLivraison.livraisonVille || 'N/A' }}</span>
           </div>
         </div>

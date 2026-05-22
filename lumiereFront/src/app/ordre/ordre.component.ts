@@ -34,6 +34,18 @@ export class OrdreComponent implements OnInit {
   totalDistance: string = '--';
   private refreshInterval: any;
 
+  // Animation Properties
+  private animationFrameId: any = null;
+  private routeCoords: L.LatLngTuple[] = [];
+  private cumulativeDistances: number[] = [];
+  private totalRouteLength = 0;
+  private currentSimDistance = 0;
+  private isSimulationActive = false;
+
+  // Live GPS Transition
+  private lastKnownCoords: L.LatLngTuple | null = null;
+  private targetGpsCoords: L.LatLngTuple | null = null;
+  private gpsInterpolationT = 0;
 
   dateDebut: string = this.getTodayDate();
   dateFin: string = this.getTodayDate();
@@ -96,6 +108,7 @@ export class OrdreComponent implements OnInit {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    this.stopAnimation();
   }
 
   private getTodayDate(): string {
@@ -173,7 +186,30 @@ export class OrdreComponent implements OnInit {
     });
   }
 
+  public isFollowingTruck = true;
+  public isTimelineCollapsed = false;
+
+  toggleTimeline() {
+    this.isTimelineCollapsed = !this.isTimelineCollapsed;
+  }
+
+  hasEvent(step: string): boolean {
+    if (!this.selectedOrdreForMap) return false;
+    const statut = this.selectedOrdreForMap.statut;
+    const allSteps = ['NON_PLANIFIE', 'PLANIFIE', 'EN_COURS_DE_CHARGEMENT', 'CHARGE', 'EN_COURS_DE_LIVRAISON', 'EN_LIVRAISON', 'LIVRE', 'FIN'];
+    let currentNorm = statut;
+    if (statut === 'EN_LIVRAISON') currentNorm = 'EN_COURS_DE_LIVRAISON';
+    if (statut === 'FIN') currentNorm = 'LIVRE';
+    let stepNorm = step;
+    if (step === 'EN_LIVRAISON') stepNorm = 'EN_COURS_DE_LIVRAISON';
+    if (step === 'FIN') stepNorm = 'LIVRE';
+    const currentIndex = allSteps.indexOf(currentNorm);
+    const targetIndex = allSteps.indexOf(stepNorm);
+    return currentIndex >= targetIndex;
+  }
+
   voirMap(ordre: any) {
+    this.isFollowingTruck = true;
     // 1. Arrêter TOUT rafraîchissement en arrière-plan
     if (this.refreshInterval) {
         clearInterval(this.refreshInterval);
@@ -185,12 +221,17 @@ export class OrdreComponent implements OnInit {
   }
 
   closeMapModal() {
+    this.stopAnimation();
     this.isMapModalOpen = false;
     this.selectedOrdreForMap = null;
     this.truckMarker = null;
     this.trailPolyline = null;
     this.simulationLine = null;
     this.totalDistance = '--';
+    this.lastKnownCoords = null;
+    this.targetGpsCoords = null;
+    this.isSimulationActive = false;
+
     if (this.refreshInterval) {
         clearInterval(this.refreshInterval);
         this.refreshInterval = null;
@@ -212,19 +253,21 @@ export class OrdreComponent implements OnInit {
 
       this.map = L.map('osm-map').setView([33.8869, 9.5375], 6);
 
+      this.isFollowingTruck = true;
+      this.map.on('dragstart', () => {
+        this.isFollowingTruck = false;
+      });
+
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(this.map);
 
+      setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 300);
+      setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 600);
+
       if (this.selectedOrdreForMap) {
          // Initialize ref coords to 0
          this.refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 };
-
-         // Show truck immediately if GPS is available
-         if (this.selectedOrdreForMap.currentLat && this.selectedOrdreForMap.currentLon) {
-             this.plotTruck(0, 0, 0, 0); 
-             this.map.setView([this.selectedOrdreForMap.currentLat, this.selectedOrdreForMap.currentLon], 11);
-         }
 
          // If order is delivered, show the full trail
          if (this.selectedOrdreForMap.statut === 'LIVRE') {
@@ -269,11 +312,23 @@ export class OrdreComponent implements OnInit {
         L.marker([lat1, lon1], {
             icon: L.divIcon({
               className: 'custom-div-icon',
-              html: "<div style='background-color:#10b981; color:white; border-radius:50%; width:30px; height:30px; display:flex; justify-content:center; align-items:center; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-arrow-up'></i></div>",
-              iconSize: [30, 30],
-              iconAnchor: [15, 15]
+              html: `<div style="filter: drop-shadow(0 3px 6px rgba(0,0,0,0.16));">
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ff9e4f" />
+                      <stop offset="100%" stop-color="#f5921e" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M18 2C10.268 2 4 8.268 4 16c0 10.5 14 18 14 18s14-7.5 14-18c0-7.732-6.268-14-14-14z" fill="url(#orangeGrad)"/>
+                  <circle cx="18" cy="16" r="6" fill="#ffffff" />
+                  <circle cx="18" cy="16" r="3" fill="#f5921e" />
+                </svg>
+              </div>`,
+              iconSize: [36, 36],
+              iconAnchor: [18, 34]
             })
-        }).bindPopup('Départ: ' + sourceCity).addTo(this.map);
+        }).addTo(this.map);
 
         // Geocode Destination
         this.http.get<any[]>(urlBase + encodeURIComponent(destCity + ', Tunisia')).subscribe(res2 => {
@@ -286,30 +341,75 @@ export class OrdreComponent implements OnInit {
             L.marker([lat2, lon2], {
                 icon: L.divIcon({
                   className: 'custom-div-icon',
-                  html: "<div style='background-color:#ef4444; color:white; border-radius:50%; width:30px; height:30px; display:flex; justify-content:center; align-items:center; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-arrow-down'></i></div>",
-                  iconSize: [30, 30],
-                  iconAnchor: [15, 15]
+                  html: `<div style="filter: drop-shadow(0 3px 6px rgba(0,0,0,0.16));">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#10b981" />
+                          <stop offset="100%" stop-color="#059669" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M18 2C10.268 2 4 8.268 4 16c0 10.5 14 18 14 18s14-7.5 14-18c0-7.732-6.268-14-14-14z" fill="url(#greenGrad)"/>
+                      <path d="M14 11h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7v5h-2V11h2z" fill="#ffffff"/>
+                    </svg>
+                  </div>`,
+                  iconSize: [36, 36],
+                  iconAnchor: [18, 34]
                 })
-            }).bindPopup('Destination: ' + destCity).addTo(this.map);
+            }).addTo(this.map);
 
-            // Draw connecting dashed line
-            const latlngs: L.LatLngTuple[] = [ [lat1, lon1], [lat2, lon2] ];
-            this.simulationLine = L.polyline(latlngs, {color: '#94a3b8', weight: 2, dashArray: '5, 10', opacity: 0.5}).addTo(this.map);
-            
-            // Adjust bounds to fit both points
-            this.map.fitBounds(this.simulationLine.getBounds(), { padding: [50, 50] });
-
-            // Store ref coords for refresh
             this.refCoords = { lat1, lon1, lat2, lon2 };
 
-            // Place dynamic truck marker
-            this.plotTruck(lat1, lon1, lat2, lon2);
+            // Fetch real road coordinates from OSRM
+            this.routeCoords = [[lat1, lon1], [lat2, lon2]];
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson`;
+            this.http.get<any>(osrmUrl).subscribe({
+              next: (res) => {
+                if (res && res.routes && res.routes.length > 0) {
+                  this.routeCoords = res.routes[0].geometry.coordinates.map((c: any) => [c[1], c[0]] as L.LatLngTuple);
+                  this.totalDistance = (res.routes[0].distance / 1000).toFixed(1);
+                } else {
+                  this.totalDistance = (L.latLng(lat1, lon1).distanceTo(L.latLng(lat2, lon2)) / 1000).toFixed(1);
+                }
+                this.drawRouteAndStart(lat1, lon1, lat2, lon2);
+              },
+              error: (err) => {
+                console.error("OSRM routing failed, falling back to straight line:", err);
+                this.totalDistance = (L.latLng(lat1, lon1).distanceTo(L.latLng(lat2, lon2)) / 1000).toFixed(1);
+                this.drawRouteAndStart(lat1, lon1, lat2, lon2);
+              }
+            });
         });
     });
   }
 
+  private drawRouteAndStart(lat1: number, lon1: number, lat2: number, lon2: number) {
+    if (this.simulationLine) this.map.removeLayer(this.simulationLine);
+    if ((this as any).routeGlow) this.map.removeLayer((this as any).routeGlow);
+
+    (this as any).routeGlow = L.polyline(this.routeCoords, {
+      color: '#1e3a8a', weight: 8, opacity: 0.5, lineCap: 'round', lineJoin: 'round'
+    }).addTo(this.map);
+
+    this.simulationLine = L.polyline(this.routeCoords, {
+      color: '#3b82f6', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round'
+    }).addTo(this.map);
+
+    // Compute cumulative distances for path-based animation
+    this.cumulativeDistances = [0];
+    this.totalRouteLength = 0;
+    for (let i = 0; i < this.routeCoords.length - 1; i++) {
+      const pt1 = L.latLng(this.routeCoords[i]);
+      const pt2 = L.latLng(this.routeCoords[i + 1]);
+      this.totalRouteLength += pt1.distanceTo(pt2);
+      this.cumulativeDistances.push(this.totalRouteLength);
+    }
+
+    this.plotTruck(lat1, lon1, lat2, lon2);
+  }
+
   plotTruck(lat1: number, lon1: number, lat2: number, lon2: number) {
-      if (!this.selectedOrdreForMap) return;
+      if (!this.selectedOrdreForMap || !this.map) return;
       const statut = this.selectedOrdreForMap.statut;
       
       let truckLat = 0;
@@ -324,13 +424,25 @@ export class OrdreComponent implements OnInit {
       } else {
           // 2. Mode Dégradé (Simulation Visuelle) si pas de GPS installé
           let ratio = 0.5; // default center
+          if (['NON_PLANIFIE', 'PLANIFIE'].includes(statut)) ratio = 0.05;
+          else if (['EN_COURS_DE_CHARGEMENT', 'CHARGE'].includes(statut)) ratio = 0.15;
+          else if (['EN_COURS_DE_LIVRAISON'].includes(statut)) ratio = 0.6;
+          else if (['LIVRE', 'Fin', 'FIN'].includes(statut)) ratio = 1.0;
           
-          if (['NON_PLANIFIE', 'PLANIFIE'].includes(statut)) ratio = 0.0;
-          else if (['EN_COURS_DE_CHARGEMENT', 'CHARGE'].includes(statut)) ratio = 0.1;
-          else if (['LIVRE', 'Fin'].includes(statut)) ratio = 1.0;
-          
-          truckLat = lat1 + (lat2 - lat1) * ratio;
-          truckLon = lon1 + (lon2 - lon1) * ratio;
+          const targetDist = this.totalRouteLength * ratio;
+          const pt = this.getPointAtDistance(this.routeCoords, targetDist, this.cumulativeDistances);
+          if (pt) {
+            truckLat = pt.lat;
+            truckLon = pt.lon;
+          } else {
+            truckLat = lat1 + (lat2 - lat1) * ratio;
+            truckLon = lon1 + (lon2 - lon1) * ratio;
+          }
+      }
+
+      // Zoom and center on the truck the first time it is plotted
+      if (!this.truckMarker) {
+        this.map.setView([truckLat, truckLon], 13, { animate: false });
       }
 
       // Couleur Verte si GPS Réel, Orange si Simulation
@@ -340,38 +452,189 @@ export class OrdreComponent implements OnInit {
       const speed = this.selectedOrdreForMap.speed || 0;
       const truckInfo = this.selectedOrdreForMap.camion ? `<br><b>Camion:</b> ${this.selectedOrdreForMap.camion}` : '';
 
-      // Update or create truck marker
-      if (this.truckMarker) {
-          this.truckMarker.setLatLng([truckLat, truckLon]);
-          this.truckMarker.getPopup().setContent(`
-              <div style="font-family: Arial, sans-serif; min-width: 150px;">
-                  <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
-                  ${truckInfo}
-                  <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
-                  <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
-                  <hr style="margin: 5px 0;">
-                  ${gpsLabel}
-              </div>
-          `);
+      const popupContent = `
+          <div style="font-family: Arial, sans-serif; min-width: 150px;">
+              <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+              ${truckInfo}
+              <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
+              <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
+              <hr style="margin: 5px 0;">
+              ${gpsLabel}
+          </div>
+      `;
+
+      if (gpsActif) {
+        this.isSimulationActive = false;
+        this.startGpsInterpolation([truckLat, truckLon], color, popupContent);
       } else {
-          this.truckMarker = L.marker([truckLat, truckLon], {
-              icon: L.divIcon({
-                 className: 'custom-div-icon',
-                 html: `<div style='background-color:${color}; color:white; border-radius:5px; padding:5px; font-size:16px; border:2px solid white; box-shadow:0 0 10px rgba(0,0,0,0.5);'><i class='fa fa-truck'></i></div>`,
-                 iconSize: [36, 36],
-                 iconAnchor: [18, 18]
-              })
-          }).bindPopup(`
-              <div style="font-family: Arial, sans-serif; min-width: 150px;">
-                  <b style="color:#2563eb; font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
-                  ${truckInfo}
-                  <br><b>Chauffeur:</b> ${this.selectedOrdreForMap.chauffeur || 'Non assigné'}
-                  <br><b>Vitesse:</b> <span style="color:${speed > 0 ? 'green' : 'red'}; font-weight:bold;">${speed} km/h</span>
-                  <hr style="margin: 5px 0;">
-                  ${gpsLabel}
-              </div>
-          `).addTo(this.map);
+        this.isSimulationActive = true;
+        this.startSimulatedMovement(color, popupContent);
       }
+  }
+
+  private stopAnimation() {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
+  private startGpsInterpolation(targetCoords: L.LatLngTuple, color: string, popupContent: string) {
+    this.stopAnimation();
+
+    if (!this.lastKnownCoords) {
+      this.lastKnownCoords = targetCoords;
+      this.updateTruckMarker(targetCoords, 0, color, popupContent);
+      return;
+    }
+
+    this.targetGpsCoords = targetCoords;
+    this.gpsInterpolationT = 0;
+
+    const animateGps = () => {
+      if (!this.map || !this.lastKnownCoords || !this.targetGpsCoords) return;
+
+      this.gpsInterpolationT += 0.02; // interpolation over ~50 frames
+      if (this.gpsInterpolationT >= 1) this.gpsInterpolationT = 1;
+
+      const currentLat = this.lastKnownCoords[0] + (this.targetGpsCoords[0] - this.lastKnownCoords[0]) * this.gpsInterpolationT;
+      const currentLon = this.lastKnownCoords[1] + (this.targetGpsCoords[1] - this.lastKnownCoords[1]) * this.gpsInterpolationT;
+      const bearing = this.calculateBearing(this.lastKnownCoords[0], this.lastKnownCoords[1], this.targetGpsCoords[0], this.targetGpsCoords[1]);
+
+      this.updateTruckMarker([currentLat, currentLon], bearing, color, popupContent);
+
+      if (this.gpsInterpolationT < 1) {
+        this.animationFrameId = requestAnimationFrame(animateGps);
+      } else {
+        this.lastKnownCoords = this.targetGpsCoords;
+        this.targetGpsCoords = null;
+      }
+    };
+
+    this.animationFrameId = requestAnimationFrame(animateGps);
+  }
+
+  private startSimulatedMovement(color: string, popupContent: string) {
+    this.stopAnimation();
+    if (this.routeCoords.length < 2) return;
+
+    this.currentSimDistance = 0;
+    const stepSpeed = this.totalRouteLength / 3600; // Complete entire trip in ~60 seconds at 60fps
+
+    const animateSim = () => {
+      if (!this.map || !this.isSimulationActive) return;
+
+      this.currentSimDistance += stepSpeed;
+      if (this.currentSimDistance >= this.totalRouteLength) {
+        this.currentSimDistance = this.totalRouteLength;
+        const pt = this.getPointAtDistance(this.routeCoords, this.currentSimDistance, this.cumulativeDistances);
+        if (pt) this.updateTruckMarker([pt.lat, pt.lon], pt.bearing, color, popupContent);
+        
+        setTimeout(() => {
+          if (this.isSimulationActive && this.map) {
+            this.currentSimDistance = 0;
+            this.animationFrameId = requestAnimationFrame(animateSim);
+          }
+        }, 2500);
+        return;
+      }
+
+      const pt = this.getPointAtDistance(this.routeCoords, this.currentSimDistance, this.cumulativeDistances);
+      if (pt) {
+        this.updateTruckMarker([pt.lat, pt.lon], pt.bearing, color, popupContent);
+      }
+
+      this.animationFrameId = requestAnimationFrame(animateSim);
+    };
+
+    this.animationFrameId = requestAnimationFrame(animateSim);
+  }
+
+  private updateTruckMarker(coords: L.LatLngTuple, bearing: number, color: string, popupContent: string) {
+    if (!this.map) return;
+
+    if (this.truckMarker) {
+      this.truckMarker.setLatLng(coords);
+      this.truckMarker.setPopupContent(popupContent);
+      
+      const element = this.truckMarker.getElement();
+      if (element) {
+        const iconWrapper = element.querySelector('.truck-icon-wrapper') as HTMLElement;
+        if (iconWrapper) {
+          iconWrapper.style.transform = `rotate(${bearing}deg)`;
+        }
+      }
+    } else {
+      this.truckMarker = L.marker(coords, {
+        icon: L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div class="truck-icon-wrapper" style="transform: rotate(${bearing}deg); transition: transform 0.1s linear; display: inline-block; filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.4));">
+            <svg width="60" height="25" viewBox="0 0 68 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="4" width="46" height="20" rx="1.5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+              <rect x="4" y="6" width="42" height="16" rx="1" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+              <rect x="12" y="12" width="26" height="4" rx="1" fill="#f97316"/>
+              <rect x="48" y="12" width="4" height="4" fill="#475569"/>
+              <rect x="51" y="5" width="14" height="18" rx="2.5" fill="#f97316"/>
+              <path d="M57 6h5.5a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1 -1.5 1.5h-5.5l-2-8 2-8z" fill="#1e293b"/>
+              <rect x="52" y="8" width="5" height="12" rx="1" fill="rgba(255,255,255,0.2)"/>
+              <rect x="52" y="3" width="2" height="3" rx="0.5" fill="#334155"/>
+              <rect x="52" y="22" width="2" height="3" rx="0.5" fill="#334155"/>
+              <path d="M64 6h1v3h-1z" fill="#fde047"/>
+              <path d="M64 19h1v3h-1z" fill="#fde047"/>
+            </svg>
+          </div>`,
+          iconSize: [60, 25],
+          iconAnchor: [30, 12]
+        })
+      }).bindPopup(popupContent).addTo(this.map);
+    }
+    
+    if (this.isFollowingTruck && this.map) {
+      this.map.setView(coords, this.map.getZoom(), { animate: false });
+    }
+  }
+
+  private getPointAtDistance(coords: L.LatLngTuple[], distance: number, cumulativeDistances: number[]) {
+    if (coords.length === 0) return null;
+    if (coords.length === 1 || distance <= 0) return { lat: coords[0][0], lon: coords[0][1], bearing: 0 };
+    if (distance >= cumulativeDistances[cumulativeDistances.length - 1]) {
+      const last = coords[coords.length - 1];
+      const prev = coords[coords.length - 2];
+      return {
+        lat: last[0],
+        lon: last[1],
+        bearing: this.calculateBearing(prev[0], prev[1], last[0], last[1])
+      };
+    }
+
+    let i = 0;
+    while (i < cumulativeDistances.length - 2 && cumulativeDistances[i + 1] < distance) {
+      i++;
+    }
+
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const d1 = cumulativeDistances[i];
+    const d2 = cumulativeDistances[i + 1];
+
+    const t = (distance - d1) / (d2 - d1);
+    const lat = p1[0] + (p2[0] - p1[0]) * t;
+    const lon = p1[1] + (p2[1] - p1[1]) * t;
+    const bearing = this.calculateBearing(p1[0], p1[1], p2[0], p2[1]);
+
+    return { lat, lon, bearing };
+  }
+
+  private calculateBearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const lat1Rad = lat1 * Math.PI / 180;
+    const lat2Rad = lat2 * Math.PI / 180;
+
+    const y = Math.sin(dLon) * Math.cos(lat2Rad);
+    const x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+
+    let brng = Math.atan2(y, x) * 180 / Math.PI;
+    return (brng - 90 + 360) % 360;
   }
 
   fetchTrail(ordreId: number) {

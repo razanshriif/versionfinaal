@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -122,6 +122,10 @@ export class LoginPage implements OnInit {
               return;
             } else if (msg && typeof msg === 'string' && msg.includes('ACCOUNT_REJECTED')) {
               errorMessage = '❌ Votre compte a été rejeté. Contactez l’administrateur.';
+            } else if (msg && typeof msg === 'string' && msg.includes('ACCES_REFUSE')) {
+              errorMessage = msg.replace('ACCES_REFUSE:', '').trim();
+            } else if (msg && typeof msg === 'string') {
+              errorMessage = msg;
             } else {
               errorMessage = 'Accès refusé. Vérifiez vos identifiants.';
             }

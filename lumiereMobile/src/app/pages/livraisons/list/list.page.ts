@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -29,6 +29,8 @@ const STEPS = [
   { key: 'done', label: 'Livré', statuts: ['LIVRE', 'FIN'] },
 ];
 
+import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-list',
   templateUrl: './list.page.html',
@@ -39,7 +41,8 @@ const STEPS = [
     IonIcon,
     IonRefresher, IonRefresherContent,
     IonDatetime, IonInput,
-    CommonModule, FormsModule
+    CommonModule, FormsModule,
+    LumLogoBarComponent
   ]
 }) 
 export class ListPage implements OnInit {

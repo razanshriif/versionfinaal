@@ -27,6 +27,8 @@ import {
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 
+import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
@@ -41,7 +43,8 @@ import { ToastService } from '../../services/toast.service';
     IonSpinner,
     CommonModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    LumLogoBarComponent
   ]
 })
 export class ProfilePage implements OnInit {

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ViewDidEnter, ToastController, AlertController, NavController } from '@ionic/angular';
@@ -28,6 +28,8 @@ import {
   chatbubbleEllipsesOutline
 } from 'ionicons/icons';
 
+import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-clients',
   templateUrl: './clients.html',
@@ -39,7 +41,8 @@ import {
     RouterModule,
     IonHeader, IonIcon,
     IonContent, IonRefresher, IonRefresherContent,
-    IonInput, IonList, IonItemSliding, IonItem, IonItemOptions, IonItemOption
+    IonInput, IonList, IonItemSliding, IonItem, IonItemOptions, IonItemOption,
+    LumLogoBarComponent
   ]
 })
 export class Clients implements OnInit, ViewDidEnter {

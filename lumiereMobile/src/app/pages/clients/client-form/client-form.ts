@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -13,6 +13,8 @@ import { Client } from '../../../models/client.model';
 import { addIcons } from 'ionicons';
 import { saveOutline, arrowBackOutline, notificationsOutline, logOutOutline } from 'ionicons/icons';
 
+import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-client-form',
   templateUrl: './client-form.html',
@@ -23,7 +25,8 @@ import { saveOutline, arrowBackOutline, notificationsOutline, logOutOutline } fr
     FormsModule,
     IonHeader, IonButton, IonIcon,
     IonContent, IonLabel, IonInput, IonTextarea,
-    IonSelect, IonSelectOption, IonCheckbox
+    IonSelect, IonSelectOption, IonCheckbox,
+    LumLogoBarComponent
   ]
 })
 export class ClientForm implements OnInit {

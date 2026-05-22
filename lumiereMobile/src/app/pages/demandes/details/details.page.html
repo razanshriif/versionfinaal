@@ -1,17 +1,5 @@
 <ion-header class="ion-no-border">
-  <div class="lum-logo-bar">
-    <div class="lum-logo-wrap">
-      <img src="assets/otflow-horizontal.png" alt="Otflow" />
-    </div>
-    <div class="lum-logo-actions">
-      <button class="lum-icon-btn" (click)="goToNotifications()">
-        <ion-icon name="notifications-outline"></ion-icon>
-      </button>
-      <button class="lum-icon-btn" (click)="logout()">
-        <ion-icon name="log-out-outline"></ion-icon>
-      </button>
-    </div>
-  </div>
+  <app-lum-logo-bar></app-lum-logo-bar>
 
   <div class="lum-sub-bar">
     <button class="lum-back-btn" (click)="navCtrl.back()">

@@ -303,31 +303,93 @@
     </div>
 
     <div class="modal-body-map">
-      <!-- Placeholder for Map API (Google Maps / Leaflet) -->
-      <!-- Real OpenStreetMap / Leaflet container -->
       <div id="osm-map" style="width: 100%; height: 100%; position: relative; z-index: 1; border-radius: 20px;"></div>
-      
-      <!-- Overlays (Information text above map) -->
-      <div class="map-overlay-info" *ngIf="selectedOrdreForMap" style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-        <div class="info-card">
-          <span class="label">DÉPART</span>
-          <span class="value">{{ selectedOrdreForMap.chargementVille }}</span>
-        </div>
-        <div class="info-card-divider"></div>
-        <div class="info-card">
-          <span class="label">DESTINATION</span>
-          <span class="value">{{ selectedOrdreForMap.livraisonVille }}</span>
+
+      <!-- Collapsible Vertical Timeline -->
+      <div class="web-timeline-wrapper" *ngIf="selectedOrdreForMap" [class.collapsed]="isTimelineCollapsed">
+        <button class="web-timeline-toggle" (click)="toggleTimeline(); $event.stopPropagation()">
+          <i [class]="isTimelineCollapsed ? 'fa fa-chevron-right' : 'fa fa-chevron-left'"></i>
+        </button>
+        <div class="web-floating-timeline">
+          <div class="web-t-step" [class.active]="hasEvent('PLANIFIE')">
+            <div class="web-t-icon"><i class="fa fa-warehouse"></i></div>
+          </div>
+          <div class="web-t-line" [class.active]="hasEvent('EN_COURS_DE_CHARGEMENT')"></div>
+          <div class="web-t-step" [class.active]="hasEvent('EN_COURS_DE_CHARGEMENT')">
+            <div class="web-t-icon"><i class="fa fa-boxes"></i></div>
+          </div>
+          <div class="web-t-line" [class.active]="hasEvent('CHARGE')"></div>
+          <div class="web-t-step" [class.active]="hasEvent('CHARGE')">
+            <div class="web-t-icon"><i class="fa fa-truck-moving"></i></div>
+          </div>
+          <div class="web-t-line" [class.active]="hasEvent('EN_COURS_DE_LIVRAISON')"></div>
+          <div class="web-t-step" [class.active]="hasEvent('EN_COURS_DE_LIVRAISON')">
+            <div class="web-t-icon"><i class="fa fa-road"></i></div>
+          </div>
+          <div class="web-t-line" [class.active]="hasEvent('LIVRE')"></div>
+          <div class="web-t-step" [class.active]="hasEvent('LIVRE')">
+            <div class="web-t-icon"><i class="fa fa-check-double"></i></div>
+          </div>
+          <div class="web-t-line" [class.active]="hasEvent('FIN')"></div>
+          <div class="web-t-step" [class.active]="hasEvent('FIN')">
+            <div class="web-t-icon"><i class="fa fa-flag-checkered"></i></div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="modal-footer-premium">
-        <div class="map-stats" *ngIf="selectedOrdreForMap">
-            <span><i class="fa fa-road"></i> Distance: {{ totalDistance }} km</span>
-            <span><i class="fa fa-clock"></i> ETA: -- : --</span>
+      <div class="web-map-footer-content" *ngIf="selectedOrdreForMap">
+
+        <!-- Left: Truck Image -->
+        <img src="assets/camion.png" class="web-truck-img" alt="Camion Lumière" />
+
+        <!-- Center: All Info -->
+        <div class="web-footer-info-col">
+
+          <!-- Row 1: Route strip -->
+          <div class="web-route-strip">
+            <span class="web-stat-chip">
+              <i class="fa fa-circle" style="color:#10b981; font-size:8px;"></i>
+              {{ selectedOrdreForMap.chargementVille }}
+            </span>
+            <span class="web-stat-divider">&rarr;</span>
+            <span class="web-stat-chip">
+              <i class="fa fa-circle" style="color:#ef4444; font-size:8px;"></i>
+              {{ selectedOrdreForMap.livraisonVille }}
+            </span>
+            <span class="web-stat-divider">|</span>
+            <span class="web-stat-chip orange">
+              <i class="fa fa-route"></i> {{ totalDistance }} km
+            </span>
+            <span class="web-stat-divider">|</span>
+            <span class="web-stat-chip">
+              <i class="fa fa-hourglass-half"></i> ETA: --:--
+            </span>
+          </div>
+
+          <!-- Row 2: Details badges -->
+          <div class="web-details-list">
+            <span class="web-detail-item"><i class="fa fa-calendar-check" style="color:#f5921e;"></i> {{ selectedOrdreForMap.livraisonDate | date:'dd/MM/yyyy' }}</span>
+            <span class="web-detail-item" *ngIf="selectedOrdreForMap.poids"><i class="fa fa-weight-hanging" style="color:#8b5cf6;"></i> {{ selectedOrdreForMap.poids }} kg</span>
+            <span class="web-detail-item" *ngIf="selectedOrdreForMap.nombrePalettes"><i class="fa fa-layer-group" style="color:#0369a1;"></i> {{ selectedOrdreForMap.nombrePalettes }} pal</span>
+            <span class="web-detail-item" *ngIf="selectedOrdreForMap.volume"><i class="fa fa-cube" style="color:#0891b2;"></i> {{ selectedOrdreForMap.volume }} m³</span>
+            <span class="web-detail-item" *ngIf="selectedOrdreForMap.camion || selectedOrdreForMap.matricule"><i class="fa fa-truck" style="color:#475569;"></i> {{ selectedOrdreForMap.camion || selectedOrdreForMap.matricule }}</span>
+          </div>
         </div>
-        <button type="button" class="btn-save" (click)="closeMapModal()">Fermer</button>
+
+        <!-- Right: Order + Chauffeur + Button -->
+        <div class="web-footer-right">
+          <div class="web-order-badge">
+            <span class="web-order-number">{{ selectedOrdreForMap.orderNumber }}</span>
+            <span class="web-chauffeur"><i class="fa fa-user-tie"></i> {{ selectedOrdreForMap.chauffeur || 'Non assigné' }}</span>
+          </div>
+          <button type="button" class="btn-save" (click)="closeMapModal()">Fermer</button>
+        </div>
+
+      </div>
     </div>
+
   </div>
 </div>
 

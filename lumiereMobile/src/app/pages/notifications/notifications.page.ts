@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, IonHeader, IonSpinner } from '@ionic/angular/standalone';
@@ -15,12 +15,14 @@ import {
 import { NotificationService } from '../../services/notification.service';
 import { Notification } from '../../models/notification.model';
 
+import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-notifications',
   templateUrl: './notifications.page.html',
   styleUrls: ['./notifications.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonHeader, IonSpinner]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonHeader, IonSpinner, LumLogoBarComponent]
 })
 export class NotificationsPage implements OnInit {
 
@@ -57,7 +59,37 @@ export class NotificationsPage implements OnInit {
     this.notificationService.getNotifications().subscribe({
       next: (data) => {
         // Filter out INSCRIPTION notifications for mobile clients
-        this.allNotifications = data.filter(n => n.type?.toUpperCase() !== 'INSCRIPTION');
+        const apiNotifications = data.filter(n => n.type?.toUpperCase() !== 'INSCRIPTION');
+
+        // Load local storage rappels
+        let localRappels: any[] = [];
+        try {
+          const raw = localStorage.getItem('rappels');
+          localRappels = raw ? JSON.parse(raw) : [];
+        } catch (e) {
+          console.error('Error parsing local rappels:', e);
+        }
+
+        // Map local rappels to Notification interface
+        const mappedRappels: Notification[] = localRappels.map((r: any) => {
+          const d = new Date(r.date);
+          const dateStr = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+          return {
+            id: -parseInt(r.id) || -Date.now(), // negative ID to distinguish from API
+            type: 'RAPPEL',
+            message: `Rappel: ${r.titre} (Prévu pour: ${dateStr})`,
+            read: !!r.fait,
+            timestamp: r.date
+          };
+        });
+
+        // Combine both sets and sort by date descending
+        this.allNotifications = [...apiNotifications, ...mappedRappels].sort((a, b) => {
+          const dateA = new Date(a.timestamp).getTime();
+          const dateB = new Date(b.timestamp).getTime();
+          return dateB - dateA;
+        });
+
         this.applyFilter(this.activeFilter);
         this.isLoading = false;
       },
@@ -84,6 +116,17 @@ export class NotificationsPage implements OnInit {
   }
 
   markAllAsRead() {
+    // 1. Mark all local rappels as read (fait = true)
+    try {
+      const raw = localStorage.getItem('rappels');
+      let localRappels = raw ? JSON.parse(raw) : [];
+      localRappels.forEach((r: any) => r.fait = true);
+      localStorage.setItem('rappels', JSON.stringify(localRappels));
+    } catch (e) {
+      console.error('Error marking all local rappels as read:', e);
+    }
+
+    // 2. Mark all API notifications as read on backend
     this.notificationService.markAllAsRead().subscribe({
       next: () => {
         this.allNotifications.forEach(n => n.read = true);
@@ -94,22 +137,58 @@ export class NotificationsPage implements OnInit {
   }
 
   markAsRead(id: number) {
-    this.notificationService.markAsRead(id).subscribe({
-      next: () => {
-        const notif = this.allNotifications.find(n => n.id === id);
-        if (notif) notif.read = true;
-        this.applyFilter(this.activeFilter);
+    if (id < 0) {
+      // Local rappel mark as read (fait = true)
+      try {
+        const raw = localStorage.getItem('rappels');
+        let localRappels = raw ? JSON.parse(raw) : [];
+        const rappelIdString = (-id).toString();
+        const rappel = localRappels.find((r: any) => r.id === rappelIdString);
+        if (rappel) {
+          rappel.fait = true;
+          localStorage.setItem('rappels', JSON.stringify(localRappels));
+        }
+      } catch (e) {
+        console.error('Error marking local rappel as read:', e);
       }
-    });
+      const notif = this.allNotifications.find(n => n.id === id);
+      if (notif) notif.read = true;
+      this.applyFilter(this.activeFilter);
+    } else {
+      // API notification mark as read
+      this.notificationService.markAsRead(id).subscribe({
+        next: () => {
+          const notif = this.allNotifications.find(n => n.id === id);
+          if (notif) notif.read = true;
+          this.applyFilter(this.activeFilter);
+        }
+      });
+    }
   }
 
   deleteNotification(id: number) {
-    this.notificationService.deleteNotification(id).subscribe({
-      next: () => {
-        this.allNotifications = this.allNotifications.filter(n => n.id !== id);
-        this.applyFilter(this.activeFilter);
+    if (id < 0) {
+      // Local rappel deletion
+      try {
+        const raw = localStorage.getItem('rappels');
+        let localRappels = raw ? JSON.parse(raw) : [];
+        const rappelIdString = (-id).toString();
+        localRappels = localRappels.filter((r: any) => r.id !== rappelIdString);
+        localStorage.setItem('rappels', JSON.stringify(localRappels));
+      } catch (e) {
+        console.error('Error deleting local rappel:', e);
       }
-    });
+      this.allNotifications = this.allNotifications.filter(n => n.id !== id);
+      this.applyFilter(this.activeFilter);
+    } else {
+      // API notification deletion
+      this.notificationService.deleteNotification(id).subscribe({
+        next: () => {
+          this.allNotifications = this.allNotifications.filter(n => n.id !== id);
+          this.applyFilter(this.activeFilter);
+        }
+      });
+    }
   }
 
   /** Parse "📅 Rappel: Some Title (Prévu pour: 21:30)" into title + time */

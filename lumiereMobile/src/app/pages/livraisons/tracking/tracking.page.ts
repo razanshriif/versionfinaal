@@ -24,6 +24,8 @@ import {
 import { LivraisonService, LivraisonSimple } from '../../../services/livraison.service';
 import { Subscription } from 'rxjs';
 
+import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-bar.component';
+
 @Component({
   selector: 'app-tracking',
   templateUrl: './tracking.page.html',
@@ -38,7 +40,8 @@ import { Subscription } from 'rxjs';
     IonRefresher,
     IonRefresherContent,
     CommonModule,
-    FormsModule
+    FormsModule,
+    LumLogoBarComponent
   ]
 })
 export class TrackingPage implements OnInit, OnDestroy {
