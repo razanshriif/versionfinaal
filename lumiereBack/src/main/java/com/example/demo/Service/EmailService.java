@@ -87,6 +87,27 @@ public class EmailService {
     }
 
     @Async
+    public void sendResetPasswordEmail(String to, String code) {
+        String subject = "Réinitialisation de votre mot de passe";
+        String title = "Code de vérification";
+        String message = "Bonjour,<br><br>" +
+                "Vous avez demandé la réinitialisation de votre mot de passe. " +
+                "Veuillez utiliser le code de sécurité ci-dessous pour continuer :<br><br>" +
+                "<div style='text-align: center; margin: 30px 0;'>" +
+                "<span style='font-size: 32px; font-weight: 800; letter-spacing: 5px; color: #f07020; background: #fff7f2; padding: 15px 30px; border-radius: 12px; border: 2px dashed #f07020;'>"
+                + code + "</span>" +
+                "</div>" +
+                "Ce code est valable pour une durée limitée. Si vous n'êtes pas à l'origine de cette demande, veuillez ignorer cet email.";
+
+        String htmlContent = generateGenericHtml(title, message, "Réinitialiser mon mot de passe");
+        try {
+            sendHtmlEmailWithLogo(to, subject, htmlContent);
+        } catch (MessagingException e) {
+            System.err.println("Failed to send reset password email to " + to + ": " + e.getMessage());
+        }
+    }
+
+    @Async
     public void sendAccountRejectedEmail(String to, String name) {
         String subject = "Inscription refusée";
         String title = "Information sur votre demande";

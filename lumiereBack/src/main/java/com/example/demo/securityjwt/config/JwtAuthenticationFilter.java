@@ -40,18 +40,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        var userEmail = JwtService.extractUsername(jwt);
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            final var userDetails = userDetailsService.loadUserByUsername(userEmail);
-            if (JwtService.isTokenValid(jwt, userDetails)) {
-                final var authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            var userEmail = JwtService.extractUsername(jwt);
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                final var userDetails = userDetailsService.loadUserByUsername(userEmail);
+                if (JwtService.isTokenValid(jwt, userDetails)) {
+                    final var authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (Exception e) {
+            // Log the parsing/validation error and let the request proceed.
+            // Spring Security will reject protected endpoints or pass public ones.
+            logger.warn("JWT authentication failed: " + e.getMessage());
         }
         filterChain.doFilter(request, response);
 

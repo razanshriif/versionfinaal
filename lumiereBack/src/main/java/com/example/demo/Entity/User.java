@@ -43,6 +43,16 @@ public class User implements UserDetails {
     @Column(columnDefinition = "LONGTEXT")
     private String profileImageBase64;
 
+    private String resetPasswordCode;
+
+    public String getResetPasswordCode() {
+        return resetPasswordCode;
+    }
+
+    public void setResetPasswordCode(String resetPasswordCode) {
+        this.resetPasswordCode = resetPasswordCode;
+    }
+
     public String getProfileImageBase64() {
         return profileImageBase64;
     }

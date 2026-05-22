@@ -165,6 +165,8 @@ export class ListPage implements OnInit {
     });
   }
 
+  sortOrder: 'newest' | 'oldest' = 'newest';
+
   private applyFilters() {
     const term = this.searchTerm.toLowerCase();
     const matchTerm = (d: Demande) =>
@@ -193,6 +195,16 @@ export class ListPage implements OnInit {
         (!this.selectedStatut || status === this.selectedStatut.toUpperCase()) &&
         matchTerm(d);
     });
+
+    const sortFn = (a: any, b: any) => {
+      const timeA = new Date(a.dateCreation || 0).getTime();
+      const timeB = new Date(b.dateCreation || 0).getTime();
+      return this.sortOrder === 'newest' ? timeB - timeA : timeA - timeB;
+    };
+
+    this.draftDemandes.sort(sortFn);
+    this.pendingDemandes.sort(sortFn);
+    this.confirmedDemandes.sort(sortFn);
 
     this.demandes = this.listMode === 'draft' ? this.draftDemandes
       : this.listMode === 'pending' ? this.pendingDemandes
@@ -447,6 +459,11 @@ export class ListPage implements OnInit {
   showFilters = false;
   toggleFilter() {
     this.showFilters = !this.showFilters;
+  }
+
+  setSortOrder(order: 'newest' | 'oldest') {
+    this.sortOrder = order;
+    this.applyFilters();
   }
 
   private async showToast(message: string, color: string) {

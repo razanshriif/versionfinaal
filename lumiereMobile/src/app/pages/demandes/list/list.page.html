@@ -37,6 +37,21 @@
       <div class="indicator"></div>
     </div>
   </div>
+  
+  <!-- Filter Panel Overlay -->
+  <div class="lum-filter-panel" *ngIf="showFilters">
+    <div class="filter-header">
+      <h4>Trier par Date</h4>
+    </div>
+    <div class="filter-options">
+      <button class="filter-opt-btn" [class.active]="sortOrder === 'newest'" (click)="setSortOrder('newest')">
+        <ion-icon name="arrow-down-outline"></ion-icon> Plus récent d'abord
+      </button>
+      <button class="filter-opt-btn" [class.active]="sortOrder === 'oldest'" (click)="setSortOrder('oldest')">
+        <ion-icon name="arrow-up-outline"></ion-icon> Plus ancien d'abord
+      </button>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="premium-content">

@@ -31,6 +31,18 @@ public record AuthController(AuthenticationService authenticationService, UserRe
         return ResponseEntity.ok(authenticationService.register(request));
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody com.example.demo.securityjwt.controller.dto.ForgotPasswordRequest request) {
+        authenticationService.forgotPassword(request.email());
+        return ResponseEntity.ok(java.util.Map.of("message", "Code de réinitialisation envoyé par email."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody com.example.demo.securityjwt.controller.dto.ResetPasswordRequest request) {
+        authenticationService.resetPassword(request.email(), request.code(), request.newPassword());
+        return ResponseEntity.ok(java.util.Map.of("message", "Votre mot de passe a été réinitialisé avec succès."));
+    }
+
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> login(
             @RequestBody AuthenticationRequest request,

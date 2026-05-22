@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { NgbModule, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 import { OrdreService } from '../ordre.service';
 import { NotificationService } from '../notification.service';
 import { Observable } from 'rxjs';
@@ -29,8 +30,13 @@ export class OrdreComponent implements OnInit {
   truckMarker: any = null;
   trailPolyline: any = null;
   // reference points to avoid disappearing during refresh
-  refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 }; 
+  refCoords = { lat1: 0, lon1: 0, lat2: 0, lon2: 0 };
   simulationLine: any = null;
+  routeGlow: any = null;
+  routeTraveledLayer: any = null;
+  routeRemainingLayer: any = null;
+  routeTraveledGlow: any = null;
+  routeRemainingGlow: any = null;
   totalDistance: string = '--';
   private refreshInterval: any;
 
@@ -40,7 +46,7 @@ export class OrdreComponent implements OnInit {
   private cumulativeDistances: number[] = [];
   private totalRouteLength = 0;
   private currentSimDistance = 0;
-  private isSimulationActive = false;
+  public isSimulationActive = false;
 
   // Live GPS Transition
   private lastKnownCoords: L.LatLngTuple | null = null;
@@ -91,7 +97,8 @@ export class OrdreComponent implements OnInit {
     private service: OrdreService, 
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -125,6 +132,11 @@ export class OrdreComponent implements OnInit {
 
   closeModal(event?: MouseEvent) {
     this.isModalOpen = false;
+  }
+
+  detail(ordre: any) {
+    this.service.detail = ordre;
+    this.router.navigate(['/material/ordredetail']);
   }
 
   onSubmit() {
@@ -251,15 +263,20 @@ export class OrdreComponent implements OnInit {
          this.map.remove();
       }
 
-      this.map = L.map('osm-map').setView([33.8869, 9.5375], 6);
+      this.map = L.map('osm-map', {
+        zoomControl: true,
+        attributionControl: true
+      }).setView([33.8869, 9.5375], 6);
 
       this.isFollowingTruck = true;
       this.map.on('dragstart', () => {
         this.isFollowingTruck = false;
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+      // Premium Google Maps Default tiles for better clarity
+      L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        attribution: '&copy; Google Maps'
       }).addTo(this.map);
 
       setTimeout(() => { if (this.map) this.map.invalidateSize(); }, 300);
@@ -298,6 +315,9 @@ export class OrdreComponent implements OnInit {
   }
 
   geocodeAndPlot(sourceCity: string, destCity: string) {
+    // Stop any running animation BEFORE resetting arrays to prevent stale closure crashes
+    this.stopAnimation();
+    this.isSimulationActive = false;
     if (!sourceCity || !destCity) return;
     const urlBase = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=';
     
@@ -362,12 +382,18 @@ export class OrdreComponent implements OnInit {
 
             // Fetch real road coordinates from OSRM
             this.routeCoords = [[lat1, lon1], [lat2, lon2]];
-            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson`;
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=full&geometries=geojson&alternatives=true`;
             this.http.get<any>(osrmUrl).subscribe({
               next: (res) => {
                 if (res && res.routes && res.routes.length > 0) {
-                  this.routeCoords = res.routes[0].geometry.coordinates.map((c: any) => [c[1], c[0]] as L.LatLngTuple);
-                  this.totalDistance = (res.routes[0].distance / 1000).toFixed(1);
+                  let shortestRoute = res.routes[0];
+                  for (let i = 1; i < res.routes.length; i++) {
+                    if (res.routes[i].distance < shortestRoute.distance) {
+                      shortestRoute = res.routes[i];
+                    }
+                  }
+                  this.routeCoords = shortestRoute.geometry.coordinates.map((c: any) => [c[1], c[0]] as L.LatLngTuple);
+                  this.totalDistance = (shortestRoute.distance / 1000).toFixed(1);
                 } else {
                   this.totalDistance = (L.latLng(lat1, lon1).distanceTo(L.latLng(lat2, lon2)) / 1000).toFixed(1);
                 }
@@ -384,15 +410,20 @@ export class OrdreComponent implements OnInit {
   }
 
   private drawRouteAndStart(lat1: number, lon1: number, lat2: number, lon2: number) {
-    if (this.simulationLine) this.map.removeLayer(this.simulationLine);
-    if ((this as any).routeGlow) this.map.removeLayer((this as any).routeGlow);
+    if (this.simulationLine) { this.simulationLine.remove(); this.simulationLine = null; }
+    if (this.routeGlow) { this.routeGlow.remove(); this.routeGlow = null; }
+    if (this.routeTraveledLayer) { this.routeTraveledLayer.remove(); this.routeTraveledLayer = null; }
+    if (this.routeRemainingLayer) { this.routeRemainingLayer.remove(); this.routeRemainingLayer = null; }
+    if (this.routeTraveledGlow) { this.routeTraveledGlow.remove(); this.routeTraveledGlow = null; }
+    if (this.routeRemainingGlow) { this.routeRemainingGlow.remove(); this.routeRemainingGlow = null; }
 
-    (this as any).routeGlow = L.polyline(this.routeCoords, {
-      color: '#1e3a8a', weight: 8, opacity: 0.5, lineCap: 'round', lineJoin: 'round'
+    // Draw full remaining route (will be replaced dynamically as truck moves)
+    this.routeRemainingGlow = L.polyline(this.routeCoords, {
+      color: '#64748b', weight: 9, opacity: 0.18, lineCap: 'round', lineJoin: 'round'
     }).addTo(this.map);
 
-    this.simulationLine = L.polyline(this.routeCoords, {
-      color: '#3b82f6', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round'
+    this.routeRemainingLayer = L.polyline(this.routeCoords, {
+      color: '#94a3b8', weight: 5, opacity: 0.7, dashArray: '10, 12', lineCap: 'round', lineJoin: 'round'
     }).addTo(this.map);
 
     // Compute cumulative distances for path-based animation
@@ -445,9 +476,9 @@ export class OrdreComponent implements OnInit {
         this.map.setView([truckLat, truckLon], 13, { animate: false });
       }
 
-      // Couleur Verte si GPS Réel, Orange si Simulation
-      const color = gpsActif ? '#10b981' : '#f5921e';
-      const gpsLabel = gpsActif ? "<br><span style='color:green; font-weight:bold;'>Connexion GPS Live ✓</span>" : "<br><span style='color:orange;'>Position Estimée (Pas de Signal)</span>";
+      // Blue if Live GPS, Orange if simulation/traçage
+      const color = gpsActif ? '#3b82f6' : '#f97316';
+      const gpsLabel = gpsActif ? "<br><span style='color:#3b82f6; font-weight:bold;'>Connexion GPS Live ✓</span>" : "<br><span style='color:#f97316; font-weight:bold;'>Traçage Simulé</span>";
       
       const speed = this.selectedOrdreForMap.speed || 0;
       const truckInfo = this.selectedOrdreForMap.camion ? `<br><b>Camion:</b> ${this.selectedOrdreForMap.camion}` : '';
@@ -476,6 +507,42 @@ export class OrdreComponent implements OnInit {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
+    }
+  }
+
+  /**
+   * Manually toggle between Traçage Simulé and Live GPS mode.
+   * Useful when the user clicks the Traçage button on the map overlay.
+   */
+  toggleSimulation() {
+    if (!this.selectedOrdreForMap || !this.map) return;
+    const { lat1, lon1, lat2, lon2 } = this.refCoords;
+    if (lat1 === 0 && lon1 === 0) return; // route not yet loaded
+
+    this.stopAnimation();
+
+    if (this.isSimulationActive) {
+      // Switch to Live GPS mode (or degrade gracefully)
+      this.isSimulationActive = false;
+      const color = '#3b82f6';
+      const popupContent = `<div style="font-family:Arial,sans-serif;min-width:150px;">
+        <b style="color:#2563eb;font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+        <br><span style='color:#3b82f6;font-weight:bold;'>Connexion GPS Live ✓</span>
+      </div>`;
+      const target: L.LatLngTuple = this.selectedOrdreForMap.currentLat
+        ? [this.selectedOrdreForMap.currentLat, this.selectedOrdreForMap.currentLon]
+        : [lat1, lon1];
+      this.startGpsInterpolation(target, color, popupContent);
+    } else {
+      // Switch to Simulation mode
+      this.isSimulationActive = true;
+      this.currentSimDistance = 0;
+      const color = '#f97316';
+      const popupContent = `<div style="font-family:Arial,sans-serif;min-width:150px;">
+        <b style="color:#2563eb;font-size:14px;">Ordre: ${this.selectedOrdreForMap.orderNumber}</b>
+        <br><span style='color:#f97316;font-weight:bold;'>Traçage Simulé</span>
+      </div>`;
+      this.startSimulatedMovement(color, popupContent);
     }
   }
 
@@ -523,6 +590,8 @@ export class OrdreComponent implements OnInit {
 
     const animateSim = () => {
       if (!this.map || !this.isSimulationActive) return;
+      // Safety guard: if route arrays were reset, stop gracefully
+      if (this.routeCoords.length < 2 || this.cumulativeDistances.length < 2) return;
 
       this.currentSimDistance += stepSpeed;
       if (this.currentSimDistance >= this.totalRouteLength) {
@@ -553,49 +622,162 @@ export class OrdreComponent implements OnInit {
   private updateTruckMarker(coords: L.LatLngTuple, bearing: number, color: string, popupContent: string) {
     if (!this.map) return;
 
+    const isLive = !this.isSimulationActive;
+    const currentSpeed = isLive ? (this.selectedOrdreForMap?.speed || 0) : 75;
+
+    const pulseHtml = isLive ? `
+      <div style="position:absolute;top:-12px;left:5px;width:50px;height:50px;border-radius:50%;background:rgba(59,130,246,0.4);animation:web-pulse 1.8s infinite ease-out;pointer-events:none;z-index:-1;"></div>
+      <div style="position:absolute;top:8px;left:25px;width:10px;height:10px;border-radius:50%;background:#3b82f6;border:2px solid white;box-shadow:0 0 6px rgba(59,130,246,0.8);z-index:10;"></div>
+    ` : '';
+
+    const speedBadgeHtml = `
+      <div class="truck-speed-badge" style="
+        position: absolute;
+        top: -24px;
+        left: 12px;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-family: 'Inter', sans-serif;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        pointer-events: none;
+      ">
+        <span style="
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: ${isLive ? '#3b82f6' : '#f97316'};
+          display: inline-block;
+          animation: ${isLive ? 'web-pulse 1.5s infinite ease-out' : 'none'};
+        "></span>
+        <span>${currentSpeed} km/h</span>
+      </div>
+    `;
+
     if (this.truckMarker) {
       this.truckMarker.setLatLng(coords);
       this.truckMarker.setPopupContent(popupContent);
-      
       const element = this.truckMarker.getElement();
       if (element) {
         const iconWrapper = element.querySelector('.truck-icon-wrapper') as HTMLElement;
-        if (iconWrapper) {
-          iconWrapper.style.transform = `rotate(${bearing}deg)`;
+        if (iconWrapper) iconWrapper.style.transform = `rotate(${bearing}deg)`;
+        const svgs = element.querySelectorAll('.truck-cabin, .truck-strip');
+        svgs.forEach((svg: any) => svg.setAttribute('fill', color));
+        const pw = element.querySelector('.pulse-wrapper') as HTMLElement;
+        if (pw) pw.innerHTML = pulseHtml;
+        const speedBadge = element.querySelector('.truck-speed-badge') as HTMLElement;
+        if (speedBadge) {
+          speedBadge.outerHTML = speedBadgeHtml;
         }
       }
     } else {
       this.truckMarker = L.marker(coords, {
         icon: L.divIcon({
           className: 'custom-div-icon',
-          html: `<div class="truck-icon-wrapper" style="transform: rotate(${bearing}deg); transition: transform 0.1s linear; display: inline-block; filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.4));">
-            <svg width="60" height="25" viewBox="0 0 68 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="4" width="46" height="20" rx="1.5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-              <rect x="4" y="6" width="42" height="16" rx="1" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
-              <rect x="12" y="12" width="26" height="4" rx="1" fill="#f97316"/>
-              <rect x="48" y="12" width="4" height="4" fill="#475569"/>
-              <rect x="51" y="5" width="14" height="18" rx="2.5" fill="#f97316"/>
-              <path d="M57 6h5.5a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1 -1.5 1.5h-5.5l-2-8 2-8z" fill="#1e293b"/>
-              <rect x="52" y="8" width="5" height="12" rx="1" fill="rgba(255,255,255,0.2)"/>
-              <rect x="52" y="3" width="2" height="3" rx="0.5" fill="#334155"/>
-              <rect x="52" y="22" width="2" height="3" rx="0.5" fill="#334155"/>
-              <path d="M64 6h1v3h-1z" fill="#fde047"/>
-              <path d="M64 19h1v3h-1z" fill="#fde047"/>
-            </svg>
-          </div>`,
+          html: `
+            <div class="pulse-wrapper" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">${pulseHtml}</div>
+            ${speedBadgeHtml}
+            <div class="truck-icon-wrapper" style="transform:rotate(${bearing}deg);transition:transform 0.1s linear;display:inline-block;filter:drop-shadow(0px 3px 4px rgba(0,0,0,0.4));">
+              <svg width="60" height="25" viewBox="0 0 68 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="4" width="46" height="20" rx="1.5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+                <rect x="4" y="6" width="42" height="16" rx="1" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+                <rect class="truck-strip" x="12" y="12" width="26" height="4" rx="1" fill="${color}"/>
+                <rect x="48" y="12" width="4" height="4" fill="#475569"/>
+                <rect class="truck-cabin" x="51" y="5" width="14" height="18" rx="2.5" fill="${color}"/>
+                <path d="M57 6h5.5a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1 -1.5 1.5h-5.5l-2-8 2-8z" fill="#1e293b"/>
+                <rect x="52" y="8" width="5" height="12" rx="1" fill="rgba(255,255,255,0.2)"/>
+                <rect x="52" y="3" width="2" height="3" rx="0.5" fill="#334155"/>
+                <rect x="52" y="22" width="2" height="3" rx="0.5" fill="#334155"/>
+                <path d="M64 6h1v3h-1z" fill="#fde047"/>
+                <path d="M64 19h1v3h-1z" fill="#fde047"/>
+              </svg>
+            </div>`,
           iconSize: [60, 25],
           iconAnchor: [30, 12]
         })
       }).bindPopup(popupContent).addTo(this.map);
     }
-    
+
+    this.updateRouteDrawing(coords[0], coords[1], isLive);
+
     if (this.isFollowingTruck && this.map) {
       this.map.setView(coords, this.map.getZoom(), { animate: false });
     }
   }
 
+  private getClosestRouteIndex(truckCoords: L.LatLngTuple): number {
+    if (this.routeCoords.length === 0) return 0;
+    let minDist = Infinity, closestIdx = 0;
+    const truckPt = L.latLng(truckCoords);
+    for (let i = 0; i < this.routeCoords.length; i++) {
+      const d = truckPt.distanceTo(L.latLng(this.routeCoords[i]));
+      if (d < minDist) { minDist = d; closestIdx = i; }
+    }
+    return closestIdx;
+  }
+
+  private updateRouteDrawing(truckLat: number, truckLon: number, isLive: boolean) {
+    if (!this.map || this.routeCoords.length < 2) return;
+    if (this.routeTraveledLayer) { this.routeTraveledLayer.remove(); this.routeTraveledLayer = null; }
+    if (this.routeRemainingLayer) { this.routeRemainingLayer.remove(); this.routeRemainingLayer = null; }
+    if (this.routeTraveledGlow) { this.routeTraveledGlow.remove(); this.routeTraveledGlow = null; }
+    if (this.routeRemainingGlow) { this.routeRemainingGlow.remove(); this.routeRemainingGlow = null; }
+
+    const closestIdx = this.getClosestRouteIndex([truckLat, truckLon]);
+    const traveledCoords = [...this.routeCoords.slice(0, closestIdx + 1), [truckLat, truckLon] as L.LatLngTuple];
+    const remainingCoords = [[truckLat, truckLon] as L.LatLngTuple, ...this.routeCoords.slice(closestIdx + 1)];
+
+    if (isLive) {
+      // ── LIVE GPS mode: Digital Blue ──
+      this.routeTraveledGlow = L.polyline(traveledCoords, {
+        color: '#1e3a8a', weight: 9, opacity: 0.3, lineCap: 'round', lineJoin: 'round'
+      }).addTo(this.map);
+      this.routeTraveledLayer = L.polyline(traveledCoords, {
+        color: '#2563eb', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round'
+      }).addTo(this.map);
+      this.routeRemainingGlow = L.polyline(remainingCoords, {
+        color: '#64748b', weight: 9, opacity: 0.15, lineCap: 'round', lineJoin: 'round'
+      }).addTo(this.map);
+      this.routeRemainingLayer = L.polyline(remainingCoords, {
+        color: '#93c5fd', weight: 4, opacity: 0.75, dashArray: '8, 12', lineCap: 'round', lineJoin: 'round'
+      }).addTo(this.map);
+    } else {
+      // ── SIMULATION mode: Alert Amber traveled, gray dashed remaining ──
+      if (traveledCoords.length >= 2) {
+        this.routeTraveledGlow = L.polyline(traveledCoords, {
+          color: '#78350f', weight: 9, opacity: 0.28, lineCap: 'round', lineJoin: 'round'
+        }).addTo(this.map);
+        this.routeTraveledLayer = L.polyline(traveledCoords, {
+          color: '#f97316', weight: 5, opacity: 1, lineCap: 'round', lineJoin: 'round'
+        }).addTo(this.map);
+      }
+      if (remainingCoords.length >= 2) {
+        this.routeRemainingGlow = L.polyline(remainingCoords, {
+          color: '#64748b', weight: 9, opacity: 0.14, lineCap: 'round', lineJoin: 'round'
+        }).addTo(this.map);
+        this.routeRemainingLayer = L.polyline(remainingCoords, {
+          color: '#94a3b8', weight: 4, opacity: 0.7, dashArray: '10, 12', lineCap: 'round', lineJoin: 'round'
+        }).addTo(this.map);
+      }
+    }
+  }
+
   private getPointAtDistance(coords: L.LatLngTuple[], distance: number, cumulativeDistances: number[]) {
-    if (coords.length === 0) return null;
+    if (!coords || coords.length === 0) return null;
+    if (!cumulativeDistances || cumulativeDistances.length === 0) return null;
+    if (coords.length !== cumulativeDistances.length) return null;
     if (coords.length === 1 || distance <= 0) return { lat: coords[0][0], lon: coords[0][1], bearing: 0 };
     if (distance >= cumulativeDistances[cumulativeDistances.length - 1]) {
       const last = coords[coords.length - 1];
@@ -686,11 +868,6 @@ export class OrdreComponent implements OnInit {
               }
           }
       });
-  }
-
-  detail(ordre: any) {
-    this.service.detail = ordre;
-    console.log(this.service.detail);
   }
 
   sortEvents() {

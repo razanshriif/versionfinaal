@@ -1,4 +1,4 @@
-﻿import { LOCALE_ID, NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule, registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
@@ -54,6 +54,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { RegisterComponent } from './register/register.component';
 import { ChatbotComponent } from './chatbot/chatbot.component';
+
 
 @NgModule({
   declarations: [

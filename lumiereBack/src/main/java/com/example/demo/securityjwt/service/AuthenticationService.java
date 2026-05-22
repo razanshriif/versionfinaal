@@ -125,6 +125,36 @@ public class AuthenticationService {
         }
     }
 
+    public void forgotPassword(String email) {
+        String cleanEmail = email.toLowerCase().trim();
+        User user = userRepository.findFirstByEmailOrderByIdAsc(cleanEmail)
+                .orElseThrow(() -> new RuntimeException("Aucun compte n'est associé à cet email."));
+
+        // Generate 6-digit code
+        String code = String.valueOf((int) (Math.random() * 900000) + 100000);
+        user.setResetPasswordCode(code);
+        userRepository.save(user);
+
+        // Send email
+        emailService.sendResetPasswordEmail(cleanEmail, code);
+        logger.info("Reset password code sent to: {}", cleanEmail);
+    }
+
+    public void resetPassword(String email, String code, String newPassword) {
+        String cleanEmail = email.toLowerCase().trim();
+        User user = userRepository.findFirstByEmailOrderByIdAsc(cleanEmail)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé."));
+
+        if (user.getResetPasswordCode() == null || !user.getResetPasswordCode().equals(code)) {
+            throw new RuntimeException("Code de vérification invalide.");
+        }
+
+        user.setPasswd(passwordEncoder.encode(newPassword));
+        user.setResetPasswordCode(null); // Clear code after use
+        userRepository.save(user);
+        logger.info("Password successfully reset for: {}", cleanEmail);
+    }
+
     public AuthenticationResponse authenticate(AuthenticationRequest request, String appPlatform) {
         String email = request.email().toLowerCase().trim();
         logger.info("Attempting login for email: {} (Platform: {})", email, appPlatform);
@@ -137,11 +167,7 @@ public class AuthenticationService {
         final var user = userRepository.findFirstByEmailOrderByIdAsc(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé."));
 
-        // [NEW] Mobile access restriction
-        if ("mobile".equalsIgnoreCase(appPlatform) && user.getRole() != com.example.demo.Entity.Role.CLIENT) {
-            logger.warn("Non-client user {} attempted mobile login", email);
-            throw new RuntimeException("ACCES_REFUSE: Seuls les comptes clients peuvent accéder à l'application mobile.");
-        }
+
 
         if (user.getStatus() == com.example.demo.Entity.Status.PENDING) {
             throw new RuntimeException("ACCOUNT_PENDING: Votre compte est en attente de validation.");

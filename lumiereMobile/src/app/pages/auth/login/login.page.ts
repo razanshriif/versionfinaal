@@ -1,7 +1,7 @@
 import { Component, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonContent,
   IonInput,
@@ -33,8 +33,9 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     IonContent,
-    IonInput,      // ✅ IMPORTANT : IonInput ajouté ici
+    IonInput,
     IonButton,
     IonIcon,
     IonSpinner

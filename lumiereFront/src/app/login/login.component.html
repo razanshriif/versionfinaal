@@ -1,4 +1,4 @@
-﻿<div class="auth-wrapper">
+<div class="auth-wrapper">
   <div class="auth-card">
     <div class="auth-header">
       <div class="auth-logo">
@@ -21,6 +21,10 @@
           <i class="fas fa-lock"></i>
           <input type="password" name="password" [(ngModel)]="password" placeholder="Mot de passe" required>
         </div>
+      </div>
+      
+      <div class="forgot-password-link" style="text-align: right; margin-bottom: 15px;">
+        <a routerLink="/forgot-password" style="color: #f5921e; font-size: 0.85rem; text-decoration: none;">Mot de passe oublié ?</a>
       </div>
 
       <div *ngIf="err" class="auth-error">

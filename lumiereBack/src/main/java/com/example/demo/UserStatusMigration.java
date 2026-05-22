@@ -1,9 +1,12 @@
 package com.example.demo;
 
 import com.example.demo.Repository.UserRepository;
+import com.example.demo.Repository.OrdreRepository;
 import com.example.demo.Entity.Role;
 import com.example.demo.Entity.Status;
 import com.example.demo.Entity.User;
+import com.example.demo.Entity.Ordre;
+import com.example.demo.Entity.Statut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -26,12 +29,14 @@ public class UserStatusMigration implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
+    private final OrdreRepository ordreRepository;
 
     public UserStatusMigration(UserRepository userRepository, PasswordEncoder passwordEncoder,
-            JdbcTemplate jdbcTemplate) {
+            JdbcTemplate jdbcTemplate, OrdreRepository ordreRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
+        this.ordreRepository = ordreRepository;
     }
 
     @Override
@@ -59,14 +64,22 @@ public class UserStatusMigration implements CommandLineRunner {
                 log.warn("⚠️ Failed to add AUTO_INCREMENT to notifications.id: {}", e.getMessage());
             }
 
-            // [NEW] Data Migration: Update legacy roles to new values BEFORE changing enum definition
+            // [NEW] Data Migration: Update legacy roles in _user and CLEANUP role_permissions
             try {
                 jdbcTemplate.execute("UPDATE _user SET role = 'ADMIN' WHERE role = 'SUPERADMIN'");
                 jdbcTemplate.execute("UPDATE _user SET role = 'CLIENT' WHERE role IN ('USER', 'USER_OTFLOW')");
                 jdbcTemplate.execute("UPDATE _user SET role = 'EMPLOYER_LUMIERE' WHERE role = 'USER_LUMIERE'");
                 log.info("✅ Data Migration: Updated legacy roles in _user");
             } catch (Exception e) {
-                log.warn("⚠️ Data migration for _user failed: {}", e.getMessage());
+                log.warn("⚠️ Data migration for _user roles failed: {}", e.getMessage());
+            }
+
+            try {
+                // Delete legacy roles from role_permissions to allow clean re-seeding
+                jdbcTemplate.execute("DELETE FROM role_permissions WHERE role NOT IN ('ADMIN', 'CLIENT', 'COMMERCIAL', 'EMPLOYER_LUMIERE')");
+                log.info("✅ Data Migration: Cleaned up legacy roles from role_permissions");
+            } catch (Exception e) {
+                log.warn("⚠️ Cleanup of role_permissions failed: {}", e.getMessage());
             }
 
             try {
@@ -160,11 +173,12 @@ public class UserStatusMigration implements CommandLineRunner {
                 log.warn("⚠️ Data migration for user_clients failed: {}", e.getMessage());
             }
 
-            // [NEW] Debug: Print all CLIENT users and their links
+            // [NEW] Debug: Print all users
             try {
-                log.info("DEBUG: Checking all CLIENT users and their links...");
-                jdbcTemplate.query("SELECT u.id, u.email, (SELECT COUNT(*) FROM user_clients uc WHERE uc.user_id = u.id) as link_count FROM _user u WHERE u.role = 'CLIENT'", rs -> {
-                    log.info(" - User ID: {} | Email: {} | Links: {}", rs.getInt("id"), rs.getString("email"), rs.getInt("link_count"));
+                log.info("DEBUG: Checking all users in the database...");
+                jdbcTemplate.query("SELECT id, email, role, status FROM _user", rs -> {
+                    log.info(" - User ID: {} | Email: {} | Role: {} | Status: {}", 
+                        rs.getInt("id"), rs.getString("email"), rs.getString("role"), rs.getString("status"));
                 });
             } catch (Exception e) {}
 
@@ -254,5 +268,19 @@ public class UserStatusMigration implements CommandLineRunner {
                     userRepository.save(testUser);
                     log.info("✅ Created NEW test client user: {}", testEmail);
                 });
+
+        // [QUICK FIX] Force status of the last draft order to NON_PLANIFIE so it appears in "mes livraisons"
+        try {
+            Integer draftCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ordre WHERE statut = 'NON_CONFIRME'", Integer.class);
+            if (draftCount != null && draftCount > 0) {
+                jdbcTemplate.execute("UPDATE ordre SET statut = 'NON_PLANIFIE' WHERE statut = 'NON_CONFIRME' ORDER BY id DESC LIMIT 1");
+                log.info("✅ Successfully updated the last draft order to NON_PLANIFIE status.");
+            } else {
+                jdbcTemplate.execute("UPDATE ordre SET statut = 'NON_PLANIFIE' ORDER BY id DESC LIMIT 1");
+                log.info("✅ No draft orders found. Set the latest order to NON_PLANIFIE status to ensure display.");
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Failed to update last draft order: {}", e.getMessage());
+        }
     }
 }

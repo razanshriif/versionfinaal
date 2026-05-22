@@ -14,14 +14,39 @@
       </div>
     </div>
 
-    <button class="header-tracing-btn" *ngIf="selectedLivraison" (click)="replotRoute(); $event.stopPropagation()">
-      <ion-icon name="analytics-outline"></ion-icon>
-      <span>Traçage</span>
-    </button>
   </div>
 
   <!-- The Leaflet map container -->
-  <div id="osm-map" class="map-container"></div>
+  <div style="position: relative; width: 100%; height: 100%; flex: 1;">
+    <div id="osm-map" class="map-container"></div>
+    
+    <!-- Premium Map Controls Panel -->
+    <div *ngIf="selectedLivraison" class="premium-map-controls">
+      <!-- Badge -->
+      <div class="status-indicator">
+        <span *ngIf="!isSimulationActive" class="map-mode-badge live">
+          <span class="dot-live"></span> GPS Live
+        </span>
+        <span *ngIf="isSimulationActive" class="map-mode-badge tracage">
+          <span class="dot-tracage"></span> Traçage Simulé
+        </span>
+      </div>
+
+      <!-- Traçage Toggle Button -->
+      <button class="map-ctrl-btn tracage-btn"
+        (click)="toggleSimulation()"
+        [title]="isSimulationActive ? 'Passer en mode Live GPS' : 'Lancer le Traçage Simulé'">
+        <ion-icon [name]="isSimulationActive ? 'navigate-outline' : 'analytics-outline'"></ion-icon>
+        {{ isSimulationActive ? 'Mode Live' : 'Traçage' }}
+      </button>
+
+      <!-- Re-center Button -->
+      <button class="map-ctrl-btn recenter-btn" (click)="isFollowingTruck = true" title="Recentrer sur le camion">
+        <ion-icon name="location-outline"></ion-icon>
+        Recentrer
+      </button>
+    </div>
+  </div>
 
   <!-- Floating Vertical Timeline Overlay -->
   <div class="timeline-wrapper" *ngIf="selectedLivraison" [class.collapsed]="isTimelineCollapsed">

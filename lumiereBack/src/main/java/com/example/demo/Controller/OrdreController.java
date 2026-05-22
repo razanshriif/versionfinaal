@@ -155,7 +155,8 @@ public class OrdreController {
 			ordre.setCommentaires(commentaires);
 		}
 		ordre.setStatut(Statut.NON_CONFIRME);
-		Ordre updated = ordreService.save(ordre);
+		// Utiliser le repository directement pour les mises à jour sans changer le numéro d'ordre
+		Ordre updated = ordreService.update(id, ordre);
 		return ResponseEntity.ok(updated);
 	}
 
@@ -196,7 +197,7 @@ public class OrdreController {
 		copie.setStatut(Statut.NON_CONFIRME);
 		copie.setOrderNumber("COPIE-" + original.getOrderNumber());
 
-		Ordre saved = ordreService.save(copie);
+		Ordre saved = ordreService.save(copie, original.getOwner());
 		return ResponseEntity.ok(saved);
 	}
 
@@ -242,7 +243,7 @@ public class OrdreController {
 			copie.setNombreColis(original.getNombreColis());
 			copie.setLongueur(original.getLongueur());
 			copie.setStatut(Statut.NON_CONFIRME);
-			Ordre saved = ordreService.save(copie);
+			Ordre saved = ordreService.save(copie, original.getOwner());
 			copies.add(saved);
 		}
 

@@ -347,3 +347,52 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+/* ── Filter Panel ── */
+.lum-filter-panel {
+  background: #fff;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 12px 16px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lum-filter-panel .filter-header h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.filter-options {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-opt-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.filter-opt-btn.active {
+  background: #fff7ed;
+  border-color: #f97316;
+  color: #f97316;
+}
