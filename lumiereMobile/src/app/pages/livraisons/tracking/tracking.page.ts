@@ -239,10 +239,12 @@ export class TrackingPage implements OnInit, OnDestroy {
   }
 
   viewDetails(livraison: LivraisonSimple) {
-    this.selectLivraison(livraison);
-    // On pourrait naviguer vers une page détail ou ouvrir un modal.
-    // Pour l'instant on réutilise l'ID pour charger les détails si besoin.
-    console.log('Viewing details for:', livraison.id);
+    if (!livraison?.id) {
+      return;
+    }
+    this.router.navigate(['/demandes/details'], {
+      queryParams: { id: livraison.id },
+    });
   }
 
   formatDate(date: string | Date): string {

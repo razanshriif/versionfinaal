@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ViewWillLeave } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -49,11 +50,14 @@ import { ThemeService } from '../../services/theme.service';
 import { ToastService } from '../../services/toast.service';
 import { ClientService } from '../../services/client.service';
 import { NotificationService } from '../../services/notification.service';
+import { DraftOrdreService } from '../../services/draft-ordre.service';
 import { addIcons } from 'ionicons';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 
 import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.component';
+import { DraftResumeSheetComponent } from '../../components/draft-resume-sheet/draft-resume-sheet.component';
+import { Demande } from '../../models/demande.model';
 
 @Component({
   selector: 'app-home',
@@ -67,10 +71,18 @@ import { LumLogoBarComponent } from '../../components/lum-logo-bar/lum-logo-bar.
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    LumLogoBarComponent
+    LumLogoBarComponent,
+    DraftResumeSheetComponent
   ]
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, OnDestroy, ViewWillLeave {
+  /** Delay draft resume prompt so home + welcome toast appear first after login. */
+  private static readonly DRAFT_PROMPT_DELAY_MS = 2000;
+  private draftPromptTimeout?: ReturnType<typeof setTimeout>;
+
+  showDraftResumeSheet = false;
+  draftResumeTarget: Demande | null = null;
+  draftResumeCount = 0;
 
   user: any = {
     firstname: '',
@@ -148,7 +160,8 @@ export class HomePage implements OnInit {
     private themeService: ThemeService,
     private toastService: ToastService,
     private clientService: ClientService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private draftOrdreService: DraftOrdreService
   ) {
     this.darkMode$ = this.themeService.darkMode$;
     addIcons({ 
@@ -220,6 +233,62 @@ export class HomePage implements OnInit {
     this.loadAllData();
     this.loadPendingRappels();
     this.notificationService.loadUnreadCount();
+  }
+
+  ionViewWillLeave(): void {
+    this.clearDraftPromptSchedule();
+    this.showDraftResumeSheet = false;
+  }
+
+  ngOnDestroy(): void {
+    this.clearDraftPromptSchedule();
+  }
+
+  private clearDraftPromptSchedule(): void {
+    if (this.draftPromptTimeout != null) {
+      clearTimeout(this.draftPromptTimeout);
+      this.draftPromptTimeout = undefined;
+    }
+  }
+
+  private scheduleDraftResumePrompt(): void {
+    this.clearDraftPromptSchedule();
+
+    if (!this.draftOrdreService.shouldCheckDraftResume() || !this.mesDrafts?.length) {
+      return;
+    }
+
+    this.draftPromptTimeout = setTimeout(() => {
+      this.draftPromptTimeout = undefined;
+      if (!this.draftOrdreService.shouldCheckDraftResume() || !this.mesDrafts?.length) {
+        return;
+      }
+      this.openDraftResumeSheet();
+    }, HomePage.DRAFT_PROMPT_DELAY_MS);
+  }
+
+  private openDraftResumeSheet(): void {
+    if (!this.draftOrdreService.shouldCheckDraftResume() || !this.mesDrafts?.length) {
+      return;
+    }
+
+    this.draftResumeTarget = this.mesDrafts[0] as Demande;
+    this.draftResumeCount = this.mesDrafts.length;
+    this.draftOrdreService.clearDraftResumeCheck();
+    this.showDraftResumeSheet = true;
+  }
+
+  onDraftResumeIgnored(): void {
+    this.showDraftResumeSheet = false;
+    this.draftOrdreService.ignoreDraftResumeForSession();
+  }
+
+  onDraftResumeContinued(): void {
+    const id = this.draftResumeTarget?.id;
+    this.showDraftResumeSheet = false;
+    if (id) {
+      this.draftOrdreService.openDraftForEdit(id);
+    }
   }
 
   loadPendingRappels() {
@@ -323,8 +392,18 @@ export class HomePage implements OnInit {
       next: (res: any) => {
         // If it's a paged response, handle content
         const data = res.content || res;
-        this.mesDrafts = data.filter((d: any) => d.statut === 'NON_CONFIRME');
+        this.mesDrafts = data
+          .filter((d: any) => {
+            const s = (d.statut || '').toUpperCase();
+            return s === 'NON_CONFIRME' || s === 'BROUILLON';
+          })
+          .sort((a: any, b: any) => {
+            const da = new Date(a.dateSaisie || 0).getTime();
+            const db = new Date(b.dateSaisie || 0).getTime();
+            return db - da;
+          });
         console.log('✅ Drafts loaded:', this.mesDrafts.length);
+        this.scheduleDraftResumePrompt();
       },
       error: (err) => console.error('❌ Error loading drafts:', err)
     });

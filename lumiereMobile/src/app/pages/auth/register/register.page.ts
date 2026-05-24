@@ -10,13 +10,13 @@ import {
   IonButton,
   IonIcon,
   IonCheckbox,
-  ToastController,
   LoadingController
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
 import { eyeOutline, eyeOffOutline } from 'ionicons/icons';
 import { AuthService } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -54,7 +54,7 @@ export class RegisterPage {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private toastCtrl: ToastController,
+    private toastService: ToastService,
     private loadingCtrl: LoadingController
   ) {
     addIcons({
@@ -78,35 +78,17 @@ export class RegisterPage {
     // 1️⃣ Simple validation
     if (!this.formData.firstname || !this.formData.lastname || !this.formData.email ||
       !this.formData.password || !this.formData.confirmPassword) {
-      const toast = await this.toastCtrl.create({
-        message: 'Veuillez remplir tous les champs obligatoires',
-        color: 'warning',
-        duration: 3000,
-        position: 'top'
-      });
-      toast.present();
+      await this.toastService.show('Veuillez remplir tous les champs obligatoires', 'warning');
       return;
     }
 
     if (this.formData.password !== this.formData.confirmPassword) {
-      const toast = await this.toastCtrl.create({
-        message: 'Les mots de passe ne correspondent pas',
-        color: 'danger',
-        duration: 3000,
-        position: 'top'
-      });
-      toast.present();
+      await this.toastService.show('Les mots de passe ne correspondent pas', 'danger');
       return;
     }
 
     if (!this.formData.acceptTerms) {
-      const toast = await this.toastCtrl.create({
-        message: 'Veuillez accepter les conditions',
-        color: 'warning',
-        duration: 3000,
-        position: 'top'
-      });
-      toast.present();
+      await this.toastService.show('Veuillez accepter les conditions', 'warning');
       return;
     }
 
@@ -140,25 +122,17 @@ export class RegisterPage {
         await loading.dismiss();
         // Save email so the pending page can poll status
         sessionStorage.setItem('pending_email', this.formData.email);
-        const toast = await this.toastCtrl.create({
-          message: '🕐 Compte créé ! En attente de validation par un administrateur.',
-          color: 'warning',
-          duration: 4000,
-          position: 'top'
-        });
-        toast.present();
+        await this.toastService.show(
+          'Compte créé ! En attente de validation par un administrateur.',
+          'warning',
+          4000
+        );
         this.router.navigate(['/pending']);
       },
       error: async (err) => {
         await loading.dismiss();
         const message = err?.error?.message || 'Erreur lors de l’inscription';
-        const toast = await this.toastCtrl.create({
-          message,
-          color: 'danger',
-          duration: 3000,
-          position: 'top'
-        });
-        toast.present();
+        await this.toastService.show(message, 'danger');
       }
     });
   }

@@ -146,3 +146,12 @@
     <div class="spacer"></div>
   </div>
 </ion-content>
+
+<app-draft-resume-sheet
+  [isOpen]="showDraftResumeSheet"
+  [draft]="draftResumeTarget"
+  [draftCount]="draftResumeCount"
+  (ignored)="onDraftResumeIgnored()"
+  (continued)="onDraftResumeContinued()"
+  (closed)="onDraftResumeIgnored()">
+</app-draft-resume-sheet>

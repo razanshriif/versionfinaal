@@ -3,6 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
+
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
@@ -15,6 +19,9 @@ export class ForgotPassword {
   err: boolean = false;
   error: string = '';
   successMsg: string = '';
+  isLoading: boolean = false;
+
+  constructor(private http: HttpClient, private router: Router) {}
 
   onSubmit() {
     if (!this.email) {
@@ -22,7 +29,24 @@ export class ForgotPassword {
       this.error = 'Veuillez entrer votre adresse email.';
       return;
     }
+    
+    this.isLoading = true;
     this.err = false;
-    this.successMsg = "Un lien de réinitialisation a été envoyé si l'adresse email existe dans notre système.";
+    
+    this.http.post(`${environment.apiUrl}/v1/auth/forgot-password`, { email: this.email }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.successMsg = "Code envoyé avec succès ! Redirection...";
+        // Navigate to reset password page with email in query params
+        setTimeout(() => {
+          this.router.navigate(['/reset-password'], { queryParams: { email: this.email } });
+        }, 1500);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.err = true;
+        this.error = "Erreur lors de l'envoi. Vérifiez l'adresse email.";
+      }
+    });
   }
 }

@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonIcon, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { ToastService } from '../../services/toast.service';
 import { NavController, ViewDidEnter } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, notificationsOutline, logOutOutline, busOutline, analyticsOutline, locationOutline, businessOutline, homeOutline, cubeOutline, navigateOutline, checkmarkDoneOutline, flagOutline, chevronForwardOutline, chevronBackOutline, speedometerOutline, location, flag } from 'ionicons/icons';
@@ -91,7 +92,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter {
     private route: ActivatedRoute,
     private livraisonService: LivraisonService,
     private http: HttpClient,
-    private toastCtrl: ToastController
+    private toastService: ToastService
   ) {
     addIcons({ arrowBackOutline, notificationsOutline, logOutOutline, busOutline, analyticsOutline, locationOutline, businessOutline, homeOutline, cubeOutline, navigateOutline, checkmarkDoneOutline, flagOutline, chevronForwardOutline, chevronBackOutline, speedometerOutline, location, flag });
   }
@@ -815,14 +816,7 @@ export class MapPage implements OnInit, OnDestroy, ViewDidEnter {
       console.log('🔄 Replotting route (exact frontend style)...');
       this.geocodeAndPlot(this.selectedLivraison);
       
-      const toast = await this.toastCtrl.create({
-        message: 'Mise à jour du tracé...',
-        duration: 1500,
-        position: 'top',
-        color: 'primary',
-        cssClass: 'custom-toast'
-      });
-      toast.present();
+      await this.toastService.show('Mise à jour du tracé…', 'info', 1500);
     }
   }
 

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ViewWillLeave } from '@ionic/angular';
 import {
-  ToastController,
   LoadingController,
   IonIcon,
   IonContent,
@@ -27,9 +27,12 @@ import {
   notificationsOutline, logOutOutline, logInOutline, chevronDownOutline
 } from 'ionicons/icons';
 import { DemandeService } from '../../../services/demande.service';
+import { DraftOrdreService } from '../../../services/draft-ordre.service';
+import { ToastService } from '../../../services/toast.service';
 import { ClientService } from '../../../services/client.service';
 import { ArticleService } from '../../../services/article.service';
 import { AuthService } from '../../../services/auth.service';
+import { firstValueFrom } from 'rxjs';
 import { Client } from '../../../models/client.model';
 import { Article } from '../../../models/article.model';
 import { Ordre } from '../../../models/ordre.model';
@@ -47,7 +50,7 @@ import { LumLogoBarComponent } from '../../../components/lum-logo-bar/lum-logo-b
     IonDatetimeButton, IonDatetime, LumLogoBarComponent
   ]
 })
-export class CreatePage implements OnInit {
+export class CreatePage implements OnInit, ViewWillLeave {
   ordre: Ordre = {
     client: '',
     nomclient: '',
@@ -99,22 +102,111 @@ export class CreatePage implements OnInit {
   orderSent: string | null = null;
   userProfile: any = null;
 
+  draftOrdreId?: number;
+  isEditMode = false;
+  private skipAutoSave = false;
+  private isSavingDraft = false;
+  /** Skip API call when leaving if form data unchanged since last save. */
+  private lastSavedSnapshot = '';
+
   constructor(
     private demandeService: DemandeService,
+    private draftOrdreService: DraftOrdreService,
     private clientService: ClientService,
     private articleService: ArticleService,
     private authService: AuthService,
     private router: Router,
-    private toastController: ToastController,
+    private route: ActivatedRoute,
+    private toastService: ToastService,
     private loadingController: LoadingController
   ) {
     addIcons({ notificationsOutline, logOutOutline, logInOutline, chevronDownOutline, arrowBackOutline, personOutline, cloudUploadOutline, searchOutline, locationOutline, cubeOutline, carOutline, sendOutline, businessOutline, calendarOutline, arrowUpCircleOutline, chatbubbleOutline, personAddOutline, closeOutline, busOutline, snowOutline, layersOutline, waterOutline });
   }
 
   async ngOnInit() {
+    const params = this.route.snapshot.queryParamMap;
+    const editId = params.get('id');
+    const mode = params.get('mode');
+    if (editId && mode === 'edit') {
+      this.draftOrdreId = Number(editId);
+      this.isEditMode = true;
+    }
+
     this.initDates();
     await this.loadInitialData();
+
+    if (this.draftOrdreId) {
+      await this.loadDraftForEdit(this.draftOrdreId);
+    }
+
     this.updateCommentaire();
+  }
+
+  ionViewWillLeave(): void {
+    void this.autoSaveDraftOnLeave(true);
+  }
+
+  private async loadDraftForEdit(id: number): Promise<void> {
+    try {
+      const data = await firstValueFrom(this.demandeService.getDemandeById(id));
+      if ((data.statut || '').toUpperCase() !== 'NON_CONFIRME' &&
+          (data.statut || '').toUpperCase() !== 'BROUILLON') {
+        await this.showToast('Cet ordre n\'est plus un brouillon', 'warning');
+        this.router.navigate(['/demandes/list']);
+        return;
+      }
+      this.ordre = this.draftOrdreService.applyDraftToForm(this.ordre, data);
+      this.optionsCommentaire = this.draftOrdreService.parseCommentOptions(
+        data.commentaires as string[] | undefined
+      );
+      this.updateCommentaire();
+      this.lastSavedSnapshot = this.getDraftSnapshot();
+    } catch (e) {
+      console.error('Error loading draft', e);
+      await this.showToast('Impossible de charger le brouillon', 'danger');
+    }
+  }
+
+  private getDraftSnapshot(): string {
+    return JSON.stringify({
+      ordre: this.ordre,
+      options: this.optionsCommentaire,
+    });
+  }
+
+  private async autoSaveDraftOnLeave(showToast: boolean): Promise<void> {
+    if (this.skipAutoSave || this.isSavingDraft || this.orderSent) {
+      return;
+    }
+    if (!this.draftOrdreService.hasMeaningfulDraftData(this.ordre, this.optionsCommentaire)) {
+      return;
+    }
+
+    this.updateCommentaire();
+    const snapshot = this.getDraftSnapshot();
+    if (snapshot === this.lastSavedSnapshot) {
+      return;
+    }
+
+    this.isSavingDraft = true;
+    try {
+      const id = await this.draftOrdreService.saveDraft(
+        this.ordre,
+        this.optionsCommentaire,
+        this.draftOrdreId
+      );
+      if (id) {
+        this.draftOrdreId = id;
+        this.lastSavedSnapshot = snapshot;
+        if (showToast) {
+          await this.showToast('Brouillon enregistré', 'success');
+        }
+      }
+    } catch (e) {
+      console.error('Auto-save draft failed', e);
+    } finally {
+      this.isSavingDraft = false;
+    }
   }
 
   initDates() {
@@ -261,40 +353,45 @@ export class CreatePage implements OnInit {
   }
 
   async validerCommande() {
-    if (!this.ordre.client) {
-      await this.showToast('Veuillez renseigner le code client', 'warning');
+    this.updateCommentaire();
+
+    if (!this.draftOrdreService.isOrdreCompleteForSubmit(this.ordre, this.optionsCommentaire)) {
+      await this.showToast(
+        this.draftOrdreService.getIncompleteSubmitMessage(this.ordre, this.optionsCommentaire),
+        'warning'
+      );
       return;
     }
 
-    const loading = await this.loadingController.create({ message: 'Création de l\'ordre...' });
+    const loading = await this.loadingController.create({ message: 'Enregistrement du brouillon...' });
     await loading.present();
 
     try {
-      this.updateCommentaire();
-      if (this.commentaireFinal) {
-        this.ordre.commentaires = [this.commentaireFinal];
+      const finalPayload = this.draftOrdreService.buildDraftPayload(
+        this.ordre,
+        this.optionsCommentaire
+      );
+
+      if (this.draftOrdreId) {
+        await firstValueFrom(
+          this.demandeService.updateDemande(this.draftOrdreId, finalPayload as any)
+        );
+      } else {
+        const created = await firstValueFrom(
+          this.demandeService.createDemande(finalPayload as any)
+        );
+        this.draftOrdreId = created.id;
       }
 
-      // Clean payload for backend (remove auto-generated/conflict fields)
-      const { id, orderNumber, dateSaisie, statut, ...cleanPayload } = this.ordre as any;
-
-      // Ensure numeric fields are definitely numbers
-      const finalPayload = {
-        ...cleanPayload,
-        poids: Number(cleanPayload.poids || 0),
-        volume: Number(cleanPayload.volume || 0),
-        longueur: Number(cleanPayload.longueur || 0),
-        nombreColis: Number(cleanPayload.nombreColis || 0),
-        nombrePalettes: Number(cleanPayload.nombrePalettes || 0),
-        commentaires: this.ordre.commentaires && this.ordre.commentaires.length > 0
-          ? Array.from(new Set(this.ordre.commentaires)) : null
-      };
-
-      await this.demandeService.createDemande(finalPayload as any).toPromise();
       await loading.dismiss();
-      this.orderSent = "Commande enregistrée avec succès";
-      await this.showToast('Ordre créé avec succès!', 'success');
-      this.router.navigate(['/demandes/list']);
+      this.skipAutoSave = true;
+      this.lastSavedSnapshot = this.getDraftSnapshot();
+      this.orderSent = 'Brouillon enregistré — en attente de confirmation';
+      await this.showToast(
+        'Demande enregistrée. Un administrateur confirmera l\'ordre avant planification.',
+        'success'
+      );
+      this.router.navigate(['/demandes/list'], { queryParams: { mode: 'draft' } });
     } catch (error) {
       await loading.dismiss();
       console.error('Erreur lors de la création de l\'ordre:', error);
@@ -336,13 +433,10 @@ export class CreatePage implements OnInit {
   }
 
   private async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
+    await this.toastService.show(
       message,
-      duration: 3000,
-      color,
-      position: 'top'
-    });
-    await toast.present();
+      color as 'success' | 'danger' | 'warning' | 'error' | 'info'
+    );
   }
 }
 

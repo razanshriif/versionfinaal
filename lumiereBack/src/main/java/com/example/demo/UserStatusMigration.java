@@ -269,18 +269,5 @@ public class UserStatusMigration implements CommandLineRunner {
                     log.info("✅ Created NEW test client user: {}", testEmail);
                 });
 
-        // [QUICK FIX] Force status of the last draft order to NON_PLANIFIE so it appears in "mes livraisons"
-        try {
-            Integer draftCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM ordre WHERE statut = 'NON_CONFIRME'", Integer.class);
-            if (draftCount != null && draftCount > 0) {
-                jdbcTemplate.execute("UPDATE ordre SET statut = 'NON_PLANIFIE' WHERE statut = 'NON_CONFIRME' ORDER BY id DESC LIMIT 1");
-                log.info("✅ Successfully updated the last draft order to NON_PLANIFIE status.");
-            } else {
-                jdbcTemplate.execute("UPDATE ordre SET statut = 'NON_PLANIFIE' ORDER BY id DESC LIMIT 1");
-                log.info("✅ No draft orders found. Set the latest order to NON_PLANIFIE status to ensure display.");
-            }
-        } catch (Exception e) {
-            log.warn("⚠️ Failed to update last draft order: {}", e.getMessage());
-        }
     }
 }

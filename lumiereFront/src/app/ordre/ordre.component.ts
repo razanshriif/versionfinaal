@@ -135,8 +135,13 @@ export class OrdreComponent implements OnInit {
   }
 
   detail(ordre: any) {
+    if (!ordre?.id) {
+      return;
+    }
     this.service.detail = ordre;
-    this.router.navigate(['/material/ordredetail']);
+    this.router.navigate(['/material/ordredetail'], {
+      queryParams: { id: ordre.id },
+    });
   }
 
   onSubmit() {

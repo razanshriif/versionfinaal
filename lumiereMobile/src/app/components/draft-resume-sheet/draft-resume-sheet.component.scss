@@ -1,0 +1,239 @@
+.draft-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  background: rgba(24, 23, 15, 0.45);
+  backdrop-filter: blur(8px);
+  animation: draft-backdrop-in 0.28s ease-out;
+}
+
+.draft-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 28px 24px 24px;
+  box-shadow:
+    0 24px 64px rgba(24, 23, 15, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+  animation: draft-sheet-up 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 4px;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(90deg, var(--orange) 0%, #fbbf24 100%);
+  }
+}
+
+.draft-sheet__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.draft-sheet__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.draft-sheet__icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.12);
+
+  ion-icon {
+    font-size: 32px;
+    color: var(--orange);
+  }
+}
+
+.draft-sheet__badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: #fff7ed;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.draft-sheet__title {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text-main);
+  line-height: 1.25;
+  padding: 0 8px;
+}
+
+.draft-sheet__message {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-sub);
+  padding: 0 4px;
+}
+
+.draft-sheet__preview {
+  background: var(--bg-app, #f8fafc);
+  border: 1px solid var(--border-card, #e5e7eb);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.draft-sheet__preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.draft-sheet__ref {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--orange);
+}
+
+.draft-sheet__date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.draft-sheet__client {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.draft-sheet__route {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.4;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--orange);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.draft-sheet__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.draft-sheet__btn {
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.draft-sheet__btn--primary {
+  background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(249, 115, 22, 0.35);
+
+  ion-icon {
+    opacity: 0.95;
+  }
+}
+
+.draft-sheet__btn--ghost {
+  background: transparent;
+  color: var(--text-sub);
+  min-height: 44px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+@keyframes draft-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes draft-sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 480px) {
+  .draft-sheet-backdrop {
+    align-items: center;
+  }
+}

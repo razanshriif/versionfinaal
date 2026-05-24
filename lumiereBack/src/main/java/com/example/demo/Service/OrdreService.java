@@ -146,6 +146,10 @@ public class OrdreService {
 
 		Optional<Ordre> Ordre = ordreRepository.findById(id);
 		Ordre ordre = Ordre.get();
+		if (!isOrdreCompleteForConfirmation(ordre)) {
+			throw new IllegalStateException(
+					"Impossible de confirmer l'ordre : informations obligatoires manquantes.");
+		}
 		ordre.setStatut(Statut.NON_PLANIFIE);
 
 		final Ordre updatedOrdre = ordreRepository.save(ordre);
@@ -230,7 +234,14 @@ public class OrdreService {
 		ordre.setNombreColis(ordreDetails.getNombreColis());
 		ordre.setLongueur(ordreDetails.getLongueur());
 
-		ordre.setStatut(ordreDetails.getStatut());
+		// Drafts must be confirmed only via confirmer(), not a generic PUT
+		if (ordre.getStatut() == Statut.NON_CONFIRME
+				&& ordreDetails.getStatut() != null
+				&& ordreDetails.getStatut() != Statut.NON_CONFIRME) {
+			ordre.setStatut(Statut.NON_CONFIRME);
+		} else if (ordreDetails.getStatut() != null) {
+			ordre.setStatut(ordreDetails.getStatut());
+		}
 		ordre.setCommentaires(ordreDetails.getCommentaires());
 		ordre.setTrancking(ordreDetails.getTrancking());
 
@@ -358,6 +369,20 @@ public class OrdreService {
 			return ordreRepository.save(ordre);
 		}
 		throw new RuntimeException("Ordre introuvable avec l'ID: " + id);
+	}
+
+	private boolean isOrdreCompleteForConfirmation(Ordre ordre) {
+		if (ordre == null) {
+			return false;
+		}
+		boolean hasClient = ordre.getClient() != null && !ordre.getClient().isBlank();
+		boolean hasChargement = ordre.getChargementNom() != null && !ordre.getChargementNom().isBlank()
+				&& ordre.getChargementDate() != null;
+		boolean hasLivraison = ordre.getLivraisonNom() != null && !ordre.getLivraisonNom().isBlank()
+				&& ordre.getLivraisonDate() != null;
+		boolean hasArticle = ordre.getCodeArticle() != null && !ordre.getCodeArticle().isBlank();
+		boolean hasWeight = ordre.getPoids() != null && ordre.getPoids() > 0;
+		return hasClient && hasChargement && hasLivraison && hasArticle && hasWeight;
 	}
 
 }

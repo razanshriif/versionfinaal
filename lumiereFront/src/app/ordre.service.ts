@@ -16,6 +16,10 @@ export class OrdreService {
   afficher(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, { headers: this.getAuthHeaders() });
   }
+
+  getById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+  }
   afficherByClient(clientCode: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/client/${clientCode}`, { headers: this.getAuthHeaders() });
   }

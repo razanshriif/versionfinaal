@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { IonContent, IonInput, IonButton, IonIcon, IonSpinner, ToastController, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton } from '@ionic/angular/standalone';
+import { IonContent, IonInput, IonButton, IonIcon, IonSpinner, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton } from '@ionic/angular/standalone';
+import { ToastService } from '../../../services/toast.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
@@ -24,7 +25,7 @@ export class ResetPasswordPage implements OnInit {
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
-    private toastController: ToastController
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -47,7 +48,7 @@ export class ResetPasswordPage implements OnInit {
       this.isLoading = true;
       const payload = this.resetForm.value;
       
-      this.http.post(`${environment.apiUrl}/auth/reset-password`, payload).subscribe({
+      this.http.post(`${environment.apiUrl}/v1/auth/reset-password`, payload).subscribe({
         next: async (res: any) => {
           this.isLoading = false;
           await this.showToast(res.message || 'Mot de passe réinitialisé avec succès', 'success');
@@ -63,12 +64,9 @@ export class ResetPasswordPage implements OnInit {
   }
 
   async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
+    await this.toastService.show(
       message,
-      duration: 3000,
-      color,
-      position: 'top'
-    });
-    toast.present();
+      color as 'success' | 'danger' | 'warning' | 'error' | 'info'
+    );
   }
 }

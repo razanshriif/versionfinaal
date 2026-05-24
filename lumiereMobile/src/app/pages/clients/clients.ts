@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ViewDidEnter, ToastController, AlertController, NavController } from '@ionic/angular';
+import { ViewDidEnter, NavController } from '@ionic/angular';
+import { ToastService } from '../../services/toast.service';
+import { AlertService } from '../../services/alert.service';
 import {
   IonHeader, IonIcon,
   IonContent, IonRefresher, IonRefresherContent,
@@ -55,8 +57,8 @@ export class Clients implements OnInit, ViewDidEnter {
   constructor(
     private clientService: ClientService,
     private router: Router,
-    private toastController: ToastController,
-    private alertController: AlertController,
+    private toastService: ToastService,
+    private alertService: AlertService,
     public navCtrl: NavController
   ) {
     addIcons({
@@ -120,21 +122,15 @@ export class Clients implements OnInit, ViewDidEnter {
   }
 
   async deleteClient(client: Client) {
-    const alert = await this.alertController.create({
-      header: 'Confirmation',
-      message: `Voulez-vous vraiment supprimer le client ${client.nom} ?`,
-      buttons: [
-        { text: 'Annuler', role: 'cancel' },
-        {
-          text: 'Supprimer',
-          role: 'destructive',
-          handler: () => {
-            this.performDelete(client.code!);
-          }
-        }
-      ]
+    const confirmed = await this.alertService.confirm({
+      header: 'Supprimer le client',
+      message: `Voulez-vous vraiment supprimer ${client.nom} ?`,
+      confirmText: 'Supprimer',
+      destructive: true,
     });
-    await alert.present();
+    if (confirmed && client.code) {
+      this.performDelete(client.code);
+    }
   }
 
   performDelete(id: number) {
@@ -169,13 +165,7 @@ export class Clients implements OnInit, ViewDidEnter {
   }
 
   private async showToast(message: string, color: 'success' | 'danger' | 'warning') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2000,
-      color,
-      position: 'bottom'
-    });
-    toast.present();
+    await this.toastService.show(message, color);
   }
 }
 

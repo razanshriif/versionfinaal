@@ -8,7 +8,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { IonicModule, NavController, IonSelect, IonSelectOption, IonButton } from '@ionic/angular';
 import { DemandeService, DemandeFilter } from '../../../services/demande.service';
 import { Demande } from '../../../models/demande.model';
-import { AlertController, ToastController } from '@ionic/angular';
+import { ToastService } from '../../../services/toast.service';
+import { AlertService } from '../../../services/alert.service';
 import { addIcons } from 'ionicons';
 import {
   notificationsOutline,
@@ -93,8 +94,8 @@ export class ListPage implements OnInit {
   constructor(
     private demandeService: DemandeService,
     private router: Router,
-    private alertController: AlertController,
-    private toastController: ToastController,
+    private alertService: AlertService,
+    private toastService: ToastService,
     public navCtrl: NavController
   ) {
     addIcons({
@@ -364,65 +365,43 @@ export class ListPage implements OnInit {
   }
   async confirmDemande(demande: Demande, event: Event) {
     event.stopPropagation();
-    const alert = await this.alertController.create({
+    const confirmed = await this.alertService.confirm({
       header: 'Confirmation',
       message: `Voulez-vous confirmer l'ordre ${demande.id} ?`,
-      cssClass: 'custom-alert',
-      buttons: [
-        { 
-          text: 'Annuler', 
-          role: 'cancel',
-          cssClass: 'alert-button-cancel'
-        },
-        {
-          text: 'Confirmer',
-          cssClass: 'alert-button-confirm',
-          handler: () => {
-            this.demandeService.confirmerDemande(demande.id!).subscribe({
-              next: () => {
-                this.showToast('Ordre confirmé avec succès', 'success');
-                this.currentPage = 0;
-                this.loadDemandes();
-              },
-              error: () => this.showToast('Erreur lors de la confirmation', 'danger')
-            });
-          }
-        }
-      ]
+      confirmText: 'Confirmer',
     });
-    await alert.present();
+    if (!confirmed) {
+      return;
+    }
+    this.demandeService.confirmerDemande(demande.id!).subscribe({
+      next: () => {
+        this.showToast('Ordre confirmé avec succès', 'success');
+        this.currentPage = 0;
+        this.loadDemandes();
+      },
+      error: () => this.showToast('Erreur lors de la confirmation', 'danger'),
+    });
   }
 
   async deleteDemande(demande: Demande, event: Event) {
     event.stopPropagation();
-    const alert = await this.alertController.create({
+    const confirmed = await this.alertService.confirm({
       header: 'Suppression',
       message: `Voulez-vous supprimer l'ordre ${demande.id} ?`,
-      cssClass: 'custom-alert',
-      buttons: [
-        { 
-          text: 'Annuler', 
-          role: 'cancel',
-          cssClass: 'alert-button-cancel'
-        },
-        {
-          text: 'Supprimer',
-          role: 'destructive',
-          cssClass: 'alert-button-confirm', // uses confirm style but red text handled by role in SCSS
-          handler: () => {
-            this.demandeService.deleteDemande(demande.id!).subscribe({
-              next: () => {
-                this.showToast('Ordre supprimé avec succès', 'success');
-                this.currentPage = 0;
-                this.loadDemandes();
-              },
-              error: () => this.showToast('Erreur lors de la suppression', 'danger')
-            });
-          }
-        }
-      ]
+      confirmText: 'Supprimer',
+      destructive: true,
     });
-    await alert.present();
+    if (!confirmed) {
+      return;
+    }
+    this.demandeService.deleteDemande(demande.id!).subscribe({
+      next: () => {
+        this.showToast('Ordre supprimé avec succès', 'success');
+        this.currentPage = 0;
+        this.loadDemandes();
+      },
+      error: () => this.showToast('Erreur lors de la suppression', 'danger'),
+    });
   }
 
   duplicateDemande(demande: Demande, event: Event) {
@@ -467,14 +446,10 @@ export class ListPage implements OnInit {
   }
 
   private async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      color: color,
-      position: 'bottom',
-      cssClass: 'premium-toast'
-    });
-    await toast.present();
+    await this.toastService.show(
+      message,
+      color as 'success' | 'danger' | 'warning' | 'error' | 'info'
+    );
   }
 }
 

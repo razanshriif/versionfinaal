@@ -12,9 +12,9 @@ import {
   IonButtons,
   IonIcon,
   IonSpinner,
-  AlertController,
   LoadingController
 } from '@ionic/angular/standalone';
+import { AlertService } from '../../services/alert.service';
 import { NavController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -66,7 +66,7 @@ export class ProfilePage implements OnInit {
     private authService: AuthService,
     public router: Router,
     private toastService: ToastService,
-    private alertController: AlertController,
+    private alertService: AlertService,
     private loadingController: LoadingController,
     public navCtrl: NavController,
     private http: HttpClient
@@ -153,27 +153,16 @@ export class ProfilePage implements OnInit {
   }
 
   async logout() {
-    const alert = await this.alertController.create({
+    const confirmed = await this.alertService.confirm({
       header: 'Déconnexion',
       message: 'Voulez-vous vraiment vous déconnecter ?',
-      cssClass: 'custom-alert',
-      buttons: [
-        { 
-          text: 'Annuler', 
-          role: 'cancel',
-          cssClass: 'alert-button-cancel'
-        },
-        {
-          text: 'Déconnexion',
-          cssClass: 'alert-button-confirm',
-          handler: () => {
-            this.authService.logout();
-            this.router.navigate(['/login']);
-          }
-        }
-      ]
+      confirmText: 'Déconnexion',
     });
-    await alert.present();
+    if (!confirmed) {
+      return;
+    }
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   getUserInitials(): string {

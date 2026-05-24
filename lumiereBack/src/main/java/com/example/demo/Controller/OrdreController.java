@@ -108,8 +108,12 @@ public class OrdreController {
 
 	// ✅ PUT confirmer un ordre (ancienne URL — conservée pour compatibilité web)
 	@PutMapping("/confirmer/{id}")
-	public void confirmerOrdreOldUrl(@PathVariable(value = "id") Long id) {
-		this.ordreService.confirmer(id);
+	public ResponseEntity<Void> confirmerOrdreOldUrl(@PathVariable(value = "id") Long id) {
+		try {
+			this.ordreService.confirmer(id);
+		} catch (IllegalStateException e) {
+			return ResponseEntity.badRequest().build();
+		}
 		Optional<Ordre> ordre = ordreService.findById(id);
 		ordre.ifPresent(o -> {
 			try {
@@ -118,12 +122,17 @@ public class OrdreController {
 				// Exception gérée silencieusement
 			}
 		});
+		return ResponseEntity.ok().build();
 	}
 
 	// ✅ PUT confirmer un ordre (nouvelle URL — pour le mobile)
 	@PutMapping("/{id}/confirmer")
 	public ResponseEntity<Ordre> confirmerOrdre(@PathVariable(value = "id") Long id) {
-		this.ordreService.confirmer(id);
+		try {
+			this.ordreService.confirmer(id);
+		} catch (IllegalStateException e) {
+			return ResponseEntity.badRequest().build();
+		}
 		Optional<Ordre> ordre = ordreService.findById(id);
 		ordre.ifPresent(o -> {
 			try {

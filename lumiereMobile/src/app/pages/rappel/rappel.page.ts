@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import {
     IonContent, IonHeader, IonButtons,
     IonIcon, IonFab, IonFabButton, IonModal, IonDatetime, IonButton,
-    AlertController, IonTitle, IonToolbar, IonCheckbox,
+    IonTitle, IonToolbar, IonCheckbox,
     IonSegment, IonSegmentButton, IonLabel, IonFooter, IonSpinner
 } from '@ionic/angular/standalone';
 import { NavController } from '@ionic/angular';
+import { AlertService } from '../../services/alert.service';
 import { addIcons } from 'ionicons';
 import {
     addOutline, alarmOutline, trashOutline, checkmarkCircle, createOutline,
@@ -69,7 +70,7 @@ export class RappelPage implements OnInit {
     monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
     constructor(
-        private alertCtrl: AlertController,
+        private alertService: AlertService,
         public navCtrl: NavController
     ) {
         addIcons({
@@ -280,21 +281,16 @@ export class RappelPage implements OnInit {
 
     async deleteRappel(r: Rappel, event?: Event) {
         if (event) event.stopPropagation();
-        const alert = await this.alertCtrl.create({
-            header: 'Supprimer',
+        const confirmed = await this.alertService.confirm({
+            header: 'Supprimer le rappel',
             message: `Supprimer « ${r.titre} » ?`,
-            buttons: [
-                { text: 'Annuler', role: 'cancel' },
-                {
-                    text: 'Supprimer', role: 'destructive',
-                    handler: () => {
-                        this.rappels = this.rappels.filter(x => x.id !== r.id);
-                        this.save();
-                    }
-                }
-            ]
+            confirmText: 'Supprimer',
+            destructive: true,
         });
-        await alert.present();
+        if (confirmed) {
+            this.rappels = this.rappels.filter(x => x.id !== r.id);
+            this.save();
+        }
     }
 
     toggleFait(r: Rappel, event?: Event) {

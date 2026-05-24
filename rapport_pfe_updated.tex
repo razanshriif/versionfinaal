@@ -280,7 +280,7 @@ Lorsqu'un chauffeur effectue une action (départ, chargement, livraison), Mobili
 L'authentification repose sur le standard \textbf{JWT} : après validation des identifiants, le backend génère un token signé valable 24 heures, transmis à chaque requête via l'en-tête HTTP. OTFLOW implémente un \textbf{contrôle d'accès granulaire par permissions} sur les modules Clients, Articles, Ordres, Dashboard et Utilisateurs. Le menu de navigation s'adapte dynamiquement selon les droits de l'utilisateur connecté.
 
 \subsection{Isolation des données et sécurité mobile}
-Un filtrage côté serveur garantit qu'un client ne voit que ses propres données. Sur mobile, un interceptor Angular injecte le token JWT dans chaque requête, et un \texttt{AuthGuard} protège toutes les routes sensibles. Le flux d'inscription inclut une validation administrative : le compte est placé en \texttt{PENDING} jusqu'à activation via un lien sécurisé \textbf{OneLink} envoyé par email. Toutes les communications s'effectuent en HTTP.
+Un filtrage côté serveur garantit qu'un client ne voit que ses propres données. Sur mobile, un interceptor Angular injecte le token JWT dans chaque requête, et un \texttt{AuthGuard} protège toutes les routes sensibles. Le flux d'inscription inclut une validation administrative : le compte est placé en \texttt{PENDING} jusqu'à activation directe par l'administrateur, notifiée par email. Toutes les communications s'effectuent en HTTP.
 
 \section{Solution proposée}
 OTFLOW offre : la soumission et le suivi des demandes, la visualisation cartographique Leaflet/OpenStreetMap, les notifications push et email, un chatbot IA (Llama 3 via API Groq) et un contrôle d'accès sécurisé JWT. La stack repose sur Spring Boot (backend), Angular (web), Ionic (mobile) et MySQL (données).
@@ -626,7 +626,7 @@ L'utilisateur saisit son email et son mot de passe. Le système envoie une requ�
 \end{figure}
 
 \subsection{Créer un compte et activer}
-Le client saisit ses informations sur le formulaire d'inscription. Le backend enregistre le compte en statut \texttt{PENDING}. L'administrateur valide le dossier, déclenchant l'envoi d'un email contenant un lien OneLink unique. Le clic sur ce lien active le compte et donne accès à la plateforme.
+Le client saisit ses informations sur le formulaire d'inscription. Le backend enregistre le compte en statut \texttt{PENDING}. L'administrateur valide la demande depuis son interface, ce qui active le compte et déclenche l'envoi d'un email de confirmation. L'utilisateur peut alors se connecter.
 
 \begin{figure}[H]
 \centering

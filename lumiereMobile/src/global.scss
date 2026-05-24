@@ -674,57 +674,135 @@ ion-tab-button {
 }
 
 // ══════════════════════════════════════════
-// TOAST
+// TOAST — OTFLOW branded (all pages)
 // ══════════════════════════════════════════
-.custom-toast {
+ion-toast,
+.custom-toast,
+.otflow-toast {
     --background: #ffffff;
     --color: var(--text-main);
-    --border-radius: 20px;
-    --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    --button-color: var(--orange);
-    font-weight: 700;
-    margin: 16px;
+    --border-radius: 18px;
+    --box-shadow: 0 12px 32px rgba(24, 23, 15, 0.14);
+    --button-color: var(--text-sub);
+    font-weight: 600;
+    margin-top: calc(env(safe-area-inset-top, 0px) + 8px);
+    margin-left: 16px;
+    margin-right: 16px;
     width: calc(100% - 32px);
+    max-width: 480px;
 
     &::part(container) {
-        border: 1.5px solid var(--border-card);
-        padding: 8px 12px;
+        border: 1px solid var(--border-card);
+        padding: 12px 14px;
+        align-items: center;
+    }
+
+    &::part(icon) {
+        font-size: 22px;
+        margin-inline-end: 10px;
+        color: var(--orange);
     }
 
     &::part(message) {
         font-size: 14px;
+        font-weight: 600;
+        line-height: 1.4;
+        padding: 0;
     }
 
     &::part(button) {
-        font-weight: 800;
-        text-transform: uppercase;
-        font-size: 11px;
-        letter-spacing: 0.5px;
+        font-size: 18px;
+        opacity: 0.55;
+        margin-inline-start: 4px;
     }
 
     &.toast-success {
-        --background: #FFF4ED;
-        --color: var(--orange);
+        --background: #ffffff;
 
         &::part(container) {
-            border-color: rgba(255, 135, 50, 0.4);
+            border-left: 4px solid var(--orange);
+            background: linear-gradient(90deg, #fff7f0 0%, #ffffff 28%);
+        }
+
+        &::part(icon) {
+            color: var(--orange);
+        }
+
+        &::part(message) {
+            color: var(--text-main);
         }
     }
 
     &.toast-error {
-        --background: #fef2f2;
-        --color: #B91C1C;
+        --background: #ffffff;
 
         &::part(container) {
-            border-color: rgba(185, 28, 28, 0.2);
+            border-left: 4px solid #dc2626;
+            background: linear-gradient(90deg, #fef2f2 0%, #ffffff 28%);
+        }
+
+        &::part(icon) {
+            color: #dc2626;
+        }
+
+        &::part(message) {
+            color: #991b1b;
         }
     }
+
+    &.toast-warning {
+        --background: #ffffff;
+
+        &::part(container) {
+            border-left: 4px solid #d97706;
+            background: linear-gradient(90deg, #fffbeb 0%, #ffffff 28%);
+        }
+
+        &::part(icon) {
+            color: #d97706;
+        }
+
+        &::part(message) {
+            color: #92400e;
+        }
+    }
+
+    &.toast-info {
+        --background: #ffffff;
+
+        &::part(container) {
+            border-left: 4px solid #64748b;
+            background: linear-gradient(90deg, #f8fafc 0%, #ffffff 28%);
+        }
+
+        &::part(icon) {
+            color: #64748b;
+        }
+    }
+}
+
+// Legacy Ionic color toasts (pages not yet on ToastService)
+ion-toast.ion-color-success {
+    --background: #ffffff;
+    --color: var(--text-main);
+}
+
+ion-toast.ion-color-danger {
+    --background: #ffffff;
+    --color: #991b1b;
+}
+
+ion-toast.ion-color-warning {
+    --background: #ffffff;
+    --color: #92400e;
 }
 
 // ══════════════════════════════════════════
 // ALERTS (ion-alert)
 // ══════════════════════════════════════════
-.custom-alert {
+ion-alert,
+.custom-alert,
+.otflow-alert {
     --background: #ffffff;
     --backdrop-opacity: 0.4;
     
@@ -792,8 +870,120 @@ ion-tab-button {
             }
         }
 
+        &.alert-button-destructive,
         &.alert-button-role-destructive {
-            color: #ef4444;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid rgba(220, 38, 38, 0.25);
+
+            &.activated {
+                background: #fee2e2;
+            }
+        }
+    }
+}
+
+// Draft resume — full-width stacked actions, accent header
+ion-alert.otflow-draft-alert {
+    --backdrop-opacity: 0.52;
+    --max-width: min(340px, calc(100vw - 40px));
+
+    &::part(backdrop) {
+        backdrop-filter: blur(4px);
+    }
+
+    &::part(container) {
+        border-radius: 24px;
+        padding: 0;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 24px 48px rgba(24, 23, 15, 0.22);
+    }
+
+    &::part(header) {
+        padding: 22px 24px 0;
+        text-align: center;
+    }
+
+    &::part(title) {
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.3;
+    }
+
+    &::part(sub-title) {
+        color: var(--orange);
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 8px;
+        letter-spacing: 0.02em;
+    }
+
+    &::part(message) {
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.55;
+        padding: 12px 24px 20px;
+        color: var(--text-sub);
+    }
+
+    &::part(button-group) {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 4px 20px 22px;
+        gap: 12px;
+        border-top: none;
+    }
+
+    .alert-button-group {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 12px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    button.alert-button {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        min-height: 44px !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 11px 18px !important;
+        border-radius: 12px !important;
+        font-size: 15px !important;
+        letter-spacing: 0;
+        text-transform: none;
+
+        .alert-button-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: unset;
+            padding: 0 !important;
+            line-height: 1.25;
+        }
+
+        &.alert-button-cancel {
+            order: 1;
+            background: #f3f4f6 !important;
+            border: 1px solid var(--border-card) !important;
+            color: var(--text-sub) !important;
+            font-weight: 600 !important;
+            box-shadow: none !important;
+        }
+
+        &.alert-button-confirm {
+            order: 2;
+            background: var(--orange) !important;
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.28) !important;
+            font-weight: 700 !important;
         }
     }
 }

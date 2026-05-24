@@ -1,0 +1,49 @@
+<div
+  class="draft-sheet-backdrop"
+  *ngIf="isOpen"
+  (click)="onBackdropClick()"
+  role="presentation"
+  aria-hidden="false">
+  <div
+    class="draft-sheet"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-labelledby="draft-sheet-title"
+    aria-modal="true">
+    <button type="button" class="draft-sheet__close" (click)="onClose()" aria-label="Fermer">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+    <div class="draft-sheet__hero">
+      <div class="draft-sheet__icon-wrap">
+        <ion-icon name="document-text-outline"></ion-icon>
+      </div>
+      <span class="draft-sheet__badge">Brouillon</span>
+    </div>
+
+    <h2 id="draft-sheet-title" class="draft-sheet__title">Reprendre votre commande ?</h2>
+    <p class="draft-sheet__message">{{ message }}</p>
+
+    <div class="draft-sheet__preview" *ngIf="draft">
+      <div class="draft-sheet__preview-row">
+        <span class="draft-sheet__ref">{{ reference }}</span>
+        <span class="draft-sheet__date" *ngIf="savedDateLabel">{{ savedDateLabel }}</span>
+      </div>
+      <p class="draft-sheet__client">{{ clientLabel }}</p>
+      <p class="draft-sheet__route">
+        <ion-icon name="location-outline"></ion-icon>
+        <span>{{ routeLabel }}</span>
+      </p>
+    </div>
+
+    <div class="draft-sheet__actions">
+      <button type="button" class="draft-sheet__btn draft-sheet__btn--primary" (click)="onContinue()">
+        <span>Continuer la saisie</span>
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+      </button>
+      <button type="button" class="draft-sheet__btn draft-sheet__btn--ghost" (click)="onIgnore()">
+        Plus tard
+      </button>
+    </div>
+  </div>
+</div>

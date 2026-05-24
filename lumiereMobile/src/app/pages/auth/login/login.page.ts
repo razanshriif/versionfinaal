@@ -9,10 +9,11 @@ import {
   IonIcon,
   IonSpinner,
   LoadingController,
-  ToastController
 } from '@ionic/angular/standalone';
 import { AuthService } from '../../../services/auth.service';
 import { NotificationService } from '../../../services/notification.service';
+import { DraftOrdreService } from '../../../services/draft-ordre.service';
+import { ToastService } from '../../../services/toast.service';
 import { addIcons } from 'ionicons';
 import {
   mailOutline,
@@ -51,9 +52,10 @@ export class LoginPage implements OnInit {
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private draftOrdreService: DraftOrdreService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastService: ToastService
   ) {
     // Enregistrer toutes les icônes
     addIcons({ mailOutline, lockClosedOutline, eyeOutline, eyeOffOutline, logInOutline, personAddOutline, business: businessOutline });
@@ -88,7 +90,8 @@ export class LoginPage implements OnInit {
 
           // Set flag for home page to show welcome toast
           sessionStorage.setItem('login_success', 'true');
-          
+          this.draftOrdreService.markCheckDraftOnNextHome();
+
           // Initialiser les notifications après login
           this.notificationService.initAfterLogin();
 
@@ -151,13 +154,10 @@ export class LoginPage implements OnInit {
 
   // Show toast
   async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
+    await this.toastService.show(
       message,
-      duration: 3000,
-      color,
-      position: 'top'
-    });
-    toast.present();
+      color as 'success' | 'danger' | 'warning' | 'error' | 'info'
+    );
   }
   testBackend() {
     const payload = {

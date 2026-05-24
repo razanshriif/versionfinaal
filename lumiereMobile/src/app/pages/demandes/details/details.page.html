@@ -227,5 +227,56 @@
   </div>
 </ion-content>
 
+<div class="pdf-generate-overlay" *ngIf="isPdfGenerating" role="status" aria-live="polite">
+  <div class="pdf-generate-card">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Génération de l'aperçu…</p>
+  </div>
+</div>
 
+<div class="pdf-preview-backdrop" *ngIf="isPdfPreviewOpen" (click)="closePdfPreview()">
+  <div class="pdf-preview-sheet" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="pdf-preview-title">
+    <div class="modal-handle"></div>
+
+    <div class="lum-sub-bar pdf-preview-sub-bar">
+      <h1 id="pdf-preview-title" class="lum-page-title">Aperçu du document</h1>
+      <button type="button" class="lum-icon-btn" (click)="closePdfPreview()" aria-label="Fermer">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="pdf-preview-body">
+      <p class="pdf-preview-hint" *ngIf="ordre">
+        <span class="pdf-preview-hint-label">Ordre N° {{ ordre.id }}</span>
+        Vérifiez le document avant de le télécharger.
+      </p>
+
+      <div class="pdf-preview-viewport">
+        <div class="pdf-preview-error" *ngIf="pdfPreviewError" role="alert">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <p>{{ pdfPreviewError }}</p>
+        </div>
+
+        <div class="pdf-preview-image-wrap" *ngIf="pdfPreviewSafeUrl && !pdfPreviewError">
+          <img [src]="pdfPreviewSafeUrl" alt="Aperçu du document PDF" />
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-preview-footer">
+      <ion-button expand="block" fill="clear" class="pdf-preview-btn-secondary" (click)="closePdfPreview()">
+        Fermer
+      </ion-button>
+      <ion-button
+        type="button"
+        expand="block"
+        class="premium-button shadow-primary"
+        (click)="downloadPdf()"
+        [disabled]="!canDownloadPdf">
+        <ion-icon name="download-outline" slot="start"></ion-icon>
+        Télécharger le PDF
+      </ion-button>
+    </div>
+  </div>
+</div>
 

@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonButton, IonIcon,
   IonContent, IonLabel, IonInput, IonTextarea,
-  IonSelect, IonSelectOption, IonCheckbox, ToastController
+  IonSelect, IonSelectOption, IonCheckbox
 } from '@ionic/angular/standalone';
 import { NavController } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { ClientService } from '../../../services/client.service';
 import { Client } from '../../../models/client.model';
+import { ToastService } from '../../../services/toast.service';
 import { addIcons } from 'ionicons';
 import { saveOutline, arrowBackOutline, notificationsOutline, logOutOutline } from 'ionicons/icons';
 
@@ -58,7 +59,7 @@ export class ClientForm implements OnInit {
     private clientService: ClientService,
     private route: ActivatedRoute,
     public navCtrl: NavController,
-    private toastController: ToastController
+    private toastService: ToastService
   ) {
     addIcons({ saveOutline, arrowBackOutline, notificationsOutline, logOutOutline });
   }
@@ -116,13 +117,7 @@ export class ClientForm implements OnInit {
   }
 
   private async showToast(message: string, color: 'success' | 'danger' | 'warning') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2000,
-      color,
-      position: 'bottom'
-    });
-    toast.present();
+    await this.toastService.show(message, color);
   }
 }
 
